@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es-mx">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIGP - INICIO</title>
+    <link rel="stylesheet" href="frontend/styles/output.css">
+</head>
+<body class="bg-slate-950 flex flex-col min-h-screen">
+    <div id="header-container"></div>
+    <main class="w-full h-auto py-10 flex-1">
+        <div class="w-full h-full flex flex-col items-center justify-center">
+            <div class="w-4/5 h-full flex flex-col items-center justify-center">
+                <iframe class="rounded-2xl" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d118281.86783194341!2d-101.03686164403473!3d22.114215375495306!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x842aa20005acfb79%3A0xed2ee29afe18257!2sSan%20Luis%20Potos%C3%AD%2C%20S.L.P.!5e0!3m2!1ses!2smx!4v1764196955925!5m2!1ses!2smx" width="1000" height="600" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+    </main>
+    <div id="footer-container"></div>
+
+    <dialog id="modal-login" class="bg-transparent border-0 p-0 m-0 max-w-none max-h-none">
+        <div class="w-[750px] bg-linear-180 from-slate-800/80 to-slate-800 backdrop-blur-xs rounded-2xl border-2 border-slate-600 flex flex-col items-center justify-center overflow-auto">
+            <div class="w-full h-auto flex items-center justify-end">
+                <button class="pt-2 pr-2 text-white hover:text-blue-300 transition-all duration-300 hover:cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-10">
+                        <path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+            <div class="w-4/5 h-auto flex flex-1 flex-col items-center justify-center gap-4">
+                <h2 class="text-4xl font-spectral text-center text-white">¡Bienvenido!</h2>
+                <span class="text-red-500 text-sm font-bold">¡Uy!, usuario o contraseña incorrectos</span>
+            </div>
+            <div class="w-4/5 h-auto flex flex-1 flex-col items-center justify-center text-blue-100">
+                <form action="" class="w-full h-auto flex flex-col items-center justify-center gap-4">
+                    <div class="w-full h-auto flex flex-col items-start justify-center">
+                        <label for="email" class="w-full text-left">Email:</label>
+                        <input type="email" id="email" name="email" class="w-full h-[50px] rounded-lg bg-white text-slate-950 py-4 px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300" placeholder="Ingrese su email">
+                        <span class="text-red-500 text-sm font-bold">El email es requerido</span>
+                    </div>
+                    <div class="w-full h-auto flex flex-col items-start justify-center">
+                        <label for="password" class="w-full text-left">Contraseña:</label>
+                        <input type="password" id="password" name="password" class="w-full h-[50px] rounded-lg bg-white text-slate-950 py-4 px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300" placeholder="Ingrese su contraseña">
+                        <span class="text-red-500 text-sm font-bold">La contraseña es requerida</span>
+                    </div>
+                </form>
+            </div>
+            <div class="w-4/5 h-auto flex flex-1 flex-col items-center justify-center">
+                <button type="submit" form="modal-login" class="w-full h-[50px] rounded-lg bg-blue-400 text-white text-lg font-medium flex items-center justify-center hover:bg-blue-600 transition-all duration-150 hover:cursor-pointer">Iniciar Sesión</button>
+            </div>
+        </div>
+    </dialog>
+
+    <script src="frontend/javascript/app.js"></script>
+    <script src="frontend/javascript/modals.js"></script>
+</body>
+</html>

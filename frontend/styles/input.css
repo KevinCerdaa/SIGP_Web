@@ -37,9 +37,41 @@ body.modal-open {
     height: 100%;
 }
 
+/* Bloquear scroll del body cuando el sidebar está abierto */
+body.sidebar-open {
+    overflow: hidden;
+}
+
 #modal-login > div {
     width: min(750px, calc(100vw - 2rem));
     height: min(750px, calc(100vh - 2rem));
+    max-width: calc(100vw - 2rem);
+    max-height: calc(100vh - 2rem);
+    overflow: auto;
+    box-sizing: border-box;
+}
+
+/* Estilos para el modal de logout */
+#modal-logout[open] {
+    padding: 1rem;
+    margin: auto;
+    border: none;
+    max-width: calc(100vw - 2rem);
+    max-height: calc(100vh - 2rem);
+    width: auto;
+    height: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#modal-logout::backdrop {
+    background-color: rgba(15, 23, 42, 0.5);
+}
+
+#modal-logout > div {
+    width: min(750px, calc(100vw - 2rem));
+    height: auto;
     max-width: calc(100vw - 2rem);
     max-height: calc(100vh - 2rem);
     overflow: auto;

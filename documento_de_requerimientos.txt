@@ -1,0 +1,732 @@
+Documento de requerimientos
+Sistema de Identificación de Grupos Pandilleriles (SIGP)
+Kevin Francisco Cerda Esparza
+Eric Yael Hernández Hernández
+Fernando Jesús Sanches Flores
+T15D
+Rafael Llamas Contreras
+CNO II Programación Web II
+03/11/2025
+1
+Índice
+Introducción..................................................................................................................... 2
+Objetivo ........................................................................................................................... 2
+Alcance............................................................................................................................ 3
+Roles............................................................................................................................ 3
+Funcionalidades principales......................................................................................... 3
+Descripción general del sistema...................................................................................... 4
+Arquitectura general..................................................................................................... 4
+Frontend................................................................................................................... 4
+Backend ................................................................................................................... 4
+Capa de datos .......................................................................................................... 4
+Capa de integración ................................................................................................. 4
+Módulos.................................................................................................................... 5
+Diseño preliminar de la base de datos ............................................................................ 5
+Requerimientos funcionales ............................................................................................ 7
+2
+Introducción
+El proyecto consiste en desarrollar un sistema web para identificar, registrar y
+analizar pandillas activas en la ciudad de San Luis Potosí. Esta plataforma busca ser una
+herramienta efectiva para apoyar tanto a autoridades como a consultores y ciudadanos
+en la detección y seguimiento de grupos pandilleriles mediante el registro estructurado
+de información, geolocalización y análisis de actividades.
+El sistema permitirá visualizar la ubicación geográfica de las pandillas mediante
+longitud y latitud, así como consultar mediante su nivel de peligrosidad, los delitos o faltas
+asociadas y sus antecedentes.
+Además, contará con la capacidad de generar reportes detallados que faciliten la
+toma de decisiones y el diseño de estrategias de prevención.
+La plataforma contará con un esquema de roles diferenciados para controlar el
+nivel de acceso y las funcionalidades. Dichos roles serán: Administrador, Consultor y
+Ciudadano, cada uno con permisos específicos según sus responsabilidades dentro del
+sistema.
+Este sistema se desarrollará como una aplicación web moderna, adaptable a
+diferentes dispositivos, y se integrará con servicios externos como Google Maps y
+Telegram para mejorar la accesibilidad de la información.
+Objetivo
+Establecer explícitamente los requerimientos funcionales y no funcionales para el
+desarrollo del sistema, definiendo el alcance, limitaciones y características esenciales
+para su construcción.
+El objetivo principal de este documento servirá como una guía detallada para los
+alumnos desarrolladores y el docente evaluador, asegurando que todos los aspectos del
+sistema estarán estrictamente detallados para su fácil entendimiento, desarrollo y
+evaluación.
+3
+Alcance
+El sistema permitirá registrar y consultar información de pandillas e integrantes
+activos en San Luis Potosí, así como mostrar datos mediante mapas de Google Maps,
+facilitar la generación de reportes detallados (delitos, faltas, peligrosidad, riñas, etc.), y
+ofrecer consultas rápidas y accesibles mediante un bot de Telegram.
+El sistema estará basado en un esquema de roles con diferentes niveles de acceso
+y permisos sobre la plataforma y sus datos.
+Roles
+• Administrador: Registro, edición y eliminación de datos; generación de reportes;
+acceso total mediante autenticación de login.
+• Consultor: Consultas de datos, generación de reportes, cambio de contraseña y
+vista general de datos; acceso mediante login.
+• Ciudadano: Consulta pública de datos limitados, visualización de pandillas por
+zona y nivel de peligrosidad sin necesidad de registro.
+Funcionalidades principales
+• Registrar pandillas e integrantes con sus datos generales, delitos y faltas
+asociadas.
+• Consultar información mediante filtrado de datos, búsqueda y mapas interactivos.
+• Generar reportes descargables en formato PDF.
+• Conexión con Google Maps para la consulta mediante ubicación (latitud y longitud)
+y zonas de riesgo.
+• Integración con un bot de Telegram desarrollado mediante BotFather y Python para
+consultas rápidas.
+• Desplegarse como una aplicación web responsiva usando Django y MySQL.
+4
+Descripción general del sistema
+El sistema se desarrollará como una aplicación web bajo un sistema de capas
+frontend, backend, una capa de datos y una capa de integración con servicios externos.
+Arquitectura general
+Frontend
+La capa de presentación estará construida utilizando HTML, Tailwind CSS y
+JavaScript, garantizando una interfaz moderna, intuitiva, responsiva y dinámica. Desde
+esta capa, los usuarios podrán interactuar con el sistema a través de formularios, mapas
+interactivos y menús de navegación adaptados a cada tipo de rol.
+Backend
+Será desarrollado con Python y su framework Django, encargado del
+procesamiento de la información, la validación de datos, la autenticación de usuarios, la
+gestión de roles, la generación de reportes y la comunicación con la base de datos.
+Capa de datos
+Se utilizará MySQL como sistema de gestión de base de datos relacional, donde
+se almacenarán de forma estructurada la información de las pandillas, sus integrantes,
+delitos y todo lo relacionado a ellas y a los distintos eventos, así como también los
+usuarios del sistema.
+Capa de integración
+En la cual se incorporará la API de Google Maps, que permitirá representar
+gráficamente las ubicaciones de las pandillas, sus zonas de actividad y niveles de
+peligrosidad mediante marcadores interactivos. Asimismo, se desarrollará un bot de
+Telegram usando el API de Telegram Bot y Python, que permitirá a los usuarios realizar
+consultas rápidas sobre pandillas, zonas o niveles de riesgo, sin necesidad de acceder
+directamente al sitio web.
+5
+Módulos
+El sistema contará con distintos módulos funcionales:
+• Módulo de registro y gestión de datos: Permitirá crear, editar y eliminar
+información de pandillas e integrantes. Solo disponible para Administradores.
+• Módulo de consulta geográfica: Desplegará información sobre zonas de riesgo
+y ubicaciones en el mapa mediante pines filtrables.
+• Módulo de reportes: Generará informes estructurados mediante JavaScript en
+formato PDF sobre delitos, faltas, peligrosidad y eventos registrados.
+• Módulo de seguridad: Gestionará el acceso mediante roles aplicando
+autenticación y cifrado de contraseñas.
+• Módulo de integración externa: Conectará el sistema con Google Maps,
+Telegram y otros servicios web necesarios.
+Finalmente, el sistema será desplegado en un entorno web accesible desde
+cualquier navegador moderno y dispositivos móviles, garantizando disponibilidad
+continua, compatibilidad multiplataforma y un desempeño óptimo en consultas y
+generación de reportes.
+Diseño preliminar de la base de datos
+La base de datos implementada con MySQL almacenará toda la información
+relativa a grupos pandilleros, sus integrantes, ubicaciones, delitos, faltas y usuarios del
+sistema. Su objetivo es proporcionar una estructura ordenada y clara para facilitar su uso
+tanto en el desarrollo como para los usuarios finales de la plataforma.
+Tabla Descripción Campos principales
+usuarios Almacena la información de
+acceso de cada tipo de
+usuario del sistema, siendo o
+Administrador o Consultor.
+id_usuario, nombre, apellido,
+correo, password, rol
+6
+pandillas Contiene los datos generales
+de cada grupo pandilleril
+id_pandilla, nombre,
+descripcion, lider,
+numero_integrantes,
+edades_aproximadas,
+horario_reunion, peligrosidad,
+id_zona, id_direccion
+Integrantes Contiene los datos generales
+de cada integrante
+id_integrante, nombre,
+apellido_paterno,
+apellido_materno, alias,
+fecha_nacimiento, información.
+url_imagen, id_pandilla,
+id_direccion
+rivalidades Almacena pares de pandillas
+que se consideran rivales
+id_rivalidad, id_pandilla,
+id_pandilla_rival
+zonas Catálogo que define las zonas
+de la ciudad (norte, sur,
+oriente, poniente, centro)
+id_zona, nombre
+direcciones Guarda las ubicaciones
+físicas (calle, número, colonia,
+CP, lat, lon) usadas por
+pandillas e integrantes
+id_direccion, calle, numero,
+colonia, codigo_postal, latitud,
+longitud
+delitos Catálogo de tipos de delitos
+que pueden asociarse a
+pandillas o integrantes
+id_delito, nombre
+faltas Catálogo de tipos de faltas
+administrativas asociables a
+pandillas o integrantes
+id_falta, nombre
+redes_sociales Catálogo de perfiles en redes
+sociales (plataforma y
+usuario/URL)
+id_red_social, plataforma,
+handle, url
+redes_pandillas Vincula pandillas con uno o
+varios perfiles en redes
+sociales
+id_pandilla, id_red_social
+7
+redes_integrantes Vincula integrantes con uno o
+varios perfiles en redes
+sociales
+id_integrante, id_red_social
+pandillas_delitos Relaciona pandillas con los
+delitos que se les atribuyen
+id_pandilla, id_delito
+integrantes_delitos Relaciona integrantes con los
+delitos que hayan cometido
+id_integrante, id_delito
+pandillas_faltas Relaciona pandillas con las
+faltas que se les atribuyen
+id_pandilla, id_falta
+integrantes_faltas Relaciona integrantes con
+faltas cometidas
+id_integrante, id_falta
+eventos Registra hechos ocurridos
+(riñas/delitos/faltas) con
+fecha, hora, descripción y
+ubicación, asociando a
+pandillas o integrantes
+involucrados
+id_evento, tipo, id_delito,
+id_falta, fecha, hora,
+descripcion, id_integrante,
+id_pandilla, id_direccion
+Requerimientos funcionales
+ID
+Nombre del
+requerimiento
+Descripción Actor
+RF-01
+Mapa público
+interactivo de
+San Luis Potosí
+Comportamiento general:
+• Al entrar al sistema se muestra
+un mapa interactivo de la
+ciudad de San Luis Potosí.
+• El ciudadano solo puede ver el
+mapa y usar sus filtros, no otras
+secciones del sistema.
+Pines en el mapa:
+Todos los roles
+8
+• El mapa solo mostrará pines
+que representan:
+o Pandillas
+o Eventos
+• Cada pin se coloca de acuerdo
+con la dirección en
+coordenadas (latitud y longitud)
+guardada en la base de datos.
+Filtros disponibles en el mapa:
+1. Filtro por zona:
+▪ Selector de zona.
+▪ Al elegir una zona
+(norte, sur, oriente o
+poniente), el mapa
+muestra solo los pines
+correspondientes a esa
+zona.
+2. Filtro por grado de peligrosidad:
+▪ Selector de
+peligrosidad.
+▪ Opciones: baja, media,
+alta (más adelante
+estas opciones se
+conectarán con
+verde/amarillo/rojo).
+▪ Al elegir un nivel, el
+mapa muestra solo los
+pines con ese nivel de
+peligrosidad.
+3. Filtro por delitos:
+▪ Selector de delitos.
+9
+▪ El mapa muestra solo
+los pines de delitos que
+coincidan con los
+criterios.
+Información al hacer clic en un
+pin:
+• Solo muestra el nombre de la
+pandilla que está relacionado al
+dato filtrado en el mapa.
+Mapa de calor:
+• El mapa tendrá un modo
+heatmap.
+• En este modo:
+o No se muestran pines,
+solo una capa de
+colores.
+o Los colores
+representan el nivel de
+peligrosidad por zona:
+• Amarilla→ baja
+• Naranja→ media
+▪ Roja → alta
+• El usuario podrá activar o
+desactivar este modo con un
+botón.
+RF-02
+Header y Footer
+del sistema web
+El sistema contará con una barra
+superior (Header) y un píe de página
+(Footer) visibles en todas las
+pantallas del sitio. El header incluirá
+las siglas del sistema (SIGP) y un
+menú de navegación cuyos botones
+Todos los roles
+10
+varían según el rol del usuario.
+Cuando no haya iniciado sesión se
+mostrará un botón de iniciar sesión.
+Al presionar Iniciar sesión, se
+desplegará un modal centrado (sin
+cambiar de página) que permitirá
+ingresar las credenciales de acceso.
+Tras autenticarse, el menú header se
+actualizará automáticamente
+mostrando las opciones
+correspondientes al rol.
+Contenido del header por rol:
+• Ciudadano: Solo muestra el
+botón de Iniciar sesión.
+• Consultor: Consultas de datos y
+un botón de Cerrar sesión.
+• Administrador: Captura de
+usuarios, captura de pandillas,
+consultas de datos y un botón
+de Cerrar sesión.
+El footer contendrá el nombre
+completo del sistema (Sistema de
+Identificación de Grupos
+Pandilleriles), el texto “© 2025, SIGP
+– Todos los derechos reservados” y
+una sección de ayuda con enlaces a
+Preguntas frecuentes y Solicitud de
+ayuda.
+11
+Tanto el header como el footer
+deberán ser responsivos y accesibles
+desde todas las páginas del sitio.
+RF-03
+Inicio de sesión
+por correo y
+contraseña
+El sistema permitirá el inicio de
+sesión exclusivamente con un rol de
+Consultor y Administrador,
+mediante un formulario mostrado en
+un modal al presionar el botón iniciar
+sesión en el header. Dicho formulario
+solicitará únicamente correo
+electrónico y contraseña.
+Al enviar el formulario, el sistema
+deberá:
+1. Validar que el correo tenga un
+formato correcto y que ambos
+campos hayan sido
+completados.
+2. Buscar en la base de datos un
+registro en la tabla de usuarios
+cuyo campo correo coincida
+con el correo ingresado.
+3. En caso de no encontrar el
+correo, se mostrará un
+mensaje genérico: “Correo o
+contraseña incorrecta”, sin
+indicar si el fallo fue por correo
+o por contraseña.
+4. Si se encuentra el usuario,
+obtener la contraseña
+Administrador
+y Consultor
+12
+almacenada (como hash
+cifrado usando bcrypt) y
+comparar la contraseña
+ingresada con el hash
+mediante el mecanismo de
+verificación correspondiente.
+5. Si la verificación fue exitosa,
+crear una sesión de usuario
+guardando su identificador y
+rol, aplicando un tiempo de
+expiración de 30 minutos de
+inactividad. Posteriormente, el
+sistema actualizará y mostrará
+las funcionalidades
+correspondientes por rol en el
+header en forma de botón.
+6. Si la verificación falla, no se
+iniciará la sesión y se muestra
+el mensaje genérico mostrado
+en el punto 3.
+El acceso del formulario estará
+disponible desde el header como ya
+se mencionó. Los usuarios con rol de
+Ciudadano no requerirán
+autenticación ni contarán con
+credenciales de acceso.
+RF-04
+Módulo de
+consultas y
+generación de
+reportes
+El sistema deberá proporcionar un
+módulo de consultas accesible desde
+el menú principal para usuarios con
+rol de Ciudadano y Administrador.
+Administrador
+y Consultor
+13
+Desde este módulo se podrán
+realizar consultas sobre la
+información registrada en la base de
+datos y, a partir de los resultados
+obtenidos, generar reportes en
+formato PDF.
+Las consultas se deberán poder
+realizar de las siguientes formas:
+1. Consultas por eventos
+▪ El usuario seleccionará
+un periodo de tiempo
+(fecha inicial y fecha
+inicial).
+▪ Se mostrará en una
+tabla todos los eventos
+(riñas, delitos o faltas)
+registrado en ese rango
+de fechas.
+▪ Cada registro deberá
+incluir, al menos: fecha,
+hora, tipo de evento,
+tipo especifico de delito
+o falta, pandilla(s)
+involucrada(s), zona y
+dirección.
+2. Consulta por pandilla
+▪ El usuario dispondrá de
+un campo de búsqueda
+por nombre de la
+14
+pandilla y un botón
+Buscar.
+▪ Al ingresar el nombre
+completo de la pandilla
+y ejecutar la búsqueda,
+el sistema mostrará la
+pandilla o las pandillas
+coincidentes.
+▪ Para cada pandilla
+selecionada, el sistema
+deberá desplegar la
+información principal
+registrada en la tabla
+pandillas mostrada en
+el apartado de Diseño
+preliminar de la base de
+datos; mostrando
+además la lista de sus
+integrantes.
+3. Consulta por integrante
+▪ El usuario contará con
+un campo de búsqueda
+que permitirá buscar
+por nombre o por alias
+del integrante
+▪ Al ejecutar la
+búsqueda, el sistema
+mostrará los
+integrantes que
+coincidan con el
+criterio.
+15
+▪ Para cada integrante,
+se deberá mostrar, al
+menos: nombre
+completo, alias, fecha
+de nacimiento,
+información relevante,
+pandilla a la que
+pertenece, dirección
+asociada y sus delitos y
+faltas registradas.
+4. Consulta general de
+pandillas
+▪ El sistema permitirá
+realizar una consulta
+general que muestre
+todas las pandillas
+registradas en la base
+de datos.
+▪ En esta consulta
+general se mostrarán
+únicamente los datos
+de la tabla pandillas, sin
+listar a los integrantes
+para no sobre cargar la
+vista.
+• Generación de reportes:
+o Después de ejecutar
+cualquiera de las
+consultas anteriores, el
+sistema deberá mostrar
+16
+un botón para generar
+el reporte.
+o Al presionar dicho
+botón, el sistema
+generará un reporte en
+formato PDF que
+contendrá los mismos
+datos mostrados en la
+tabla de resultados,
+respetando los filtros
+aplicados.
+o Antes de la generación
+del PDF, los resultados
+se mostrarán en una
+vista previa en formato
+tabla en el mismo sitio.
+o El PDF deberá incluir
+un encabezado con el
+nombre del tipo de
+consulta, fecha y hora
+de generación, filtros
+utilizados, el cuerpo
+con los registros en
+formato tabular y un
+resumen con eventos o
+pandillas listadas.
+o La generación del PDF
+se realizará mediante
+una librería de
+JavaScript para la
+creación de
+17
+documentos PDF, y el
+archivo será
+descargado por el
+usuario en su
+dispositivo.
+RF-05
+Registro y
+gestión de
+usuarios
+Sistema, deberá permitir al
+administrador registrar y gestionar
+usuarios del sistema mediante un
+formulario de captura accesible
+desde el menú de navegación.
+El formulario de registro de usuarios
+deberá de incluir los siguientes
+campos: nombre, apellido, correo
+electrónico, contraseña, confirmación
+de contraseña, cargo (campo de
+texto libre) y rol (selector con las
+opciones de rol permitidas por el
+sistema).
+Al guardar un nuevo usuario, el
+sistema deberá:
+1. Validar que todos los campos
+obligatorios estén completos.
+2. Verificar que el correo
+electrónico tenga un formato
+válido y que no exista ya
+registrado en la base de
+datos.
+3. Comprobar que la contraseña
+y la confirmación de
+Administrador
+18
+contraseña coincidan y
+cumplan con una longitud
+mínima definida (mínimo 8
+caracteres).
+4. Almacenar la contraseña de
+forma cifrada (mediante hash)
+en la base de datos.
+Además, el módulo deberá permitir al
+Administrador:
+• Consultar la lista de usuarios
+registrados.
+• Editar los datos de un usuario
+(nombre, apellido, correo, cargo
+o rol).
+• Actualizar contraseña de un
+usuario cuando sea necesario.
+No existirá registro público de
+usuarios; únicamente el
+Administrador podrá crear y
+gestionar cuentas de acceso.
+RF-06
+Módulo de
+registro y gestión
+de datos.
+El sistema deberá de contar con un
+módulo de registro y gestión de datos
+accesible únicamente para usuarios
+con rol de administrador y el
+consultor, desde el cual se podrá
+crear, consultar, editar y eliminar
+registros de las distintas entidades
+del sistema.
+Administrador
+y Consultor
+19
+Al ingresar a este módulo, el
+administrador dispondrá de un
+selector de tipo de registro con
+opciones como: pandillas
+integrantes, eventos, delitos, faltas,
+direcciones, rivalidades y redes
+sociales. Al seleccionar un tipo, el
+sistema mostrará el formulario
+correspondiente con los datos
+específicos definidos para cada tabla
+de la base de datos.
+Para el tipo de registro pandillas, el
+formulario deberá permitir capturar al
+menos: Nombre de la pandilla,
+descripción líder, número de
+integrantes, edades aproximadas,
+horarios de reunión, nivel de
+peligrosidad, zona, dirección, redes
+sociales asociadas, delitos
+asociados, faltas asociadas,
+rivalidades con otras pandillas, etc.
+Y así para cada tipo de registro, el
+sistema deberá mostrar formularios
+acordes a la estructura de cada
+tabla, permitiendo capturar sus
+campos principales.
+Para los selectores dependientes
+(por ejemplo, pandillas, direcciones o
+20
+redes sociales) deberán actualizarse
+automáticamente para reflejar los
+registros más recientes almacenados
+en la base de datos, garantizando
+que las nuevas opciones estén
+disponibles en el momento de cargar
+o recargar el formulario
+correspondiente.
+Este módulo deberá permitir también
+la edición y eliminación de registros
+existentes de cada tipo, mostrando
+listas filtrables ordenables para su
+fácil gestión.
+RF-07 Bot de Telegram.
+Se deberá de desarrollar un Bot de
+Telegram que permita realizar
+consultas sobre la información
+registrada en el sistema con acceso
+restringido Únicamente a usuarios
+con el rol de consultor y
+administrador. Los usuarios con rol
+de ciudadano no tendrán acceso a
+este Bot.
+Autenticación en el bot:
+• Para utilizar el bot, el usuario
+deberá autenticarse
+proporcionando su correo
+electrónico y contraseña, los
+mismos que utiliza en el
+sistema web.
+Administrador
+y consultor
+21
+• El bot enviará estos datos al
+servidor, el cual verificará las
+credenciales comparando el
+correo y la contraseña
+ingresados contra los registros
+de la base de datos (utilizando
+la contraseña almacenada
+como hash cifrado).
+• Si las credenciales son válidas,
+el bot asociará el chat de
+Telegram del usuario con su
+cuenta del sistema y permitirá
+realizar consultas mientras la
+sesión esté activa. En caso
+contrario, responderá con el
+mensaje de “Credenciales
+invalidas”.
+Consultas disponibles:
+1. Consulta por pandilla
+▪ El bot deberá permitir
+una consulta de tipo
+pandilla, en la cual el
+usuario podrá indicar el
+nombre de la pandilla.
+▪ El sistema buscará en
+la base de datos la
+pandilla
+correspondiente y el bot
+deberá mostrar, al
+menos:
+22
+i. Nombre de la
+pandilla
+ii. Número
+aproximado de
+integrantes
+iii. Delitos
+asociados
+iv. Faltas cometidas
+v. Lugar de reunión
+principal
+vi. Un enlace de
+Google Maps
+que apunte al
+lugar de reunión
+2. Consulta por integrante
+▪ El bot permitirá una
+consulta por integrante,
+aceptando como criterio
+de búsqueda el nombre
+o el alias.
+▪ Para cada integrante
+encontrado, el bot
+deberá mostrar:
+i. Nombre
+completo
+ii. Alias
+iii. Pandilla a la que
+pertenece
+iv. Delitos
+asociados
+23
+v. Fotografía del
+integrante
+3. La fotografía se obtendrá a
+partir de un campo de tipo
+URL almacenado en la base
+de datos (foto_url). El sistema
+utilizará dicho enlace tanto
+para mostrar la imagen en la
+aplicación web como para
+enviarla a través del bot de
+Telegram, utilizando la
+funcionalidad de envió de
+imágenes por URL
+proporcionada por la API de
+Telegram.

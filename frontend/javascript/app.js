@@ -16,7 +16,17 @@ function getBasePath() {
 async function loadComponent(componentPath, targetElementId) {
     try {
         const basePath = getBasePath();
-        const fullPath = basePath + componentPath;
+        // Ajustar ruta cuando estamos dentro de "frontend/pages"
+        // y se pasa un path que empieza con "frontend/"
+        let adjustedPath = componentPath;
+        if (basePath === '../' && componentPath.startsWith('frontend/')) {
+            // Ejemplo:
+            //  - basePath: '../'
+            //  - componentPath: 'frontend/components/header.html'
+            //  -> '../components/header.html'
+            adjustedPath = componentPath.replace(/^frontend\//, '');
+        }
+        const fullPath = basePath + adjustedPath;
         const response = await fetch(fullPath);
         if (!response.ok) {
             throw new Error(`Error al cargar el componente: ${fullPath} - Status: ${response.status}`);
@@ -177,7 +187,9 @@ function populateSidebar() {
     const rol = getUserRol();
     
     if (isAuth && rol === 'admin') {
-        sidebarItems.appendChild(createSidebarItem('Nuevo usuario', '<path d="M5.25 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM2.25 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM18.75 7.5a.75.75 0 0 0-1.5 0v2.25H15a.75.75 0 0 0 0 1.5h2.25v2.25a.75.75 0 0 0 1.5 0v-2.25H21a.75.75 0 0 0 0-1.5h-2.25V7.5Z" />'));
+        const basePath = getBasePath();
+        const nuevoUsuarioHref = basePath === '' ? 'frontend/pages/registro_usuario.html' : 'registro_usuario.html';
+        sidebarItems.appendChild(createSidebarItem('Nuevo usuario', '<path d="M5.25 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM2.25 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM18.75 7.5a.75.75 0 0 0-1.5 0v2.25H15a.75.75 0 0 0 0 1.5h2.25v2.25a.75.75 0 0 0 1.5 0v-2.25H21a.75.75 0 0 0 0-1.5h-2.25V7.5Z" />', nuevoUsuarioHref));
         sidebarItems.appendChild(createSidebarItem('Nuevo registro', '<path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V9Z" clip-rule="evenodd" />'));
         sidebarItems.appendChild(createSidebarItem('Nueva consulta', '<path fill-rule="evenodd" d="M5.625 1.5H9a3.75 3.75 0 0 1 3.75 3.75v1.875c0 1.036.84 1.875 1.875 1.875H16.5a3.75 3.75 0 0 1 3.75 3.75v7.875c0 1.035-.84 1.875-1.875 1.875H5.625a1.875 1.875 0 0 1-1.875-1.875V3.375c0-1.036.84-1.875 1.875-1.875ZM12.75 12a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V18a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V12Z" clip-rule="evenodd" /><path d="M14.25 5.25a5.23 5.23 0 0 0-1.279-3.434 9.768 9.768 0 0 1 6.963 6.963A5.23 5.23 0 0 0 16.5 7.5h-1.875a.375.375 0 0 1-.375-.375V5.25Z" />'));
         sidebarItems.appendChild(createSidebarItem('Tu cuenta', '<path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" clip-rule="evenodd" />'));
@@ -218,6 +230,10 @@ async function loadHeaderByRole() {
     
     const isAuth = isAuthenticated();
     const rol = getUserRol();
+    const userData = typeof getUserData === 'function' ? getUserData() : null;
+    const userDisplayName = userData
+        ? `${userData.nombre} ${userData.apellido}`.trim()
+        : 'Tu cuenta';
     
     const leftMenu = document.getElementById('header-left-menu');
     const rightMenu = document.getElementById('header-right-menu');
@@ -234,12 +250,14 @@ async function loadHeaderByRole() {
     if (isAuth && rol === 'admin') {
         
         // Menú izquierdo - Admin
-        leftMenu.appendChild(createMenuButton('Nuevo usuario', '<path d="M5.25 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM2.25 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM18.75 7.5a.75.75 0 0 0-1.5 0v2.25H15a.75.75 0 0 0 0 1.5h2.25v2.25a.75.75 0 0 0 1.5 0v-2.25H21a.75.75 0 0 0 0-1.5h-2.25V7.5Z" />'));
+        const basePath = getBasePath();
+        const nuevoUsuarioHref = basePath === '' ? 'frontend/pages/registro_usuario.html' : 'registro_usuario.html';
+        leftMenu.appendChild(createMenuButton('Nuevo usuario', '<path d="M5.25 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM2.25 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM18.75 7.5a.75.75 0 0 0-1.5 0v2.25H15a.75.75 0 0 0 0 1.5h2.25v2.25a.75.75 0 0 0 1.5 0v-2.25H21a.75.75 0 0 0 0-1.5h-2.25V7.5Z" />', nuevoUsuarioHref));
         leftMenu.appendChild(createMenuButton('Nuevo registro', '<path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V9Z" clip-rule="evenodd" />'));
         leftMenu.appendChild(createMenuButton('Nueva consulta', '<path fill-rule="evenodd" d="M5.625 1.5H9a3.75 3.75 0 0 1 3.75 3.75v1.875c0 1.036.84 1.875 1.875 1.875H16.5a3.75 3.75 0 0 1 3.75 3.75v7.875c0 1.035-.84 1.875-1.875 1.875H5.625a1.875 1.875 0 0 1-1.875-1.875V3.375c0-1.036.84-1.875 1.875-1.875ZM12.75 12a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V18a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V12Z" clip-rule="evenodd" /><path d="M14.25 5.25a5.23 5.23 0 0 0-1.279-3.434 9.768 9.768 0 0 1 6.963 6.963A5.23 5.23 0 0 0 16.5 7.5h-1.875a.375.375 0 0 1-.375-.375V5.25Z" />'));
         
         // Menú derecho - Admin
-        rightMenu.appendChild(createMenuButton('Tu cuenta', '<path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" clip-rule="evenodd" />'));
+        rightMenu.appendChild(createMenuButton(userDisplayName, '<path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" clip-rule="evenodd" />'));
         rightMenu.appendChild(createMenuButton('Cerrar Sesión', '<path fill-rule="evenodd" d="M7.5 3.75A1.5 1.5 0 0 0 6 5.25v13.5a1.5 1.5 0 0 0 1.5 1.5h6a1.5 1.5 0 0 0 1.5-1.5V15a.75.75 0 0 1 1.5 0v3.75a3 3 0 0 1-3 3h-6a3 3 0 0 1-3-3V5.25a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3V9A.75.75 0 0 1 15 9V5.25a1.5 1.5 0 0 0-1.5-1.5h-6Zm10.72 4.72a.75.75 0 0 1 1.06 0l3 3a.75.75 0 0 1 0 1.06l-3 3a.75.75 0 1 1-1.06-1.06l1.72-1.72H9a.75.75 0 0 1 0-1.5h10.94l-1.72-1.72a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />', '#', 'logout-btn'));
         
     } else if (isAuth && rol === 'consultor') {
@@ -248,7 +266,7 @@ async function loadHeaderByRole() {
         leftMenu.appendChild(createMenuButton('Nueva consulta', '<path fill-rule="evenodd" d="M5.625 1.5H9a3.75 3.75 0 0 1 3.75 3.75v1.875c0 1.036.84 1.875 1.875 1.875H16.5a3.75 3.75 0 0 1 3.75 3.75v7.875c0 1.035-.84 1.875-1.875 1.875H5.625a1.875 1.875 0 0 1-1.875-1.875V3.375c0-1.036.84-1.875 1.875-1.875ZM12.75 12a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V18a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V12Z" clip-rule="evenodd" /><path d="M14.25 5.25a5.23 5.23 0 0 0-1.279-3.434 9.768 9.768 0 0 1 6.963 6.963A5.23 5.23 0 0 0 16.5 7.5h-1.875a.375.375 0 0 1-.375-.375V5.25Z" />'));
         
         // Menú derecho - Consultor
-        rightMenu.appendChild(createMenuButton('Tu cuenta', '<path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" clip-rule="evenodd" />'));
+        rightMenu.appendChild(createMenuButton(userDisplayName, '<path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" clip-rule="evenodd" />'));
         rightMenu.appendChild(createMenuButton('Cerrar Sesión', '<path fill-rule="evenodd" d="M7.5 3.75A1.5 1.5 0 0 0 6 5.25v13.5a1.5 1.5 0 0 0 1.5 1.5h6a1.5 1.5 0 0 0 1.5-1.5V15a.75.75 0 0 1 1.5 0v3.75a3 3 0 0 1-3 3h-6a3 3 0 0 1-3-3V5.25a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3V9A.75.75 0 0 1 15 9V5.25a1.5 1.5 0 0 0-1.5-1.5h-6Zm10.72 4.72a.75.75 0 0 1 1.06 0l3 3a.75.75 0 0 1 0 1.06l-3 3a.75.75 0 1 1-1.06-1.06l1.72-1.72H9a.75.75 0 0 1 0-1.5h10.94l-1.72-1.72a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />', '#', 'logout-btn'));
         
     } else {
@@ -405,7 +423,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Cargar sidebar (directamente en el body)
     const basePath = getBasePath();
     try {
-        const sidebarResponse = await fetch(basePath + 'frontend/components/sidebar_menu.html');
+        let sidebarPath = basePath + 'frontend/components/sidebar_menu.html';
+        // Si estamos en "frontend/pages", ajustar la ruta al componente
+        if (basePath === '../') {
+            sidebarPath = basePath + 'components/sidebar_menu.html';
+        }
+        const sidebarResponse = await fetch(sidebarPath);
         if (sidebarResponse.ok) {
             const sidebarHtml = await sidebarResponse.text();
             document.body.insertAdjacentHTML('beforeend', sidebarHtml);
@@ -430,11 +453,18 @@ document.addEventListener('DOMContentLoaded', async function() {
         const basePath = getBasePath();
         try {
             // Cargar modal de login
-            const loginResponse = await fetch(basePath + 'frontend/components/modal_login.html');
+            let loginPath = basePath + 'frontend/components/modal_login.html';
+            let logoutPath = basePath + 'frontend/components/modal_logout.html';
+            // Si estamos en "frontend/pages", ajustar rutas a los componentes
+            if (basePath === '../') {
+                loginPath = basePath + 'components/modal_login.html';
+                logoutPath = basePath + 'components/modal_logout.html';
+            }
+            const loginResponse = await fetch(loginPath);
             const loginModal = await loginResponse.text();
             
             // Cargar modal de logout
-            const logoutResponse = await fetch(basePath + 'frontend/components/modal_logout.html');
+            const logoutResponse = await fetch(logoutPath);
             const logoutModal = await logoutResponse.text();
             
             // Insertar ambos modales

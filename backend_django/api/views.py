@@ -102,3 +102,175 @@ def health_check(request):
         'database': 'Conectado' if db_status else 'Desconectado',
         'timestamp': timezone.now().isoformat()
     }, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_zones(request):
+    """
+    Endpoint para obtener todas las zonas.
+    """
+    from django.db import connection
+    
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT id_zona, nombre FROM zonas ORDER BY nombre")
+            zones = []
+            for row in cursor.fetchall():
+                zones.append({
+                    'id': row[0],
+                    'nombre': row[1]
+                })
+            return Response(zones, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_crimes(request):
+    """
+    Endpoint para obtener todos los delitos.
+    """
+    from django.db import connection
+    
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT id_delito, nombre FROM delitos ORDER BY nombre")
+            crimes = []
+            for row in cursor.fetchall():
+                crimes.append({
+                    'id': row[0],
+                    'nombre': row[1]
+                })
+            return Response(crimes, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def register_user(request):
+    """
+    Endpoint para registrar un nuevo usuario.
+    Solo disponible para administradores.
+    """
+    # Verificar que el usuario sea administrador
+    if request.user.rol != 'admin':
+        return Response({
+            'success': False,
+            'message': 'No tienes permisos para registrar usuarios'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    # Obtener datos del request
+    nombre = request.data.get('nombre')
+    apellido = request.data.get('apellido')
+    correo = request.data.get('correo')
+    password = request.data.get('password')
+    rol = request.data.get('rol')
+    user_name = request.data.get('user_name', correo.split('@')[0] if correo else '')
+    
+    # Validar campos requeridos
+    if not all([nombre, apellido, correo, password, rol]):
+        return Response({
+            'success': False,
+            'message': 'Todos los campos son requeridos',
+            'errors': {
+                'nombre': 'Requerido' if not nombre else None,
+                'apellido': 'Requerido' if not apellido else None,
+                'correo': 'Requerido' if not correo else None,
+                'password': 'Requerido' if not password else None,
+                'rol': 'Requerido' if not rol else None
+            }
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Validar que el rol sea válido
+    if rol not in ['admin', 'consultor']:
+        return Response({
+            'success': False,
+            'message': 'El rol debe ser "admin" o "consultor"'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Verificar que el correo no exista
+    from .models import Usuario
+    if Usuario.objects.filter(correo=correo).exists():
+        return Response({
+            'success': False,
+            'message': 'El correo electrónico ya está registrado'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        # Crear el usuario
+        user = Usuario.objects.create_user(
+            correo=correo,
+            password=password,
+            nombre=nombre,
+            apellido=apellido,
+            user_name=user_name,
+            rol=rol
+        )
+        
+        # Serializar datos del usuario creado
+        user_serializer = UsuarioSerializer(user)
+        
+        return Response({
+            'success': True,
+            'message': 'Usuario registrado exitosamente',
+            'user': user_serializer.data
+        }, status=status.HTTP_201_CREATED)
+        
+    except Exception as e:
+        return Response({
+            'success': False,
+            'message': f'Error al registrar usuario: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_addresses(request):
+    """
+    Endpoint para obtener todas las direcciones con pandillas.
+    """
+    from django.db import connection
+    
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT 
+                    P.id_pandilla AS id,
+                    P.nombre AS nombre_pandilla,
+                    P.peligrosidad AS grado_peligro,
+                    D.latitud, 
+                    D.longitud, 
+                    D.calle, 
+                    D.colonia, 
+                    D.id_zona
+                FROM 
+                    pandillas P
+                INNER JOIN 
+                    direcciones D ON P.id_direccion = D.id_direccion
+            """)
+            
+            locations = []
+            for row in cursor.fetchall():
+                locations.append({
+                    'id': row[0],
+                    'nombre_pandilla': row[1],
+                    'grado_peligro': row[2] if row[2] is not None else 0,
+                    'lat': float(row[3]) if row[3] else None,
+                    'lng': float(row[4]) if row[4] else None,
+                    'calle': row[5] or '',
+                    'colonia': row[6] or '',
+                    'id_zona': row[7] if row[7] else None
+                })
+            
+            return Response(locations, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

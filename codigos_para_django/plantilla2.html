@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIGP</title>
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/dist/outline.min.js"></script>
+
+</head>
+
+<body class="bg-[#1E1E1E] text-white p-5">
+
+    <div class="max-w-3xl mx-auto bg-slate-900 shadow-lg">
+
+        <!-- HEADER -->
+       <header class="bg-slate-600 text-white shadow-md border-b border-slate-700">
+
+            <!-- Título principal -->
+            <div class="text-center py-6">
+                <h1 class="text-5xl font-serif font-light tracking-wide">SIGP</h1>
+                <p class="text-sm text-gray-300 mt-1">
+                    Sistema de Identificación de Grupos Pandilleriles
+                </p>
+            </div>
+
+            <!-- Barra de navegación inferior -->
+            <nav class="flex items-center justify-between px-10 py-3 text-sm">
+
+                <!-- Controles de navegación a la izquierda -->
+                <div class="flex items-center gap-8">
+
+                     <!--<button class="flex items-center gap-1 hover:text-gray-300 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" 
+                            viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4
+                            1.79-4 4 1.79 4 4 4zm0 2c-2.67
+                            0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                        </svg>
+                        Nuevo usuario
+                    </button>
+
+                    <button class="flex items-center gap-1 hover:text-gray-300 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" 
+                            fill="none" stroke="currentColor" stroke-width="2"
+                            viewBox="0 0 24 24" class="w-5 h-5">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        Nuevo registro
+                    </button>
+
+                    <button class="flex items-center gap-1 hover:text-gray-300 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" 
+                            fill="none" stroke="currentColor" stroke-width="2"
+                            viewBox="0 0 24 24" class="w-5 h-5">
+                            <path d="M6 4h12v4H6z"></path>
+                            <path d="M6 12h12v4H6z"></path>
+                            <path d="M6 20h12"></path>
+                        </svg>
+                        Nueva consulta
+                    </button>-->
+
+                </div>
+
+                <!-- Panel de usuario a la derecha -->
+                <div class="flex items-center gap-8">
+
+                     <!--<span class="flex items-center gap-1 hover:text-gray-300 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" 
+                            viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4
+                            1.79-4 4 1.79 4 4 4zm0 2c-2.67
+                            0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                        </svg>
+                        Nombre Apellido
+                    </span>-->
+
+                    <button onclick="openModal()" class="flex items-center gap-1 hover:text-red-400 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                            fill="none" stroke="currentColor" stroke-width="2"
+                            viewBox="0 0 24 24" class="w-5 h-5">
+                            <path d="M15 3h4v18h-4"></path>
+                            <path d="M10 17l5-5-5-5"></path>
+                        </svg>
+                        Inicia sesión
+                    </button>
+
+
+                </div>
+            </nav>
+
+        </header>
+
+        <hr class="border-gray-700 my-5">
+
+        <!-- MAPA -->
+        <div id="map" class="h-[60vh] w-[90%] mx-auto border border-slate-600 rounded-md"></div>
+
+        <hr class="border-gray-700 my-5">
+
+        <!-- FOOTER -->
+        <footer class="bg-slate-600 text-center py-4 text-sm">
+            <div class="mb-2 space-x-3">
+                <a href="mailto:contacto@sigo.com.mx" class="hover:underline">contacto@sigo.com.mx</a>
+                <a href="#" class="hover:underline">Ayuda</a>
+                <a href="#" class="hover:underline">Acerca de nosotros</a>
+                <a href="#" class="hover:underline">Política de privacidad</a>
+            </div>
+
+            <p class="text-xs">©Copyright. Todos los derechos reservados</p>
+        </footer>
+    </div>
+
+    <!-- SCRIPT GOOGLE MAPS + MARCADORES -->
+    <script>
+        let map;
+
+        function initMap() {
+            map = new google.maps.Map(document.getElementById("map"), {
+                center: { lat: 22.152089, lng: -100.973302 },
+                zoom: 13
+            });
+
+            fetch("get_addresses.php")
+                .then(r => {
+                    if (!r.ok) throw new Error("Error en la respuesta del servidor");
+                    return r.json();
+                })
+                .then(data => {
+                    const bounds = new google.maps.LatLngBounds();
+                    let hasMarkers = false;
+
+                    data.forEach(item => {
+                        if (item.lat && item.lng) {
+                            const position = {
+                                lat: parseFloat(item.lat),
+                                lng: parseFloat(item.lng)
+                            };
+
+                            const marker = new google.maps.Marker({
+                                position,
+                                map,
+                                title: item.nombre || "Ubicación"
+                            });
+
+                            const infoContent = `
+                                <div class="p-2">
+                                    <h3 class="font-bold text-gray-800">${item.nombre || 'Ubicación sin nombre'}</h3>
+                                    <p class="text-gray-600">${item.direccion || 'Dirección no disponible'}</p>
+                                    <p class="text-gray-600">${item.descripcion || ''}</p>
+                                    <a href="https://maps.google.com/maps?q=${item.lat},${item.lng}" target="_blank" class="text-blue-600 font-bold">Ampliar el mapa</a>
+                                </div>
+                            `;
+
+                            const infoWindow = new google.maps.InfoWindow({
+                                content: infoContent
+                            });
+
+                            marker.addListener("click", () => infoWindow.open(map, marker));
+
+                            bounds.extend(position);
+                            hasMarkers = true;
+                        }
+                    });
+
+                    if (hasMarkers) map.fitBounds(bounds);
+                })
+                .catch(err => console.error("Error al cargar marcadores:", err));
+        }
+    </script>
+
+    <script async
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA_s4sQ4Cp6-NYlUQ6Lsyk4W5ePX9mtiYM&callback=initMap">
+    </script>
+    <!-- MODAL DE INICIO DE SESIÓN -->
+    <div id="loginModal"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+
+        <div class="bg-[#1f2937] text-white w-[90%] max-w-md p-8 rounded-xl shadow-2xl border border-gray-700 relative">
+
+            <!-- Botón cerrar -->
+            <button onclick="closeModal()"
+                class="absolute top-3 right-3 text-gray-300 hover:text-white text-xl">
+                ✕
+            </button>
+
+            <h2 class="text-4xl font-serif font-light text-center mb-4">¡Bienvenido!</h2>
+
+            <!-- Mensaje de error -->
+            <p id="errorMsg" class="text-red-500 text-center mb-4 hidden">
+                ¡Uy!, usuario o contraseña incorrectos
+            </p>
+
+            <!-- Campo usuario -->
+            <label class="block mb-1">Usuario:</label>
+            <input id="userInput" type="text"
+                class="w-full bg-white text-black px-3 py-2 rounded-md outline-none"
+                placeholder="Ingrese su usuario">
+
+            <p id="userReq" class="text-red-400 text-sm hidden">Usuario requerido</p>
+
+            <!-- Campo contraseña -->
+            <label class="block mt-4 mb-1">Contraseña:</label>
+            <input id="passInput" type="password"
+                class="w-full bg-white text-black px-3 py-2 rounded-md outline-none"
+                placeholder="Ingrese su contraseña">
+
+            <p id="passReq" class="text-red-400 text-sm hidden">Contraseña requerida</p>
+
+            <!-- Botón de enviar -->
+            <button onclick="sendLogin()" 
+                    class="w-full mt-6 bg-blue-500 hover:bg-blue-600 py-3 rounded-md text-lg font-semibold">
+                Iniciar sesión
+            </button>
+
+        </div>
+    </div>
+
+    <script>
+        function sendLogin() {
+            let correo = document.getElementById("userInput").value;
+            let pass = document.getElementById("passInput").value;
+
+            fetch("login.php", {
+                method: "POST",
+                headers: {"Content-Type": "application/x-www-form-urlencoded"},
+                body: `correo=${encodeURIComponent(correo)}&password=${encodeURIComponent(pass)}`
+            })
+            .then(res => res.text())
+            .then(data => {
+
+                if (data === "empty") {
+                    document.getElementById("errorMsg").innerText = "Complete todos los campos";
+                    document.getElementById("errorMsg").classList.remove("hidden");
+                }
+                else if (data === "notfound") {
+                    document.getElementById("errorMsg").innerText = "El correo no existe";
+                    document.getElementById("errorMsg").classList.remove("hidden");
+                }
+                else if (data === "wrongpass") {
+                    document.getElementById("errorMsg").innerText = "Contraseña incorrecta";
+                    document.getElementById("errorMsg").classList.remove("hidden");
+                }
+                else if (data === "success") {
+                    window.location.href = "plantilla3.html"; // cambia a tu página principal
+                }
+            });
+        }
+        </script>
+
+
+    <script>
+        const modal = document.getElementById("loginModal");
+        const errorMsg = document.getElementById("errorMsg");
+        const userReq = document.getElementById("userReq");
+        const passReq = document.getElementById("passReq");
+
+        function openModal() {
+            modal.classList.remove("hidden");
+        }
+
+        function closeModal() {
+            modal.classList.add("hidden");
+            errorMsg.classList.add("hidden");
+            userReq.classList.add("hidden");
+            passReq.classList.add("hidden");
+        }
+
+        function validateLogin() {
+            const user = document.getElementById("userInput").value;
+            const pass = document.getElementById("passInput").value;
+
+            userReq.classList.toggle("hidden", user !== "");
+            passReq.classList.toggle("hidden", pass !== "");
+
+            if (user === "" || pass === "") return;
+
+            // EJEMPLO: Aquí agregas la validación real con PHP o lo que uses
+            if (user !== "admin" || pass !== "123") {
+                errorMsg.classList.remove("hidden");
+            }
+        }
+    </script>
+
+
+</body>
+</html>

@@ -10,8 +10,70 @@
     <div id="header-container" class="w-full"></div>
     <main class="w-full h-auto py-4 sm:py-6 md:py-10 flex-1">
         <div class="w-full h-full flex flex-col items-center justify-center">
-            <div class="w-full px-4 sm:px-6 md:w-4/5 h-full flex flex-col items-center justify-center">
-                <iframe class="rounded-lg md:rounded-2xl w-full h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px]" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d118281.86783194341!2d-101.03686164403473!3d22.114215375495306!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x842aa20005acfb79%3A0xed2ee29afe18257!2sSan%20Luis%20Potos%C3%AD%2C%20S.L.P.!5e0!3m2!1ses!2smx!4v1764196955925!5m2!1ses!2smx" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            <!-- Vista para usuarios NO autenticados: mapa completo -->
+            <div id="map-container-public" class="w-full px-4 sm:px-6 md:w-4/5 h-full flex flex-col items-center justify-center">
+                <div id="map" class="rounded-lg md:rounded-2xl w-full h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px] border border-slate-600"></div>
+            </div>
+            
+            <!-- Vista para usuarios autenticados: mapa flex-1 + filtros flex-1 -->
+            <div id="map-container-authenticated" class="w-full px-4 sm:px-6 md:w-4/5 flex flex-col md:flex-row items-start md:items-center justify-center gap-4 min-h-[600px] md:h-[750px] md:min-h-[750px] hidden">
+                <!-- Mapa flex-1 -->
+                <div class="w-full md:w-3/5 flex flex-col items-center justify-center min-h-[300px] sm:min-h-[400px] md:h-full md:min-h-[750px]">
+                    <div id="map-authenticated" class="rounded-lg md:rounded-2xl w-full h-[300px] sm:h-[400px] md:h-full md:min-h-[750px] border border-slate-600"></div>
+                </div>
+                
+                <!-- Filtros flex-1 -->
+                <div class="w-full md:w-2/5 h-auto md:h-full md:min-h-[750px] flex flex-col items-start justify-center md:justify-between py-6 md:py-10">
+                    <!-- Selector de Zona -->
+                    <div class="w-full h-auto flex flex-col items-start justify-center py-4">
+                        <label for="zona-select" class="w-full text-left text-sm md:text-base text-white mb-2 opacity-70">Zona:</label>
+                        <div class="relative w-full">
+                            <select id="zona-select" name="zona" class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none opacity-70">
+                                <option value="" disabled selected>Selecciona zona</option>
+                            </select>
+                            <div class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 text-slate-950 opacity-70">
+                                    <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Selector de Grado de Peligrosidad -->
+                    <div class="w-full h-auto flex flex-col items-start justify-center py-4">
+                        <label for="peligrosidad-select" class="w-full text-left text-sm md:text-base text-white mb-2 opacity-70">Grado de peligrosidad:</label>
+                        <div class="relative w-full">
+                            <select id="peligrosidad-select" name="peligrosidad" class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none opacity-70">
+                                <option value="" disabled selected>Selecciona la peligrosidad</option>
+                            </select>
+                            <div class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 text-slate-950 opacity-70">
+                                    <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Selector de Delito -->
+                    <div class="w-full h-auto flex flex-col items-start justify-center py-4">
+                        <label for="delito-select" class="w-full text-left text-sm md:text-base text-white mb-2 opacity-70">Delito:</label>
+                        <div class="relative w-full">
+                            <select id="delito-select" name="delito" class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none opacity-70">
+                                <option value="" disabled selected>Selecciona el delito</option>
+                            </select>
+                            <div class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 text-slate-950 opacity-70">
+                                    <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Botón Activar mapa de calor -->
+                    <div class="w-full h-auto flex flex-col items-center justify-center py-4">
+                        <button type="button" id="heatmap-btn" class="w-full h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-base md:text-lg font-medium flex items-center justify-center hover:bg-blue-600 transition-all duration-150 hover:cursor-pointer">Activar mapa de calor</button>
+                    </div>
+                </div>
             </div>
     </main>
     <div id="footer-container"></div>
@@ -19,5 +81,669 @@
     <script src="frontend/javascript/app.js"></script>
     <script src="frontend/javascript/auth.js"></script>
     <script src="frontend/javascript/modals.js"></script>
+    <script src="frontend/javascript/nuevo_usuario.js"></script>
+    <script>
+        let map;
+        let mapAuthenticated;
+        let allMarkers = [];
+        let currentMarkers = [];
+        let zonePolygons = {};
+        let currentZonePolygon = null;
+        let heatmapLayer = null;
+        let heatmapActive = false;
+        
+        // Coordenadas detalladas de las zonas de San Luis Potosí
+        // Basadas en la plantilla mejorada (plantilla3.html)
+        // IMPORTANTE:
+        // Los IDs deben coincidir con los de la tabla "zonas" del backend:
+        //  1: Norte
+        //  2: Sur
+        //  3: Oriente
+        //  4: Poniente
+        //  5: Centro
+        const zoneCoordinates = {
+            1: { // Norte
+                name: "Norte",
+                // Color tomado de la plantilla mejorada (id 2 - Norte)
+                color: "#00AAFF",
+                path: [
+                    { lat: 22.1980806, lng: -101.0191069 },
+                    { lat: 22.2044778, lng: -101.0160550 },
+                    { lat: 22.2185265, lng: -100.9724515 },
+                    { lat: 22.2131050, lng: -100.9327801 },
+                    { lat: 22.2054055, lng: -100.9222381 },
+                    { lat: 22.1691838, lng: -100.9570286 },
+                    { lat: 22.1712311, lng: -100.9672749 },
+                    { lat: 22.1732495, lng: -100.9708684 },
+                    { lat: 22.170000, lng: -101.001667 }
+                ]
+            },
+            2: { // Sur
+                name: "Sur",
+                // Color tomado de la plantilla (id 3 - Sur)
+                color: "#FF9900",
+                path: [
+                    { lat: 22.1359707, lng: -100.9563152 },
+                    { lat: 22.1281250, lng: -100.9758834 },
+                    { lat: 22.1390283, lng: -101.0016146 },
+                    { lat: 22.1259710, lng: -101.0171827 },
+                    { lat: 22.1155634, lng: -100.9999287 },
+                    { lat: 22.1170518, lng: -100.9969650 },
+                    { lat: 22.1152539, lng: -100.9858002 },
+                    { lat: 22.1009685, lng: -100.9524824 }
+                ]
+            },
+            3: { // Oriente / Este
+                name: "Oriente",
+                // Color tomado de la plantilla (id 4 - Oriente / Este)
+                color: "#00CC00",
+                path: [
+                    { lat: 22.2054055, lng: -100.9222381 },
+                    { lat: 22.1691838, lng: -100.9570286 },
+                    { lat: 22.1359707, lng: -100.9563152 },
+                    { lat: 22.1009685, lng: -100.9524824 },
+                    { lat: 22.1152030, lng: -100.9263403 },
+                    { lat: 22.1258643, lng: -100.9192584 },
+                    { lat: 22.1543387, lng: -100.9143996 }
+                ]
+            },
+            4: { // Poniente / Oeste
+                name: "Poniente",
+                // Color tomado de la plantilla (id 5 - Poniente / Oeste)
+                color: "#AA00FF",
+                path: [
+                    { lat: 22.1980806, lng: -101.0191069 },
+                    { lat: 22.170000, lng: -101.001667 },
+                    { lat: 22.1390283, lng: -101.0016146 },
+                    { lat: 22.1259710, lng: -101.0171827 },
+                    { lat: 22.1322477, lng: -101.0338589 },
+                    { lat: 22.1515664, lng: -101.0337646 },
+                    { lat: 22.1721585, lng: -101.0400926 },
+                    { lat: 22.1862328, lng: -101.0328764 }
+                ]
+            },
+            5: { // Centro (Casco Histórico)
+                name: "Centro",
+                // Color tomado de la plantilla (id 1 - Centro)
+                color: "#FF0000",
+                path: [
+                    { lat: 22.170000, lng: -101.001667 },
+                    { lat: 22.1732495, lng: -100.9708684 },
+                    { lat: 22.1712311, lng: -100.9672749 },
+                    { lat: 22.1691838, lng: -100.9570286 },
+                    { lat: 22.1359707, lng: -100.9563152 },
+                    { lat: 22.1281250, lng: -100.9758834 },
+                    { lat: 22.1390283, lng: -101.0016146 }
+                ]
+            },
+        };
+
+        // Función para cargar zonas en el selector
+        async function loadZones() {
+            try {
+                const response = await fetch("http://localhost:8000/api/zones/");
+                if (!response.ok) throw new Error("Error al cargar zonas");
+                const zones = await response.json();
+                
+                const zonaSelect = document.getElementById("zona-select");
+                if (!zonaSelect) return;
+                
+                // Limpiar opciones existentes
+                zonaSelect.innerHTML = '';
+                
+                // Agregar opción "Todas las zonas"
+                const allOption = document.createElement("option");
+                allOption.value = "";
+                allOption.textContent = "Todas las zonas";
+                allOption.selected = true;
+                zonaSelect.appendChild(allOption);
+                
+                // Agregar zonas
+                zones.forEach(zone => {
+                    const option = document.createElement("option");
+                    option.value = zone.id;
+                    option.textContent = zone.nombre;
+                    zonaSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Error al cargar zonas:", error);
+            }
+        }
+
+        // Función para cargar delitos en el selector
+        async function loadCrimes() {
+            try {
+                const response = await fetch("http://localhost:8000/api/crimes/");
+                if (!response.ok) throw new Error("Error al cargar delitos");
+                const crimes = await response.json();
+                
+                const delitoSelect = document.getElementById("delito-select");
+                if (!delitoSelect) return;
+                
+                // Limpiar opciones existentes
+                delitoSelect.innerHTML = '<option value="" disabled selected>Selecciona el delito</option>';
+                
+                // Agregar delitos
+                crimes.forEach(crime => {
+                    const option = document.createElement("option");
+                    option.value = crime.id;
+                    option.textContent = crime.nombre;
+                    delitoSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Error al cargar delitos:", error);
+            }
+        }
+
+        // Función para cargar niveles de peligrosidad en el selector
+        function loadPeligrosidad() {
+            // Rangos numéricos guardados para después:
+            // Bajo: 1-2, Medio: 3-5, Alto: 6-8, Crítico: 9-10
+            const peligrosidadLevels = [
+                { nombre: 'Bajo', min: 1, max: 2 },
+                { nombre: 'Medio', min: 3, max: 5 },
+                { nombre: 'Alto', min: 6, max: 8 },
+                { nombre: 'Crítico', min: 9, max: 10 }
+            ];
+            
+            const peligrosidadSelect = document.getElementById("peligrosidad-select");
+            if (!peligrosidadSelect) return;
+            
+            // Limpiar opciones existentes
+            peligrosidadSelect.innerHTML = '<option value="" disabled selected>Selecciona la peligrosidad</option>';
+            
+            // Agregar niveles de peligrosidad
+            peligrosidadLevels.forEach(level => {
+                const option = document.createElement("option");
+                option.value = level.nombre.toLowerCase(); // Usar el nombre en minúsculas como valor
+                option.textContent = level.nombre;
+                peligrosidadSelect.appendChild(option);
+            });
+        }
+
+        // Función para dibujar polígono de zona y hacer zoom a la zona seleccionada
+        function drawZonePolygon(mapInstance, zoneId) {
+            // Eliminar polígono anterior si existe
+            if (currentZonePolygon) {
+                currentZonePolygon.setMap(null);
+                currentZonePolygon = null;
+            }
+            
+            // Si no hay zona seleccionada ("Todas las zonas"), limpiar polígono
+            // y restablecer el zoom/centro iniciales
+            if (!zoneId || zoneId === '') {
+                if (mapInstance) {
+                    mapInstance.setCenter({ lat: 22.152089, lng: -100.973302 });
+                    mapInstance.setZoom(12);
+                }
+                return;
+            }
+            
+            const zone = zoneCoordinates[parseInt(zoneId)];
+            if (!zone) return;
+            
+            // Crear polígono para la zona
+            currentZonePolygon = new google.maps.Polygon({
+                paths: zone.path,
+                strokeColor: zone.color || '#3B82F6',
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: zone.color || '#3B82F6',
+                fillOpacity: 0.2
+            });
+            
+            currentZonePolygon.setMap(mapInstance);
+
+            // Calcular bounds para la zona y ajustar el zoom
+            const bounds = new google.maps.LatLngBounds();
+            zone.path.forEach(coord => bounds.extend(coord));
+            mapInstance.fitBounds(bounds);
+
+            // Limitar el zoom máximo para que no se acerque demasiado
+            google.maps.event.addListenerOnce(mapInstance, 'bounds_changed', function () {
+                if (mapInstance.getZoom() > 14) {
+                    mapInstance.setZoom(14);
+                }
+            });
+        }
+        
+        // Función para cargar marcadores en el mapa
+        function loadMarkers(mapInstance, filterZona = null) {
+            // Limpiar marcadores anteriores
+            currentMarkers.forEach(marker => marker.setMap(null));
+            currentMarkers = [];
+            
+            // Si el heatmap está activo, actualizarlo
+            if (heatmapActive && heatmapLayer) {
+                heatmapLayer.setMap(null);
+                heatmapLayer = null;
+                heatmapActive = false;
+                const heatmapBtn = document.getElementById("heatmap-btn");
+                if (heatmapBtn) {
+                    heatmapBtn.textContent = "Activar mapa de calor";
+                    heatmapBtn.classList.remove("bg-red-400", "hover:bg-red-600");
+                    heatmapBtn.classList.add("bg-blue-400", "hover:bg-blue-600");
+                }
+            }
+            
+            // Dibujar polígono de la zona seleccionada
+            drawZonePolygon(mapInstance, filterZona);
+            
+            fetch("http://localhost:8000/api/addresses/")
+                .then(r => {
+                    if (!r.ok) throw new Error("Error en la respuesta del servidor");
+                    return r.json();
+                })
+                .then(data => {
+                    const bounds = new google.maps.LatLngBounds();
+                    let hasMarkers = false;
+
+                    data.forEach(item => {
+                        // Filtrar por zona si se especifica
+                        if (filterZona !== null && filterZona !== '' && item.id_zona !== parseInt(filterZona)) {
+                            return;
+                        }
+                        
+                        if (item.lat && item.lng) {
+                            const position = {
+                                lat: parseFloat(item.lat),
+                                lng: parseFloat(item.lng)
+                            };
+
+                            const marker = new google.maps.Marker({
+                                position,
+                                map: mapInstance,
+                                title: item.nombre_pandilla || item.nombre || "Ubicación"
+                            });
+
+                            const infoContent = `
+                                <div class="p-2">
+                                    <h3 class="font-bold text-gray-800">${item.nombre_pandilla || item.nombre || 'Ubicación sin nombre'}</h3>
+                                    <p class="text-gray-600">${item.calle || item.direccion || 'Dirección no disponible'}</p>
+                                    <p class="text-gray-600">${item.colonia || ''}</p>
+                                    ${item.descripcion ? `<p class="text-gray-600">${item.descripcion}</p>` : ''}
+                                    <a href="https://maps.google.com/maps?q=${item.lat},${item.lng}" target="_blank" class="text-blue-600 font-bold">Ampliar el mapa</a>
+                                </div>
+                            `;
+
+                            const infoWindow = new google.maps.InfoWindow({
+                                content: infoContent
+                            });
+
+                            marker.addListener("click", () => infoWindow.open(mapInstance, marker));
+
+                            currentMarkers.push(marker);
+                            bounds.extend(position);
+                            hasMarkers = true;
+                        }
+                    });
+
+                    if (hasMarkers) {
+                        // Si hay marcadores, ajustar el zoom
+                        if (currentMarkers.length === 1) {
+                            // Si solo hay un marcador, usar zoom más cercano
+                            mapInstance.setCenter(bounds.getCenter());
+                            mapInstance.setZoom(14);
+                        } else {
+                            // Si hay múltiples marcadores, ajustar a los bounds
+                            mapInstance.fitBounds(bounds);
+                        }
+                        console.log(`Marcadores cargados: ${currentMarkers.length}${filterZona ? ` (Zona: ${filterZona})` : ' (Todas las zonas)'}`);
+                    } else {
+                        // Si no hay marcadores, centrar en San Luis Potosí
+                        mapInstance.setCenter({ lat: 22.152089, lng: -100.973302 });
+                        mapInstance.setZoom(12);
+                        console.log('No se encontraron marcadores para la zona seleccionada');
+                    }
+                })
+                .catch(err => console.error("Error al cargar marcadores:", err));
+        }
+
+        // Función para activar/desactivar mapa de calor
+        function toggleHeatmap() {
+            if (!mapAuthenticated) {
+                console.error('Mapa autenticado no está inicializado');
+                return;
+            }
+
+            const heatmapBtn = document.getElementById("heatmap-btn");
+            if (!heatmapBtn) return;
+
+            if (!heatmapActive) {
+                // Activar mapa de calor
+                // Obtener todos los puntos de los marcadores actuales
+                const heatmapData = [];
+                
+                currentMarkers.forEach(marker => {
+                    heatmapData.push({
+                        location: marker.getPosition(),
+                        weight: 1
+                    });
+                });
+
+                // Si no hay marcadores, cargar todos los datos
+                if (heatmapData.length === 0) {
+                    fetch("http://localhost:8000/api/addresses/")
+                        .then(r => {
+                            if (!r.ok) throw new Error("Error al cargar datos para heatmap");
+                            return r.json();
+                        })
+                        .then(data => {
+                            data.forEach(item => {
+                                if (item.lat && item.lng) {
+                                    heatmapData.push({
+                                        location: new google.maps.LatLng(
+                                            parseFloat(item.lat),
+                                            parseFloat(item.lng)
+                                        ),
+                                        weight: 1
+                                    });
+                                }
+                            });
+                            createHeatmap(heatmapData);
+                        })
+                        .catch(err => console.error("Error al cargar datos para heatmap:", err));
+                } else {
+                    createHeatmap(heatmapData);
+                }
+            } else {
+                // Desactivar mapa de calor
+                if (heatmapLayer) {
+                    heatmapLayer.setMap(null);
+                    heatmapLayer = null;
+                }
+                heatmapActive = false;
+                heatmapBtn.textContent = "Activar mapa de calor";
+                heatmapBtn.classList.remove("bg-red-400", "hover:bg-red-600");
+                heatmapBtn.classList.add("bg-blue-400", "hover:bg-blue-600");
+            }
+        }
+
+        // Función para crear el mapa de calor
+        function createHeatmap(heatmapData) {
+            if (!mapAuthenticated || !google.maps.visualization) {
+                console.error('Google Maps Visualization library no está disponible');
+                return;
+            }
+
+            // Eliminar heatmap anterior si existe
+            if (heatmapLayer) {
+                heatmapLayer.setMap(null);
+            }
+
+            // Crear nuevo heatmap
+            heatmapLayer = new google.maps.visualization.HeatmapLayer({
+                data: heatmapData,
+                map: mapAuthenticated,
+                radius: 50,
+                opacity: 0.6,
+                gradient: [
+                    'rgba(0, 255, 255, 0)',
+                    'rgba(0, 255, 255, 1)',
+                    'rgba(0, 191, 255, 1)',
+                    'rgba(0, 127, 255, 1)',
+                    'rgba(0, 63, 255, 1)',
+                    'rgba(0, 0, 255, 1)',
+                    'rgba(0, 0, 223, 1)',
+                    'rgba(0, 0, 191, 1)',
+                    'rgba(0, 0, 159, 1)',
+                    'rgba(0, 0, 127, 1)',
+                    'rgba(63, 0, 91, 1)',
+                    'rgba(127, 0, 63, 1)',
+                    'rgba(191, 0, 31, 1)',
+                    'rgba(255, 0, 0, 1)'
+                ]
+            });
+
+            heatmapActive = true;
+            const heatmapBtn = document.getElementById("heatmap-btn");
+            if (heatmapBtn) {
+                heatmapBtn.textContent = "Desactivar mapa de calor";
+                heatmapBtn.classList.remove("bg-blue-400", "hover:bg-blue-600");
+                heatmapBtn.classList.add("bg-red-400", "hover:bg-red-600");
+            }
+        }
+
+        // Función para verificar si un elemento está visible
+        function isElementVisible(element) {
+            if (!element) return false;
+            const style = window.getComputedStyle(element);
+            return style.display !== 'none' && style.visibility !== 'hidden' && !element.classList.contains('hidden');
+        }
+
+        // Función para inicializar mapa público
+        function initPublicMap() {
+            const mapElement = document.getElementById("map");
+            if (!mapElement) return false;
+            
+            // Si ya está inicializado, solo hacer resize
+            if (map) {
+                setTimeout(() => {
+                    google.maps.event.trigger(map, 'resize');
+                    map.setCenter({ lat: 22.152089, lng: -100.973302 });
+                }, 100);
+                return true;
+            }
+            
+            // Verificar que el elemento esté visible
+            if (!isElementVisible(mapElement.closest('#map-container-public'))) {
+                console.log('Mapa público no visible aún, esperando...');
+                return false;
+            }
+            
+            map = new google.maps.Map(mapElement, {
+                center: { lat: 22.152089, lng: -100.973302 },
+                zoom: 12
+            });
+            loadMarkers(map);
+            
+            // Forzar resize después de un momento (múltiples veces para asegurar renderizado)
+            setTimeout(() => {
+                if (map) {
+                    google.maps.event.trigger(map, 'resize');
+                }
+            }, 100);
+            setTimeout(() => {
+                if (map) {
+                    google.maps.event.trigger(map, 'resize');
+                }
+            }, 300);
+            setTimeout(() => {
+                if (map) {
+                    google.maps.event.trigger(map, 'resize');
+                }
+            }, 500);
+            
+            return true;
+        }
+
+        // Función para inicializar mapa autenticado
+        function initAuthenticatedMap() {
+            const mapElement = document.getElementById("map-authenticated");
+            if (!mapElement) return false;
+            
+            // Si ya está inicializado, solo hacer resize
+            if (mapAuthenticated) {
+                setTimeout(() => {
+                    google.maps.event.trigger(mapAuthenticated, 'resize');
+                    mapAuthenticated.setCenter({ lat: 22.152089, lng: -100.973302 });
+                }, 100);
+                return true;
+            }
+            
+            // Verificar que el elemento esté visible
+            if (!isElementVisible(mapElement.closest('#map-container-authenticated'))) {
+                console.log('Mapa autenticado no visible aún, esperando...');
+                return false;
+            }
+            
+            mapAuthenticated = new google.maps.Map(mapElement, {
+                center: { lat: 22.152089, lng: -100.973302 },
+                zoom: 12
+            });
+            loadMarkers(mapAuthenticated);
+            
+            // Cargar zonas, delitos y peligrosidad en los selectores
+            loadZones();
+            loadCrimes();
+            loadPeligrosidad();
+            
+            // Agregar evento al botón de mapa de calor
+            setTimeout(() => {
+                const heatmapBtn = document.getElementById("heatmap-btn");
+                if (heatmapBtn) {
+                    heatmapBtn.addEventListener("click", toggleHeatmap);
+                }
+            }, 500);
+            
+            // Función para manejar el cambio de zona
+            function handleZonaChange() {
+                if (!mapAuthenticated) return;
+                
+                const zonaSelect = document.getElementById("zona-select");
+                if (!zonaSelect) return;
+                
+                const selectedZona = zonaSelect.value ? zonaSelect.value : null;
+                console.log('Zona seleccionada:', selectedZona);
+                
+                // Recargar marcadores con el filtro de zona
+                loadMarkers(mapAuthenticated, selectedZona);
+            }
+            
+            // Esperar un momento para que el selector se cargue y luego agregar el evento
+            setTimeout(() => {
+                const zonaSelect = document.getElementById("zona-select");
+                if (zonaSelect) {
+                    // Agregar listener para el cambio de zona
+                    zonaSelect.addEventListener("change", handleZonaChange);
+                }
+            }, 500);
+            
+            // Forzar resize después de un momento (múltiples veces para asegurar renderizado)
+            setTimeout(() => {
+                if (mapAuthenticated) {
+                    google.maps.event.trigger(mapAuthenticated, 'resize');
+                }
+            }, 100);
+            setTimeout(() => {
+                if (mapAuthenticated) {
+                    google.maps.event.trigger(mapAuthenticated, 'resize');
+                }
+            }, 300);
+            setTimeout(() => {
+                if (mapAuthenticated) {
+                    google.maps.event.trigger(mapAuthenticated, 'resize');
+                }
+            }, 500);
+            
+            return true;
+        }
+
+        // Función para mostrar/ocultar vistas según autenticación (disponible globalmente)
+        window.toggleMapView = function() {
+            const isAuth = typeof isAuthenticated === 'function' ? isAuthenticated() : false;
+            const publicContainer = document.getElementById("map-container-public");
+            const authenticatedContainer = document.getElementById("map-container-authenticated");
+
+            if (isAuth) {
+                // Usuario autenticado: mostrar vista con filtros
+                if (publicContainer) publicContainer.classList.add("hidden");
+                if (authenticatedContainer) authenticatedContainer.classList.remove("hidden");
+                
+                // Inicializar mapa autenticado si Google Maps está cargado
+                if (typeof google !== 'undefined' && google.maps) {
+                    // Esperar a que el contenedor sea visible y luego inicializar
+                    const tryInit = () => {
+                        if (initAuthenticatedMap()) {
+                            console.log('Mapa autenticado inicializado correctamente');
+                            // Forzar múltiples resize para asegurar renderizado
+                            setTimeout(() => {
+                                if (mapAuthenticated) {
+                                    google.maps.event.trigger(mapAuthenticated, 'resize');
+                                }
+                            }, 100);
+                            setTimeout(() => {
+                                if (mapAuthenticated) {
+                                    google.maps.event.trigger(mapAuthenticated, 'resize');
+                                }
+                            }, 300);
+                        } else {
+                            // Reintentar después de un momento
+                            setTimeout(tryInit, 200);
+                        }
+                    };
+                    // Esperar un poco más para asegurar que el contenedor es visible
+                    setTimeout(tryInit, 300);
+                }
+            } else {
+                // Usuario no autenticado: mostrar vista pública
+                if (publicContainer) publicContainer.classList.remove("hidden");
+                if (authenticatedContainer) authenticatedContainer.classList.add("hidden");
+                
+                // Inicializar mapa público si Google Maps está cargado
+                if (typeof google !== 'undefined' && google.maps) {
+                    // Esperar a que el contenedor sea visible y luego inicializar
+                    const tryInit = () => {
+                        if (initPublicMap()) {
+                            console.log('Mapa público inicializado correctamente');
+                            // Forzar múltiples resize para asegurar renderizado
+                            setTimeout(() => {
+                                if (map) {
+                                    google.maps.event.trigger(map, 'resize');
+                                }
+                            }, 100);
+                            setTimeout(() => {
+                                if (map) {
+                                    google.maps.event.trigger(map, 'resize');
+                                }
+                            }, 300);
+                        } else {
+                            // Reintentar después de un momento
+                            setTimeout(tryInit, 200);
+                        }
+                    };
+                    setTimeout(tryInit, 100);
+                }
+            }
+        }
+
+        // Función principal de inicialización (callback de Google Maps)
+        function initMap() {
+            // Esperar a que el DOM esté completamente listo
+            setTimeout(() => {
+                // Verificar autenticación y mostrar la vista correcta
+                toggleMapView();
+            }, 300);
+        }
+
+        // Verificar autenticación cuando se carga la página
+        document.addEventListener('DOMContentLoaded', function() {
+            // Si Google Maps ya está cargado, inicializar
+            if (typeof google !== 'undefined' && google.maps) {
+                // Si no hay mapa público, inicializarlo
+                if (!map) {
+                    initPublicMap();
+                }
+                // Luego verificar autenticación
+                toggleMapView();
+            }
+        });
+
+        // También verificar después de que se carguen los scripts de auth
+        setTimeout(() => {
+            if (typeof google !== 'undefined' && google.maps) {
+                // Si no hay mapa público, inicializarlo
+                if (!map) {
+                    initPublicMap();
+                }
+                // Luego verificar autenticación
+                toggleMapView();
+            }
+        }, 1000);
+    </script>
+
+    <script async
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA_s4sQ4Cp6-NYlUQ6Lsyk4W5ePX9mtiYM&libraries=visualization&callback=initMap">
+    </script>
 </body>
 </html>

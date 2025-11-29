@@ -116,6 +116,14 @@ async function handleLoginSubmit(event) {
                 // Si la función no está disponible, recargar la página
                 window.location.reload();
             }
+            
+            // Actualizar la vista del mapa si la función está disponible
+            if (typeof toggleMapView === 'function') {
+                toggleMapView();
+            } else {
+                // Si no está disponible, recargar la página
+                window.location.reload();
+            }
         } else {
             // Mostrar error
             showLoginError(result.message || 'Error al iniciar sesión');

@@ -32,12 +32,19 @@ class Usuario(AbstractBaseUser):
         ('consultor', 'Consultor'),
     ]
     
+    GENERO_CHOICES = [
+        ('M', 'Masculino'),
+        ('F', 'Femenino'),
+        ('X', 'Sin definir'),
+    ]
+    
     id_usuario = models.AutoField(primary_key=True)
     user_name = models.CharField(max_length=255)
     correo = models.EmailField(unique=True, max_length=255)
     nombre = models.CharField(max_length=255)
     apellido = models.CharField(max_length=255)
     rol = models.CharField(max_length=50, choices=ROL_CHOICES)
+    genero = models.CharField(max_length=1, choices=GENERO_CHOICES, default='X', blank=True, null=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)

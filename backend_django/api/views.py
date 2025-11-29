@@ -80,6 +80,87 @@ def user_info_view(request):
     }, status=status.HTTP_200_OK)
 
 
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def update_profile_view(request):
+    """
+    Endpoint para actualizar el nombre y apellido del usuario.
+    """
+    nombre = request.data.get('nombre')
+    apellido = request.data.get('apellido')
+    
+    if not nombre or not apellido:
+        return Response({
+            'success': False,
+            'message': 'El nombre y apellido son requeridos'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        user = request.user
+        user.nombre = nombre
+        user.apellido = apellido
+        user.save()
+        
+        serializer = UsuarioSerializer(user)
+        return Response({
+            'success': True,
+            'message': 'Perfil actualizado exitosamente',
+            'user': serializer.data
+        }, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({
+            'success': False,
+            'message': f'Error al actualizar el perfil: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_password_view(request):
+    """
+    Endpoint para cambiar la contraseña del usuario.
+    Requiere la contraseña actual para verificación.
+    """
+    current_password = request.data.get('current_password')
+    new_password = request.data.get('new_password')
+    
+    if not current_password or not new_password:
+        return Response({
+            'success': False,
+            'message': 'La contraseña actual y la nueva contraseña son requeridas'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    if len(new_password) < 6:
+        return Response({
+            'success': False,
+            'message': 'La nueva contraseña debe tener al menos 6 caracteres'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        user = request.user
+        
+        # Verificar que la contraseña actual sea correcta
+        if not user.check_password(current_password):
+            return Response({
+                'success': False,
+                'message': 'La contraseña actual es incorrecta'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        
+        # Cambiar la contraseña
+        user.set_password(new_password)
+        user.save()
+        
+        return Response({
+            'success': True,
+            'message': 'Contraseña actualizada exitosamente'
+        }, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({
+            'success': False,
+            'message': f'Error al cambiar la contraseña: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def health_check(request):
@@ -172,6 +253,7 @@ def register_user(request):
     correo = request.data.get('correo')
     password = request.data.get('password')
     rol = request.data.get('rol')
+    genero = request.data.get('genero', 'X')  # Por defecto 'X' si no se proporciona
     user_name = request.data.get('user_name', correo.split('@')[0] if correo else '')
     
     # Validar campos requeridos
@@ -204,6 +286,10 @@ def register_user(request):
         }, status=status.HTTP_400_BAD_REQUEST)
     
     try:
+        # Validar que el género sea válido
+        if genero not in ['M', 'F', 'X']:
+            genero = 'X'  # Si no es válido, usar el valor por defecto
+        
         # Crear el usuario
         user = Usuario.objects.create_user(
             correo=correo,
@@ -211,7 +297,8 @@ def register_user(request):
             nombre=nombre,
             apellido=apellido,
             user_name=user_name,
-            rol=rol
+            rol=rol,
+            genero=genero
         )
         
         # Serializar datos del usuario creado

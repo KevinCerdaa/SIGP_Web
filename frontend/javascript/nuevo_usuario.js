@@ -6,6 +6,7 @@ function clearNuevoUsuarioErrors() {
     const apellidoError = document.getElementById('apellido-error');
     const correoError = document.getElementById('correo-error');
     const passwordError = document.getElementById('password-error-usuario');
+    const confirmarPasswordError = document.getElementById('confirmar-password-error-usuario');
     const rolError = document.getElementById('rol-error');
     
     if (errorMessage) errorMessage.classList.add('hidden');
@@ -14,6 +15,7 @@ function clearNuevoUsuarioErrors() {
     if (apellidoError) apellidoError.classList.add('hidden');
     if (correoError) correoError.classList.add('hidden');
     if (passwordError) passwordError.classList.add('hidden');
+    if (confirmarPasswordError) confirmarPasswordError.classList.add('hidden');
     if (rolError) rolError.classList.add('hidden');
 }
 
@@ -49,6 +51,7 @@ function validateNuevoUsuarioForm() {
     const apellido = document.getElementById('apellido-usuario').value.trim();
     const correo = document.getElementById('correo-usuario').value.trim();
     const password = document.getElementById('password-usuario').value;
+    const confirmarPassword = document.getElementById('confirmar-password-usuario').value;
     const rol = document.getElementById('rol-usuario').value;
     
     let isValid = true;
@@ -83,6 +86,17 @@ function validateNuevoUsuarioForm() {
         isValid = false;
     }
     
+    // Validar confirmación de contraseña
+    if (!confirmarPassword) {
+        document.getElementById('confirmar-password-error-usuario').classList.remove('hidden');
+        document.getElementById('confirmar-password-error-usuario').textContent = 'Por favor, confirme la contraseña';
+        isValid = false;
+    } else if (password !== confirmarPassword) {
+        document.getElementById('confirmar-password-error-usuario').classList.remove('hidden');
+        document.getElementById('confirmar-password-error-usuario').textContent = 'Las contraseñas no coinciden';
+        isValid = false;
+    }
+    
     // Validar rol
     if (!rol) {
         document.getElementById('rol-error').classList.remove('hidden');
@@ -107,6 +121,7 @@ async function registrarUsuario() {
     const correo = document.getElementById('correo-usuario').value.trim();
     const password = document.getElementById('password-usuario').value;
     const rol = document.getElementById('rol-usuario').value;
+    const genero = document.getElementById('genero-usuario').value || 'X';
     
     // Obtener token de autenticación
     const token = getAuthToken();
@@ -128,6 +143,7 @@ async function registrarUsuario() {
                 correo: correo,
                 password: password,
                 rol: rol,
+                genero: genero,
                 user_name: correo.split('@')[0] // Generar user_name desde el correo
             })
         });

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es-mx">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIGP - Tu Cuenta</title>
+    <link rel="stylesheet" href="../styles/output.css">
+</head>
+<body class="bg-slate-950 flex flex-col min-h-screen">
+    <div id="header-container" class="w-full"></div>
+    <main class="w-full h-auto py-4 sm:py-6 md:py-10 flex-1">
+        <div class="w-full h-full flex flex-col items-center justify-center">
+            <div class="w-full px-4 sm:px-6 md:w-4/5 max-w-4xl h-auto flex flex-col items-center justify-center">
+                <!-- Título -->
+                <div class="w-full h-auto flex flex-col items-center justify-center gap-3 md:gap-4 py-4 mb-6">
+                    <h1 class="text-2xl sm:text-3xl md:text-4xl font-spectral text-center text-white">Tu Cuenta</h1>
+                    <!-- Botón Regresar -->
+                    <div class="w-full flex justify-start mt-2 font-bold">
+                        <button type="button"
+                                onclick="window.history.back()"
+                                class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-600 text-blue-100 text-sm md:text-base hover:bg-slate-800 hover:text-blue-300 transition-all duration-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 md:size-5">
+                                <path fill-rule="evenodd" d="M9.53 4.47a.75.75 0 0 1 0 1.06L5.81 9.25H20.25a.75.75 0 0 1 0 1.5H5.81l3.72 3.72a.75.75 0 1 1-1.06 1.06l-5-5a.75.75 0 0 1 0-1.06l5-5a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Regresar</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Contenido de la cuenta -->
+                <div class="w-full h-auto bg-linear-180 from-slate-800/80 to-slate-800 backdrop-blur-xs rounded-lg md:rounded-2xl border-2 border-slate-600 p-4 sm:p-6 md:p-8">
+                    <!-- Mensajes de error y éxito -->
+                    <div class="w-full mb-4">
+                        <span id="error-message-cuenta" class="text-red-500 text-xs sm:text-sm font-bold hidden"></span>
+                        <span id="success-message-cuenta" class="text-white text-xs sm:text-sm font-bold hidden"></span>
+                    </div>
+                    
+                    <!-- Contenedor principal: Imagen a la izquierda, info a la derecha -->
+                    <div class="w-full flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8">
+                        <!-- Imagen de perfil (izquierda) -->
+                        <div class="flex-shrink-0">
+                            <img id="profile-image" src="../img/image_profile/Not Gender.png" alt="Imagen de perfil" class="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-4 border-slate-600">
+                        </div>
+                        
+                        <!-- Información del usuario (derecha) -->
+                        <div class="flex-1 w-full flex flex-col gap-4">
+                            <!-- Nombre completo -->
+                            <div class="w-full">
+                                <h2 id="nombre-completo" class="text-xl sm:text-2xl md:text-3xl font-spectral text-white font-bold"></h2>
+                            </div>
+                            
+                            <!-- Correo electrónico -->
+                            <div class="w-full">
+                                <p class="text-sm md:text-base text-blue-100">
+                                    <span id="correo-display"></span>
+                                </p>
+                            </div>
+                            
+                            <!-- Género -->
+                            <div class="w-full">
+                                <p class="text-sm md:text-base text-blue-100">
+                                    <span id="genero-display"></span>
+                                </p>
+                            </div>
+                            
+                            <!-- Botones de acción -->
+                            <div class="w-full flex flex-col sm:flex-row gap-3 mt-4">
+                                <button type="button" id="btn-cambiar-nombre" class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-sm md:text-base font-medium flex items-center justify-center hover:bg-blue-600 transition-all duration-150 hover:cursor-pointer">
+                                    Cambiar nombre
+                                </button>
+                                <button type="button" id="btn-cambiar-password" class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-sm md:text-base font-medium flex items-center justify-center hover:bg-blue-600 transition-all duration-150 hover:cursor-pointer">
+                                    Cambiar contraseña
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Modal para cambiar nombre -->
+                <dialog id="modal-cambiar-nombre" class="bg-transparent border-0 p-0 m-0 max-w-none max-h-none fixed inset-0 flex items-center justify-center z-50">
+                    <div class="w-full sm:w-[90%] md:w-[500px] h-auto bg-linear-180 from-slate-800/80 to-slate-800 backdrop-blur-xs rounded-lg md:rounded-2xl border-2 border-slate-600 flex flex-col items-center justify-center overflow-auto p-6">
+                        <div class="w-full flex items-center justify-end mb-4">
+                            <button id="close-modal-nombre-btn" class="text-white hover:text-blue-300 transition-all duration-300 hover:cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                                    <path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </div>
+                        <h3 class="text-2xl font-spectral text-white mb-4">Cambiar nombre</h3>
+                        <form id="form-cambiar-nombre" class="w-full flex flex-col gap-4">
+                            <div>
+                                <label for="nuevo-nombre" class="block text-sm md:text-base text-blue-100 mb-2">Nombre:</label>
+                                <input type="text" id="nuevo-nombre" required class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
+                            </div>
+                            <div>
+                                <label for="nuevo-apellido" class="block text-sm md:text-base text-blue-100 mb-2">Apellido:</label>
+                                <input type="text" id="nuevo-apellido" required class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
+                            </div>
+                            <button type="submit" class="w-full h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-sm md:text-base font-medium hover:bg-blue-600 transition-all duration-150">
+                                Guardar cambios
+                            </button>
+                        </form>
+                    </div>
+                </dialog>
+                
+                <!-- Modal para cambiar contraseña -->
+                <dialog id="modal-cambiar-password" class="bg-transparent border-0 p-0 m-0 max-w-none max-h-none fixed inset-0 flex items-center justify-center z-50">
+                    <div class="w-full sm:w-[90%] md:w-[500px] h-auto bg-linear-180 from-slate-800/80 to-slate-800 backdrop-blur-xs rounded-lg md:rounded-2xl border-2 border-slate-600 flex flex-col items-center justify-center overflow-auto p-6">
+                        <div class="w-full flex items-center justify-end mb-4">
+                            <button id="close-modal-password-btn" class="text-white hover:text-blue-300 transition-all duration-300 hover:cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                                    <path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </div>
+                        <h3 class="text-2xl font-spectral text-white mb-4">Cambiar contraseña</h3>
+                        <form id="form-cambiar-password" class="w-full flex flex-col gap-4">
+                            <div>
+                                <label for="password-actual" class="block text-sm md:text-base text-blue-100 mb-2">Contraseña actual:</label>
+                                <input type="password" id="password-actual" required class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
+                                <span id="error-password-actual" class="text-red-500 text-xs sm:text-sm font-bold hidden">Contraseña incorrecta</span>
+                            </div>
+                            <div>
+                                <label for="nueva-password" class="block text-sm md:text-base text-blue-100 mb-2">Nueva contraseña:</label>
+                                <input type="password" id="nueva-password" required class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
+                            </div>
+                            <div>
+                                <label for="confirmar-password" class="block text-sm md:text-base text-blue-100 mb-2">Confirmar nueva contraseña:</label>
+                                <input type="password" id="confirmar-password" required class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
+                                <span id="error-password-match" class="text-red-500 text-xs sm:text-sm font-bold hidden">Las contraseñas no coinciden</span>
+                            </div>
+                            <button type="submit" class="w-full h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-sm md:text-base font-medium hover:bg-blue-600 transition-all duration-150">
+                                Cambiar contraseña
+                            </button>
+                        </form>
+                    </div>
+                </dialog>
+            </div>
+        </div>
+    </main>
+    <div id="footer-container"></div>
+    <div id="modal-container"></div>
+    
+    <script src="../javascript/app.js"></script>
+    <script src="../javascript/auth.js"></script>
+    <script src="../javascript/tu_cuenta.js"></script>
+</body>
+</html>
+

@@ -80,10 +80,55 @@ body.sidebar-open {
     align-items: center;
 }
 
+#modal-cambiar-nombre[open],
+#modal-cambiar-password[open],
+#modal-nueva-pandilla[open],
+#modal-editar-pandilla[open],
+#modal-nueva-direccion[open] {
+    padding: 1rem;
+    margin: auto;
+    border: none;
+    max-width: calc(100vw - 2rem);
+    max-height: calc(100vh - 2rem);
+    width: auto;
+    height: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 #modal-cambiar-nombre::backdrop,
-#modal-cambiar-password::backdrop {
+#modal-cambiar-password::backdrop,
+#modal-nueva-pandilla::backdrop,
+#modal-editar-pandilla::backdrop,
+#modal-nueva-direccion::backdrop {
     background-color: rgba(15, 23, 42, 0.5);
     backdrop-filter: blur(4px);
+}
+
+/* Estilos para checkboxes en contenedores de selección múltiple */
+#delitos-pandilla-container label,
+#faltas-pandilla-container label,
+#rivalidades-pandilla-container label,
+#redes-sociales-pandilla-container label {
+    transition: background-color 0.2s;
+}
+
+#delitos-pandilla-container label:hover,
+#faltas-pandilla-container label:hover,
+#rivalidades-pandilla-container label:hover,
+#redes-sociales-pandilla-container label:hover {
+    background-color: #f1f5f9;
+}
+
+/* Estilos para checkboxes */
+input[type="checkbox"] {
+    accent-color: #3b82f6;
+    cursor: pointer;
+}
+
+input[type="checkbox"]:checked {
+    accent-color: #2563eb;
 }
 
 #modal-logout::backdrop {

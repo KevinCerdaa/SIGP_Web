@@ -5,6 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIGP - INICIO</title>
     <link rel="stylesheet" href="frontend/styles/output.css">
+    <style>
+        /* Eliminar fondo blanco de los InfoWindows de Google Maps */
+        .gm-style-iw {
+            background: transparent !important;
+            padding: 0 !important;
+        }
+        
+        .gm-style-iw-d {
+            background: transparent !important;
+            padding: 0 !important;
+            overflow: visible !important;
+        }
+        
+        .gm-style-iw-c {
+            background: transparent !important;
+            padding: 0 !important;
+            border-radius: 0 !important;
+        }
+        
+        /* Eliminar el botón de cerrar blanco si es necesario */
+        .gm-ui-hover-effect {
+            opacity: 0.8;
+        }
+        
+        .gm-ui-hover-effect:hover {
+            opacity: 1;
+        }
+    </style>
 </head>
 <body class="bg-slate-950 flex flex-col min-h-screen">
     <div id="header-container" class="w-full"></div>
@@ -16,17 +44,17 @@
             </div>
             
             <!-- Vista para usuarios autenticados: mapa flex-1 + filtros flex-1 -->
-            <div id="map-container-authenticated" class="w-full px-4 sm:px-6 md:w-4/5 flex flex-col md:flex-row items-start md:items-center justify-center gap-4 min-h-[600px] md:h-[750px] md:min-h-[750px] hidden">
+            <div id="map-container-authenticated" class="w-full px-4 sm:px-6 md:w-4/5 flex flex-col md:flex-row items-start md:items-center justify-center gap-4 min-h-[500px] md:h-[600px] md:min-h-[600px] hidden">
                 <!-- Mapa flex-1 -->
-                <div class="w-full md:w-3/5 flex flex-col items-center justify-center min-h-[300px] sm:min-h-[400px] md:h-full md:min-h-[750px]">
-                    <div id="map-authenticated" class="rounded-lg md:rounded-2xl w-full h-[300px] sm:h-[400px] md:h-full md:min-h-[750px] border border-slate-600"></div>
+                <div class="w-full md:w-3/5 flex flex-col items-center justify-center min-h-[300px] sm:min-h-[400px] md:h-full md:min-h-[600px]">
+                    <div id="map-authenticated" class="rounded-lg md:rounded-2xl w-full h-[300px] sm:h-[400px] md:h-full md:min-h-[600px] border border-slate-600"></div>
                 </div>
                 
                 <!-- Filtros flex-1 -->
-                <div class="w-full md:w-2/5 h-auto md:h-full md:min-h-[750px] flex flex-col items-start justify-center md:justify-between py-6 md:py-10">
+                <div class="w-full md:w-2/5 h-auto md:h-full md:min-h-[600px] flex flex-col items-start justify-center md:justify-center gap-3 py-4 md:py-6">
                     <!-- Selector de Zona -->
-                    <div class="w-full h-auto flex flex-col items-start justify-center py-4">
-                        <label for="zona-select" class="w-full text-left text-sm md:text-base text-white mb-2 opacity-70">Zona:</label>
+                    <div class="w-full h-auto flex flex-col items-start justify-center">
+                        <label for="zona-select" class="w-full text-left text-sm md:text-base text-white mb-1 opacity-70">Zona:</label>
                         <div class="relative w-full">
                             <select id="zona-select" name="zona" class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none opacity-70">
                                 <option value="" disabled selected>Selecciona zona</option>
@@ -40,8 +68,8 @@
                     </div>
                     
                     <!-- Selector de Grado de Peligrosidad -->
-                    <div class="w-full h-auto flex flex-col items-start justify-center py-4">
-                        <label for="peligrosidad-select" class="w-full text-left text-sm md:text-base text-white mb-2 opacity-70">Grado de peligrosidad:</label>
+                    <div class="w-full h-auto flex flex-col items-start justify-center">
+                        <label for="peligrosidad-select" class="w-full text-left text-sm md:text-base text-white mb-1 opacity-70">Grado de peligrosidad:</label>
                         <div class="relative w-full">
                             <select id="peligrosidad-select" name="peligrosidad" class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none opacity-70">
                                 <option value="" disabled selected>Selecciona la peligrosidad</option>
@@ -55,8 +83,8 @@
                     </div>
                     
                     <!-- Selector de Delito -->
-                    <div class="w-full h-auto flex flex-col items-start justify-center py-4">
-                        <label for="delito-select" class="w-full text-left text-sm md:text-base text-white mb-2 opacity-70">Delito:</label>
+                    <div class="w-full h-auto flex flex-col items-start justify-center">
+                        <label for="delito-select" class="w-full text-left text-sm md:text-base text-white mb-1 opacity-70">Delito:</label>
                         <div class="relative w-full">
                             <select id="delito-select" name="delito" class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none opacity-70">
                                 <option value="" disabled selected>Selecciona el delito</option>
@@ -70,7 +98,7 @@
                     </div>
                     
                     <!-- Botón Activar mapa de calor -->
-                    <div class="w-full h-auto flex flex-col items-center justify-center py-4">
+                    <div class="w-full h-auto flex flex-col items-center justify-center mt-2">
                         <button type="button" id="heatmap-btn" class="w-full h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-base md:text-lg font-medium flex items-center justify-center hover:bg-blue-600 transition-all duration-150 hover:cursor-pointer">Activar mapa de calor</button>
                     </div>
                 </div>
@@ -85,6 +113,7 @@
     <script>
         let map;
         let mapAuthenticated;
+        let currentInfoWindow = null;
         let allMarkers = [];
         let currentMarkers = [];
         let zonePolygons = {};
@@ -237,13 +266,11 @@
 
         // Función para cargar niveles de peligrosidad en el selector
         function loadPeligrosidad() {
-            // Rangos numéricos guardados para después:
-            // Bajo: 1-2, Medio: 3-5, Alto: 6-8, Crítico: 9-10
+            // Solo 3 niveles: Bajo, Medio, Alto (strings)
             const peligrosidadLevels = [
-                { nombre: 'Bajo', min: 1, max: 2 },
-                { nombre: 'Medio', min: 3, max: 5 },
-                { nombre: 'Alto', min: 6, max: 8 },
-                { nombre: 'Crítico', min: 9, max: 10 }
+                { nombre: 'Bajo', valor: 'Bajo' },
+                { nombre: 'Medio', valor: 'Medio' },
+                { nombre: 'Alto', valor: 'Alto' }
             ];
             
             const peligrosidadSelect = document.getElementById("peligrosidad-select");
@@ -252,10 +279,16 @@
             // Limpiar opciones existentes
             peligrosidadSelect.innerHTML = '<option value="" disabled selected>Selecciona la peligrosidad</option>';
             
+            // Agregar opción "Todas"
+            const todasOption = document.createElement("option");
+            todasOption.value = "";
+            todasOption.textContent = "Todas";
+            peligrosidadSelect.appendChild(todasOption);
+            
             // Agregar niveles de peligrosidad
             peligrosidadLevels.forEach(level => {
                 const option = document.createElement("option");
-                option.value = level.nombre.toLowerCase(); // Usar el nombre en minúsculas como valor
+                option.value = level.valor; // Usar el string: "Bajo", "Medio", "Alto"
                 option.textContent = level.nombre;
                 peligrosidadSelect.appendChild(option);
             });
@@ -307,8 +340,27 @@
             });
         }
         
+        // Función global para recargar marcadores (disponible desde otros scripts)
+        window.reloadMapMarkers = function() {
+            console.log('🔄 Recargando marcadores del mapa...');
+            if (mapAuthenticated) {
+                console.log('Recargando mapa autenticado...');
+                const zonaSelect = document.getElementById("zona-select");
+                const peligrosidadSelect = document.getElementById("peligrosidad-select");
+                
+                const selectedZona = zonaSelect && zonaSelect.value ? zonaSelect.value : null;
+                const selectedPeligrosidad = peligrosidadSelect && peligrosidadSelect.value ? peligrosidadSelect.value : null;
+                
+                loadMarkers(mapAuthenticated, selectedZona, selectedPeligrosidad);
+            }
+            if (map) {
+                console.log('Recargando mapa público...');
+                loadMarkers(map, null, null);
+            }
+        };
+        
         // Función para cargar marcadores en el mapa
-        function loadMarkers(mapInstance, filterZona = null) {
+        function loadMarkers(mapInstance, filterZona = null, filterPeligrosidad = null) {
             // Limpiar marcadores anteriores
             currentMarkers.forEach(marker => marker.setMap(null));
             currentMarkers = [];
@@ -344,25 +396,114 @@
                             return;
                         }
                         
+                        // Filtrar por peligrosidad si se especifica
+                        if (filterPeligrosidad !== null && filterPeligrosidad !== '') {
+                            const itemPeligro = (item.grado_peligro || '').toString().trim();
+                            if (itemPeligro.toLowerCase() !== filterPeligrosidad.toLowerCase()) {
+                                return;
+                            }
+                        }
+                        
                         if (item.lat && item.lng) {
                             const position = {
                                 lat: parseFloat(item.lat),
                                 lng: parseFloat(item.lng)
                             };
 
+                            // Determinar color del marcador según peligrosidad
+                            // peligrosidad es VARCHAR: "Bajo", "Medio", "Alto"
+                            const peligro = (item.grado_peligro || '').toString().trim();
+                            console.log(`🔍 Pandilla: ${item.nombre_pandilla || item.nombre}, grado_peligro: "${peligro}"`);
+                            let markerColor = '#EF4444'; // Rojo por defecto (tailwind red-500)
+                            let markerBorder = '#DC2626'; // Rojo más oscuro para el borde
+                            if (peligro.toLowerCase() === 'bajo') {
+                                markerColor = '#22C55E'; // Verde (tailwind green-500) - Bajo
+                                markerBorder = '#16A34A'; // Verde más oscuro
+                            } else if (peligro.toLowerCase() === 'medio') {
+                                markerColor = '#EAB308'; // Amarillo (tailwind yellow-500) - Medio
+                                markerBorder = '#CA8A04'; // Amarillo más oscuro
+                            } else if (peligro.toLowerCase() === 'alto') {
+                                markerColor = '#EF4444'; // Rojo (tailwind red-500) - Alto
+                                markerBorder = '#DC2626'; // Rojo más oscuro
+                            }
+
+                            // Crear icono SVG personalizado sin fondo blanco
+                            const filterId = `shadow-${item.id_pandilla || item.id || Math.random().toString(36).substr(2, 9)}`;
+                            const iconSvg = `<svg width="32" height="40" viewBox="0 0 32 40" xmlns="http://www.w3.org/2000/svg" style="background:transparent;"><defs><filter id="${filterId}" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.3)"/></filter></defs><path d="M16 0C7.163 0 0 7.163 0 16c0 10 16 24 16 24s16-14 16-24C32 7.163 24.837 0 16 0z" fill="${markerColor}" stroke="${markerBorder}" stroke-width="1.5" filter="url(#${filterId})"/><circle cx="16" cy="16" r="5" fill="#FFFFFF" opacity="0.95"/></svg>`;
+                            
+                            const iconUrl = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(iconSvg)));
+
                             const marker = new google.maps.Marker({
                                 position,
                                 map: mapInstance,
-                                title: item.nombre_pandilla || item.nombre || "Ubicación"
+                                title: item.nombre_pandilla || item.nombre || "Ubicación",
+                                icon: {
+                                    url: iconUrl,
+                                    scaledSize: new google.maps.Size(32, 40),
+                                    anchor: new google.maps.Point(16, 40),
+                                    optimized: false
+                                },
+                                optimized: false
                             });
 
+                            // Guardar información adicional en el marcador para el heatmap
+                            // Convertir string a número para el peso: Bajo=1, Medio=2, Alto=3
+                            let pesoHeatmap = 1;
+                            if (peligro.toLowerCase() === 'bajo') {
+                                pesoHeatmap = 1;
+                            } else if (peligro.toLowerCase() === 'medio') {
+                                pesoHeatmap = 2;
+                            } else if (peligro.toLowerCase() === 'alto') {
+                                pesoHeatmap = 3;
+                            }
+                            marker.peligrosidad = pesoHeatmap;
+
+                            // Calcular nivel de peligrosidad para el InfoWindow
+                            let nivelTexto = peligro || 'Alto';
+                            let nivelColor = '#EF4444';
+                            if (peligro.toLowerCase() === 'bajo') {
+                                nivelTexto = 'Bajo';
+                                nivelColor = '#22C55E';
+                            } else if (peligro.toLowerCase() === 'medio') {
+                                nivelTexto = 'Medio';
+                                nivelColor = '#EAB308';
+                            } else if (peligro.toLowerCase() === 'alto') {
+                                nivelTexto = 'Alto';
+                                nivelColor = '#EF4444';
+                            }
+
+                            // InfoWindow con diseño mejorado y más grande (recuadro oscuro)
                             const infoContent = `
-                                <div class="p-2">
-                                    <h3 class="font-bold text-gray-800">${item.nombre_pandilla || item.nombre || 'Ubicación sin nombre'}</h3>
-                                    <p class="text-gray-600">${item.calle || item.direccion || 'Dirección no disponible'}</p>
-                                    <p class="text-gray-600">${item.colonia || ''}</p>
-                                    ${item.descripcion ? `<p class="text-gray-600">${item.descripcion}</p>` : ''}
-                                    <a href="https://maps.google.com/maps?q=${item.lat},${item.lng}" target="_blank" class="text-blue-600 font-bold">Ampliar el mapa</a>
+                                <div style="min-width: 300px; max-width: 400px; padding: 1.5rem; font-family: system-ui, -apple-system, sans-serif;">
+                                    <div style="background: linear-gradient(180deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%); border-radius: 0.75rem; border: 2px solid rgb(51, 65, 85);">
+                                        <div style="padding: 1.25rem;">
+                                            <h3 style="font-size: 1.25rem; font-weight: 700; color: #FFFFFF; margin-bottom: 0.75rem; line-height: 1.5;">
+                                                ${item.nombre_pandilla || item.nombre || 'Ubicación sin nombre'}
+                                            </h3>
+                                            <div style="margin-bottom: 0.75rem;">
+                                                <p style="color: #E2E8F0; font-size: 0.875rem; margin-bottom: 0.25rem;">
+                                                    <span style="color: #94A3B8; font-weight: 600;">Dirección:</span> 
+                                                    ${item.calle || item.direccion || 'No disponible'}
+                                                    ${item.numero ? ' ' + item.numero : ''}
+                                                </p>
+                                                ${item.colonia ? `<p style="color: #E2E8F0; font-size: 0.875rem; margin-bottom: 0.25rem;">
+                                                    <span style="color: #94A3B8; font-weight: 600;">Colonia:</span> ${item.colonia}
+                                                </p>` : ''}
+                                                ${item.grado_peligro !== null && item.grado_peligro !== undefined ? `<p style="color: #E2E8F0; font-size: 0.875rem; margin-bottom: 0.25rem;">
+                                                    <span style="color: #94A3B8; font-weight: 600;">Peligrosidad:</span> 
+                                                    <span style="color: ${nivelColor}; font-weight: 700;">${nivelTexto}</span>
+                                                </p>` : ''}
+                                            </div>
+                                            <a href="https://www.google.com/maps?q=${position.lat},${position.lng}" 
+                                               target="_blank" 
+                                               style="display: inline-flex; align-items: center; gap: 0.5rem; color: #60A5FA; text-decoration: none; font-size: 0.875rem; font-weight: 500; transition: color 0.2s;">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                                                </svg>
+                                                Ver en Google Maps
+                                            </a>
+                                        </div>
+                                    </div>
                                 </div>
                             `;
 
@@ -370,7 +511,14 @@
                                 content: infoContent
                             });
 
-                            marker.addListener("click", () => infoWindow.open(mapInstance, marker));
+                            marker.addListener("click", () => {
+                                // Cerrar otros InfoWindows antes de abrir uno nuevo
+                                if (currentInfoWindow) {
+                                    currentInfoWindow.close();
+                                }
+                                infoWindow.open(mapInstance, marker);
+                                currentInfoWindow = infoWindow;
+                            });
 
                             currentMarkers.push(marker);
                             bounds.extend(position);
@@ -415,9 +563,12 @@
                 const heatmapData = [];
                 
                 currentMarkers.forEach(marker => {
+                    // Obtener el grado de peligro del marcador si está disponible
+                    const peligro = marker.peligrosidad || 1;
+                    // Usar el peso basado en peligrosidad: Bajo (1) = 1, Medio (2) = 2, Alto (3) = 3
                     heatmapData.push({
                         location: marker.getPosition(),
-                        weight: 1
+                        weight: peligro
                     });
                 });
 
@@ -431,12 +582,14 @@
                         .then(data => {
                             data.forEach(item => {
                                 if (item.lat && item.lng) {
+                                    // Usar el peso basado en peligrosidad: Bajo (1) = 1, Medio (2) = 2, Alto (3) = 3
+                                    const peligro = parseInt(item.grado_peligro) || 1;
                                     heatmapData.push({
                                         location: new google.maps.LatLng(
                                             parseFloat(item.lat),
                                             parseFloat(item.lng)
                                         ),
-                                        weight: 1
+                                        weight: peligro
                                     });
                                 }
                             });
@@ -471,27 +624,19 @@
                 heatmapLayer.setMap(null);
             }
 
-            // Crear nuevo heatmap
+            // Crear nuevo heatmap con gradiente: Verde (Bajo) -> Amarillo (Medio) -> Rojo (Alto)
             heatmapLayer = new google.maps.visualization.HeatmapLayer({
                 data: heatmapData,
                 map: mapAuthenticated,
                 radius: 50,
                 opacity: 0.6,
                 gradient: [
-                    'rgba(0, 255, 255, 0)',
-                    'rgba(0, 255, 255, 1)',
-                    'rgba(0, 191, 255, 1)',
-                    'rgba(0, 127, 255, 1)',
-                    'rgba(0, 63, 255, 1)',
-                    'rgba(0, 0, 255, 1)',
-                    'rgba(0, 0, 223, 1)',
-                    'rgba(0, 0, 191, 1)',
-                    'rgba(0, 0, 159, 1)',
-                    'rgba(0, 0, 127, 1)',
-                    'rgba(63, 0, 91, 1)',
-                    'rgba(127, 0, 63, 1)',
-                    'rgba(191, 0, 31, 1)',
-                    'rgba(255, 0, 0, 1)'
+                    'rgba(34, 197, 94, 0)',      // Verde transparente (Bajo)
+                    'rgba(34, 197, 94, 0.3)',   // Verde suave
+                    'rgba(34, 197, 94, 0.6)',   // Verde medio
+                    'rgba(234, 179, 8, 0.7)',   // Amarillo (Medio)
+                    'rgba(234, 179, 8, 0.9)',   // Amarillo intenso
+                    'rgba(239, 68, 68, 1)'       // Rojo (Alto)
                 ]
             });
 
@@ -601,21 +746,51 @@
                 if (!mapAuthenticated) return;
                 
                 const zonaSelect = document.getElementById("zona-select");
+                const peligrosidadSelect = document.getElementById("peligrosidad-select");
+                
                 if (!zonaSelect) return;
                 
                 const selectedZona = zonaSelect.value ? zonaSelect.value : null;
-                console.log('Zona seleccionada:', selectedZona);
+                const selectedPeligrosidad = peligrosidadSelect && peligrosidadSelect.value ? peligrosidadSelect.value : null;
                 
-                // Recargar marcadores con el filtro de zona
-                loadMarkers(mapAuthenticated, selectedZona);
+                console.log('Zona seleccionada:', selectedZona);
+                console.log('Peligrosidad seleccionada:', selectedPeligrosidad);
+                
+                // Recargar marcadores con los filtros de zona y peligrosidad
+                loadMarkers(mapAuthenticated, selectedZona, selectedPeligrosidad);
             }
             
-            // Esperar un momento para que el selector se cargue y luego agregar el evento
+            // Función para manejar el cambio de peligrosidad
+            function handlePeligrosidadChange() {
+                if (!mapAuthenticated) return;
+                
+                const zonaSelect = document.getElementById("zona-select");
+                const peligrosidadSelect = document.getElementById("peligrosidad-select");
+                
+                if (!peligrosidadSelect) return;
+                
+                const selectedZona = zonaSelect && zonaSelect.value ? zonaSelect.value : null;
+                const selectedPeligrosidad = peligrosidadSelect.value ? peligrosidadSelect.value : null;
+                
+                console.log('Zona seleccionada:', selectedZona);
+                console.log('Peligrosidad seleccionada:', selectedPeligrosidad);
+                
+                // Recargar marcadores con los filtros de zona y peligrosidad
+                loadMarkers(mapAuthenticated, selectedZona, selectedPeligrosidad);
+            }
+            
+            // Esperar un momento para que los selectores se carguen y luego agregar los eventos
             setTimeout(() => {
                 const zonaSelect = document.getElementById("zona-select");
                 if (zonaSelect) {
                     // Agregar listener para el cambio de zona
                     zonaSelect.addEventListener("change", handleZonaChange);
+                }
+                
+                const peligrosidadSelect = document.getElementById("peligrosidad-select");
+                if (peligrosidadSelect) {
+                    // Agregar listener para el cambio de peligrosidad
+                    peligrosidadSelect.addEventListener("change", handlePeligrosidadChange);
                 }
             }, 500);
             

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
-from .models import Usuario
+from .models import Usuario, Direccion, Pandilla
 
 
 class UsuarioSerializer(serializers.ModelSerializer):
@@ -46,4 +46,23 @@ class LoginSerializer(serializers.Serializer):
             )
         
         return attrs
+
+
+class DireccionSerializer(serializers.ModelSerializer):
+    """Serializer para el modelo Direccion"""
+    
+    class Meta:
+        model = Direccion
+        fields = ['id_direccion', 'calle', 'numero', 'colonia', 'codigo_postal', 'latitud', 'longitud']
+        read_only_fields = ['id_direccion']
+
+
+class PandillaSerializer(serializers.ModelSerializer):
+    """Serializer para el modelo Pandilla"""
+    
+    class Meta:
+        model = Pandilla
+        fields = ['id_pandilla', 'nombre', 'descripcion', 'lider', 'numero_integrantes', 
+                  'edades_promedio', 'horario_reunion', 'peligrosidad', 'id_zona', 'id_direccion']
+        read_only_fields = ['id_pandilla']
 

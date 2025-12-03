@@ -1,14 +1,26 @@
 // Función para obtener la ruta base según la ubicación de la página
 function getBasePath() {
     const path = window.location.pathname;
+    const href = window.location.href;
+    
     // Si estamos en la raíz (index.html) o en frontend/pages/
-    if (path === '/' || path === '/index.html' || path.endsWith('/index.html')) {
+    if (path === '/' || path === '/index.html' || path.endsWith('/index.html') || path.endsWith('index.html')) {
         return '';
-    } else if (path.includes('/frontend/pages/')) {
+    } else if (path.includes('/frontend/pages/') || href.includes('/frontend/pages/')) {
         return '../';
-    } else if (path.includes('/pages/')) {
+    } else if (path.includes('/pages/') || href.includes('/pages/')) {
         return '../';
     }
+    
+    // Si estamos en file:// protocol, verificar por el nombre del archivo
+    if (href.startsWith('file://')) {
+        if (href.includes('index.html') && !href.includes('/frontend/pages/')) {
+            return '';
+        } else if (href.includes('/frontend/pages/')) {
+            return '../';
+        }
+    }
+    
     return '';
 }
 
@@ -27,6 +39,7 @@ async function loadComponent(componentPath, targetElementId) {
             adjustedPath = componentPath.replace(/^frontend\//, '');
         }
         const fullPath = basePath + adjustedPath;
+        console.log(`Intentando cargar componente: ${fullPath} en ${targetElementId}`);
         const response = await fetch(fullPath);
         if (!response.ok) {
             throw new Error(`Error al cargar el componente: ${fullPath} - Status: ${response.status}`);
@@ -34,10 +47,9 @@ async function loadComponent(componentPath, targetElementId) {
         const html = await response.text();
         const targetElement = document.getElementById(targetElementId);
         if (targetElement) {
-            // Limpiar el contenido previo
             targetElement.innerHTML = '';
-            // Insertar el nuevo HTML
             targetElement.innerHTML = html;
+            console.log(`Componente ${componentPath} cargado correctamente en ${targetElementId}`);
             return true;
         } else {
             console.error(`No se encontró el elemento con ID: ${targetElementId}`);
@@ -190,17 +202,23 @@ function populateSidebar() {
         const basePath = getBasePath();
         const nuevoUsuarioHref = basePath === '' ? 'frontend/pages/registro_usuario.html' : 'registro_usuario.html';
         sidebarItems.appendChild(createSidebarItem('Nuevo usuario', '<path d="M5.25 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM2.25 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM18.75 7.5a.75.75 0 0 0-1.5 0v2.25H15a.75.75 0 0 0 0 1.5h2.25v2.25a.75.75 0 0 0 1.5 0v-2.25H21a.75.75 0 0 0 0-1.5h-2.25V7.5Z" />', nuevoUsuarioHref));
-        sidebarItems.appendChild(createSidebarItem('Nuevo registro', '<path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V9Z" clip-rule="evenodd" />'));
-        sidebarItems.appendChild(createSidebarItem('Nueva consulta', '<path fill-rule="evenodd" d="M5.625 1.5H9a3.75 3.75 0 0 1 3.75 3.75v1.875c0 1.036.84 1.875 1.875 1.875H16.5a3.75 3.75 0 0 1 3.75 3.75v7.875c0 1.035-.84 1.875-1.875 1.875H5.625a1.875 1.875 0 0 1-1.875-1.875V3.375c0-1.036.84-1.875 1.875-1.875ZM12.75 12a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V18a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V12Z" clip-rule="evenodd" /><path d="M14.25 5.25a5.23 5.23 0 0 0-1.279-3.434 9.768 9.768 0 0 1 6.963 6.963A5.23 5.23 0 0 0 16.5 7.5h-1.875a.375.375 0 0 1-.375-.375V5.25Z" />'));
         const basePathSidebar = getBasePath();
+        const nuevoRegistroHref = basePathSidebar === '' ? 'frontend/pages/nuevo_registro.html' : 'nuevo_registro.html';
+        sidebarItems.appendChild(createSidebarItem('Nuevo registro', '<path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V9Z" clip-rule="evenodd" />', nuevoRegistroHref));
+        const editarRegistroHrefSidebar = basePathSidebar === '' ? 'frontend/pages/editar_registro.html' : 'editar_registro.html';
+        sidebarItems.appendChild(createSidebarItem('Editar registro', '<path fill-rule="evenodd" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />', editarRegistroHrefSidebar));
+        const consultasHrefSidebar = basePathSidebar === '' ? 'frontend/pages/consultas.html' : 'consultas.html';
+        sidebarItems.appendChild(createSidebarItem('Consultas', '<path fill-rule="evenodd" d="M5.625 1.5H9a3.75 3.75 0 0 1 3.75 3.75v1.875c0 1.036.84 1.875 1.875 1.875H16.5a3.75 3.75 0 0 1 3.75 3.75v7.875c0 1.035-.84 1.875-1.875 1.875H5.625a1.875 1.875 0 0 1-1.875-1.875V3.375c0-1.036.84-1.875 1.875-1.875ZM12.75 12a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V18a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V12Z" clip-rule="evenodd" /><path d="M14.25 5.25a5.23 5.23 0 0 0-1.279-3.434 9.768 9.768 0 0 1 6.963 6.963A5.23 5.23 0 0 0 16.5 7.5h-1.875a.375.375 0 0 1-.375-.375V5.25Z" />', consultasHrefSidebar));
         const tuCuentaHrefSidebar = basePathSidebar === '' ? 'frontend/pages/tu_cuenta.html' : 'tu_cuenta.html';
         sidebarItems.appendChild(createSidebarItem('Tu cuenta', '<path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" clip-rule="evenodd" />', tuCuentaHrefSidebar));
         sidebarItems.appendChild(createSidebarItem('Cerrar Sesión', '<path fill-rule="evenodd" d="M7.5 3.75A1.5 1.5 0 0 0 6 5.25v13.5a1.5 1.5 0 0 0 1.5 1.5h6a1.5 1.5 0 0 0 1.5-1.5V15a.75.75 0 0 1 1.5 0v3.75a3 3 0 0 1-3 3h-6a3 3 0 0 1-3-3V5.25a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3V9A.75.75 0 0 1 15 9V5.25a1.5 1.5 0 0 0-1.5-1.5h-6Zm10.72 4.72a.75.75 0 0 1 1.06 0l3 3a.75.75 0 0 1 0 1.06l-3 3a.75.75 0 1 1-1.06-1.06l1.72-1.72H9a.75.75 0 0 1 0-1.5h10.94l-1.72-1.72a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />', '#', 'sidebar-logout-btn'));
         
     } else if (isAuth && rol === 'consultor') {
-        sidebarItems.appendChild(createSidebarItem('Nuevo registro', '<path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V9Z" clip-rule="evenodd" />'));
-        sidebarItems.appendChild(createSidebarItem('Nueva consulta', '<path fill-rule="evenodd" d="M5.625 1.5H9a3.75 3.75 0 0 1 3.75 3.75v1.875c0 1.036.84 1.875 1.875 1.875H16.5a3.75 3.75 0 0 1 3.75 3.75v7.875c0 1.035-.84 1.875-1.875 1.875H5.625a1.875 1.875 0 0 1-1.875-1.875V3.375c0-1.036.84-1.875 1.875-1.875ZM12.75 12a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V18a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V12Z" clip-rule="evenodd" /><path d="M14.25 5.25a5.23 5.23 0 0 0-1.279-3.434 9.768 9.768 0 0 1 6.963 6.963A5.23 5.23 0 0 0 16.5 7.5h-1.875a.375.375 0 0 1-.375-.375V5.25Z" />'));
         const basePathSidebarConsultor = getBasePath();
+        const nuevoRegistroHrefConsultor = basePathSidebarConsultor === '' ? 'frontend/pages/nuevo_registro.html' : 'nuevo_registro.html';
+        sidebarItems.appendChild(createSidebarItem('Nuevo registro', '<path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V9Z" clip-rule="evenodd" />', nuevoRegistroHrefConsultor));
+        const consultasHrefSidebarConsultor = basePathSidebarConsultor === '' ? 'frontend/pages/consultas.html' : 'consultas.html';
+        sidebarItems.appendChild(createSidebarItem('Consultas', '<path fill-rule="evenodd" d="M5.625 1.5H9a3.75 3.75 0 0 1 3.75 3.75v1.875c0 1.036.84 1.875 1.875 1.875H16.5a3.75 3.75 0 0 1 3.75 3.75v7.875c0 1.035-.84 1.875-1.875 1.875H5.625a1.875 1.875 0 0 1-1.875-1.875V3.375c0-1.036.84-1.875 1.875-1.875ZM12.75 12a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V18a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V12Z" clip-rule="evenodd" /><path d="M14.25 5.25a5.23 5.23 0 0 0-1.279-3.434 9.768 9.768 0 0 1 6.963 6.963A5.23 5.23 0 0 0 16.5 7.5h-1.875a.375.375 0 0 1-.375-.375V5.25Z" />', consultasHrefSidebarConsultor));
         const tuCuentaHrefSidebarConsultor = basePathSidebarConsultor === '' ? 'frontend/pages/tu_cuenta.html' : 'tu_cuenta.html';
         sidebarItems.appendChild(createSidebarItem('Tu cuenta', '<path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" clip-rule="evenodd" />', tuCuentaHrefSidebarConsultor));
         sidebarItems.appendChild(createSidebarItem('Cerrar Sesión', '<path fill-rule="evenodd" d="M7.5 3.75A1.5 1.5 0 0 0 6 5.25v13.5a1.5 1.5 0 0 0 1.5 1.5h6a1.5 1.5 0 0 0 1.5-1.5V15a.75.75 0 0 1 1.5 0v3.75a3 3 0 0 1-3 3h-6a3 3 0 0 1-3-3V5.25a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3V9A.75.75 0 0 1 15 9V5.25a1.5 1.5 0 0 0-1.5-1.5h-6Zm10.72 4.72a.75.75 0 0 1 1.06 0l3 3a.75.75 0 0 1 0 1.06l-3 3a.75.75 0 1 1-1.06-1.06l1.72-1.72H9a.75.75 0 0 1 0-1.5h10.94l-1.72-1.72a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />', '#', 'sidebar-logout-btn'));
@@ -221,6 +239,7 @@ async function loadHeaderByRole() {
         return;
     }
     
+    console.log('Cargando header...');
     // Cargar el header base (siempre el mismo)
     const loaded = await loadComponent('frontend/components/header.html', 'header-container');
     
@@ -257,8 +276,12 @@ async function loadHeaderByRole() {
         const basePath = getBasePath();
         const nuevoUsuarioHref = basePath === '' ? 'frontend/pages/registro_usuario.html' : 'registro_usuario.html';
         leftMenu.appendChild(createMenuButton('Nuevo usuario', '<path d="M5.25 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM2.25 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM18.75 7.5a.75.75 0 0 0-1.5 0v2.25H15a.75.75 0 0 0 0 1.5h2.25v2.25a.75.75 0 0 0 1.5 0v-2.25H21a.75.75 0 0 0 0-1.5h-2.25V7.5Z" />', nuevoUsuarioHref));
-        leftMenu.appendChild(createMenuButton('Nuevo registro', '<path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V9Z" clip-rule="evenodd" />'));
-        leftMenu.appendChild(createMenuButton('Nueva consulta', '<path fill-rule="evenodd" d="M5.625 1.5H9a3.75 3.75 0 0 1 3.75 3.75v1.875c0 1.036.84 1.875 1.875 1.875H16.5a3.75 3.75 0 0 1 3.75 3.75v7.875c0 1.035-.84 1.875-1.875 1.875H5.625a1.875 1.875 0 0 1-1.875-1.875V3.375c0-1.036.84-1.875 1.875-1.875ZM12.75 12a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V18a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V12Z" clip-rule="evenodd" /><path d="M14.25 5.25a5.23 5.23 0 0 0-1.279-3.434 9.768 9.768 0 0 1 6.963 6.963A5.23 5.23 0 0 0 16.5 7.5h-1.875a.375.375 0 0 1-.375-.375V5.25Z" />'));
+        const nuevoRegistroHref = basePath === '' ? 'frontend/pages/nuevo_registro.html' : 'nuevo_registro.html';
+        leftMenu.appendChild(createMenuButton('Nuevo registro', '<path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V9Z" clip-rule="evenodd" />', nuevoRegistroHref));
+        const editarRegistroHref = basePath === '' ? 'frontend/pages/editar_registro.html' : 'editar_registro.html';
+        leftMenu.appendChild(createMenuButton('Editar registro', '<path fill-rule="evenodd" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />', editarRegistroHref));
+        const consultasHref = basePath === '' ? 'frontend/pages/consultas.html' : 'consultas.html';
+        leftMenu.appendChild(createMenuButton('Consultas', '<path fill-rule="evenodd" d="M5.625 1.5H9a3.75 3.75 0 0 1 3.75 3.75v1.875c0 1.036.84 1.875 1.875 1.875H16.5a3.75 3.75 0 0 1 3.75 3.75v7.875c0 1.035-.84 1.875-1.875 1.875H5.625a1.875 1.875 0 0 1-1.875-1.875V3.375c0-1.036.84-1.875 1.875-1.875ZM12.75 12a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V18a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V12Z" clip-rule="evenodd" /><path d="M14.25 5.25a5.23 5.23 0 0 0-1.279-3.434 9.768 9.768 0 0 1 6.963 6.963A5.23 5.23 0 0 0 16.5 7.5h-1.875a.375.375 0 0 1-.375-.375V5.25Z" />', consultasHref));
         
         // Menú derecho - Admin
         const tuCuentaHref = basePath === '' ? 'frontend/pages/tu_cuenta.html' : 'tu_cuenta.html';
@@ -267,11 +290,13 @@ async function loadHeaderByRole() {
         
     } else if (isAuth && rol === 'consultor') {
         // Menú izquierdo - Consultor
-        leftMenu.appendChild(createMenuButton('Nuevo registro', '<path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V9Z" clip-rule="evenodd" />'));
-        leftMenu.appendChild(createMenuButton('Nueva consulta', '<path fill-rule="evenodd" d="M5.625 1.5H9a3.75 3.75 0 0 1 3.75 3.75v1.875c0 1.036.84 1.875 1.875 1.875H16.5a3.75 3.75 0 0 1 3.75 3.75v7.875c0 1.035-.84 1.875-1.875 1.875H5.625a1.875 1.875 0 0 1-1.875-1.875V3.375c0-1.036.84-1.875 1.875-1.875ZM12.75 12a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V18a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V12Z" clip-rule="evenodd" /><path d="M14.25 5.25a5.23 5.23 0 0 0-1.279-3.434 9.768 9.768 0 0 1 6.963 6.963A5.23 5.23 0 0 0 16.5 7.5h-1.875a.375.375 0 0 1-.375-.375V5.25Z" />'));
+        const basePathConsultor = getBasePath();
+        const nuevoRegistroHrefConsultor = basePathConsultor === '' ? 'frontend/pages/nuevo_registro.html' : 'nuevo_registro.html';
+        leftMenu.appendChild(createMenuButton('Nuevo registro', '<path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V9Z" clip-rule="evenodd" />', nuevoRegistroHrefConsultor));
+        const consultasHrefConsultor = basePathConsultor === '' ? 'frontend/pages/consultas.html' : 'consultas.html';
+        leftMenu.appendChild(createMenuButton('Consultas', '<path fill-rule="evenodd" d="M5.625 1.5H9a3.75 3.75 0 0 1 3.75 3.75v1.875c0 1.036.84 1.875 1.875 1.875H16.5a3.75 3.75 0 0 1 3.75 3.75v7.875c0 1.035-.84 1.875-1.875 1.875H5.625a1.875 1.875 0 0 1-1.875-1.875V3.375c0-1.036.84-1.875 1.875-1.875ZM12.75 12a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V18a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V12Z" clip-rule="evenodd" /><path d="M14.25 5.25a5.23 5.23 0 0 0-1.279-3.434 9.768 9.768 0 0 1 6.963 6.963A5.23 5.23 0 0 0 16.5 7.5h-1.875a.375.375 0 0 1-.375-.375V5.25Z" />', consultasHrefConsultor));
         
         // Menú derecho - Consultor
-        const basePathConsultor = getBasePath();
         const tuCuentaHrefConsultor = basePathConsultor === '' ? 'frontend/pages/tu_cuenta.html' : 'tu_cuenta.html';
         rightMenu.appendChild(createMenuButton(userDisplayName, '<path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" clip-rule="evenodd" />', tuCuentaHrefConsultor));
         rightMenu.appendChild(createMenuButton('Cerrar Sesión', '<path fill-rule="evenodd" d="M7.5 3.75A1.5 1.5 0 0 0 6 5.25v13.5a1.5 1.5 0 0 0 1.5 1.5h6a1.5 1.5 0 0 0 1.5-1.5V15a.75.75 0 0 1 1.5 0v3.75a3 3 0 0 1-3 3h-6a3 3 0 0 1-3-3V5.25a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3V9A.75.75 0 0 1 15 9V5.25a1.5 1.5 0 0 0-1.5-1.5h-6Zm10.72 4.72a.75.75 0 0 1 1.06 0l3 3a.75.75 0 0 1 0 1.06l-3 3a.75.75 0 1 1-1.06-1.06l1.72-1.72H9a.75.75 0 0 1 0-1.5h10.94l-1.72-1.72a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />', '#', 'logout-btn'));
@@ -449,6 +474,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
     
     // Cargar footer
+    console.log('Cargando footer...');
     await loadComponent('frontend/components/footer.html', 'footer-container');
     
     // Ajustar enlaces del footer
@@ -498,4 +524,5 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
     
 });
+
 

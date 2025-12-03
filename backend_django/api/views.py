@@ -13,6 +13,8 @@ import os
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
 import uuid
 
 
@@ -3021,4 +3023,110 @@ def consulta_pandillas_general(request):
         return Response({
             'success': False,
             'message': f'Error al realizar la consulta: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def send_contact_email(request):
+    """
+    Endpoint para enviar correos de contacto desde el formulario de ayuda.
+    """
+    try:
+        nombre = request.data.get('nombre', '').strip()
+        email = request.data.get('email', '').strip()
+        asunto = request.data.get('asunto', '').strip()
+        mensaje = request.data.get('mensaje', '').strip()
+        
+        # Validar campos requeridos
+        if not nombre or not email or not asunto or not mensaje:
+            return Response({
+                'success': False,
+                'message': 'Todos los campos son requeridos'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Validar formato de email
+        from django.core.validators import validate_email
+        from django.core.exceptions import ValidationError
+        try:
+            validate_email(email)
+        except ValidationError:
+            return Response({
+                'success': False,
+                'message': 'El formato del correo electrónico no es válido'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Obtener el correo de destino desde settings
+        contact_email = getattr(settings, 'CONTACT_EMAIL', 'kevcerdaa@gmail.com')
+        
+        # Crear el contenido del correo
+        subject = f'[SIGP] Contacto: {asunto}'
+        message_body = f"""
+Has recibido un nuevo mensaje de contacto desde SIGP:
+
+Nombre: {nombre}
+Correo: {email}
+Asunto: {asunto}
+
+Mensaje:
+{mensaje}
+
+---
+Este mensaje fue enviado desde el formulario de contacto de SIGP.
+"""
+        
+        # Verificar configuración de correo antes de enviar
+        email_host_user = getattr(settings, 'EMAIL_HOST_USER', '')
+        if not email_host_user:
+            return Response({
+                'success': False,
+                'message': 'El servidor de correo no está configurado. Por favor, contacta al administrador del sistema.'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        # Enviar el correo
+        try:
+            from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', email_host_user)
+            send_mail(
+                subject=subject,
+                message=message_body,
+                from_email=from_email,
+                recipient_list=[contact_email],
+                fail_silently=False,
+            )
+            
+            return Response({
+                'success': True,
+                'message': 'Correo enviado exitosamente. Nos pondremos en contacto contigo pronto.'
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as email_error:
+            import traceback
+            error_trace = traceback.format_exc()
+            error_message = str(email_error)
+            print(f"Error al enviar correo: {error_message}")
+            print(f"Traceback: {error_trace}")
+            
+            # Mensajes más específicos según el tipo de error
+            if 'authentication failed' in error_message.lower() or '535' in error_message:
+                user_message = 'Error de autenticación. Verifica las credenciales de correo en la configuración del servidor.'
+            elif 'connection' in error_message.lower() or 'timeout' in error_message.lower():
+                user_message = 'Error de conexión con el servidor de correo. Verifica la configuración de red.'
+            elif 'smtp' in error_message.lower():
+                user_message = 'Error en el servidor SMTP. Verifica la configuración del servidor de correo.'
+            else:
+                user_message = f'Error al enviar el correo: {error_message}'
+            
+            return Response({
+                'success': False,
+                'message': user_message,
+                'error_detail': error_message if settings.DEBUG else None
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+    except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"Error en send_contact_email: {error_trace}")
+        return Response({
+            'success': False,
+            'message': f'Error al procesar la solicitud: {str(e)}'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

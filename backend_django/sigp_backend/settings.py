@@ -173,3 +173,24 @@ CORS_ALLOW_ALL_ORIGINS = DEBUG  # Solo en desarrollo
 SESSION_COOKIE_AGE = 1800  # 30 minutos de inactividad
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# Email configuration
+# Si no hay credenciales configuradas, usar backend de consola para desarrollo
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+
+if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
+    # Configuración para producción/desarrollo con credenciales
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+    EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+    EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+    DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
+else:
+    # Modo desarrollo: solo imprime en consola (no envía correos reales)
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    DEFAULT_FROM_EMAIL = 'noreply@sigp.local'
+    print("⚠️  ADVERTENCIA: Email no configurado. Los correos se mostrarán en la consola del servidor.")
+
+# Email de destino para el formulario de contacto
+CONTACT_EMAIL = os.getenv('CONTACT_EMAIL', 'kevcerdaa@gmail.com')

@@ -45,7 +45,26 @@ DB_USER=root
 DB_PASSWORD=
 DB_HOST=localhost
 DB_PORT=3306
+
+# Configuración de correo electrónico (para formulario de contacto)
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=kevcerdaa@gmail.com
+EMAIL_HOST_PASSWORD=ufyebznqyqkkmyhy
+DEFAULT_FROM_EMAIL=kevcerdaa@gmail.com
+CONTACT_EMAIL=kevcerdaa@gmail.com
 ```
+
+**Importante:**
+- `CONTACT_EMAIL`: Es el correo donde LLEGAN los mensajes (NO necesita contraseña, solo es el destino)
+- `EMAIL_HOST_USER` y `EMAIL_HOST_PASSWORD`: Es el correo desde el cual se ENVÍAN los mensajes (SÍ necesita contraseña)
+
+**Nota sobre Gmail:** Si usas Gmail para enviar, necesitas generar una "Contraseña de aplicación":
+1. Ve a tu cuenta de Google: https://myaccount.google.com/
+2. Seguridad → Verificación en 2 pasos (debe estar activada)
+3. Contraseñas de aplicaciones → Generar nueva contraseña
+4. Usa esa contraseña en `EMAIL_HOST_PASSWORD`
 
 ### 4. Asegúrate de que MySQL esté corriendo en XAMPP
 

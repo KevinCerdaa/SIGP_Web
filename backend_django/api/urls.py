@@ -67,5 +67,8 @@ urlpatterns = [
     path('consultas/pandillas/', views.consulta_pandillas, name='consulta-pandillas'),
     path('consultas/integrantes/', views.consulta_integrantes, name='consulta-integrantes'),
     path('consultas/pandillas/general/', views.consulta_pandillas_general, name='consulta-pandillas-general'),
+    
+    # Contacto
+    path('contacto/', views.send_contact_email, name='send-contact-email'),
 ]
 

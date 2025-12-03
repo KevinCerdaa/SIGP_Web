@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="es-mx">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIGP - Ayuda</title>
+    <link rel="stylesheet" href="../styles/output.css">
+    <style>
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .accordion-content.open {
+            max-height: 1000px;
+            transition: max-height 0.5s ease-in;
+        }
+        .accordion-icon {
+            transition: transform 0.3s ease;
+        }
+        .accordion-icon.rotated {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 flex flex-col min-h-screen">
+    <div id="header-container" class="w-full"></div>
+    <main class="w-full h-auto py-4 sm:py-6 md:py-10 flex-1">
+        <div class="w-full h-full flex flex-col items-center justify-center">
+            <div class="w-full px-4 sm:px-6 md:w-4/5 max-w-6xl h-auto flex flex-col items-center justify-center">
+                <!-- Título y Botón Regresar -->
+                <div class="w-full h-auto flex flex-col items-center justify-center gap-3 md:gap-4 py-4 mb-6">
+                    <h1 class="text-2xl sm:text-3xl md:text-4xl font-spectral text-center text-white">Centro de Ayuda</h1>
+                    <div class="w-full flex justify-start mt-2 font-bold">
+                        <button type="button"
+                                onclick="window.history.back()"
+                                class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-600 text-blue-100 text-sm md:text-base hover:bg-slate-800 hover:text-blue-300 transition-all duration-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 md:size-5">
+                                <path fill-rule="evenodd" d="M9.53 4.47a.75.75 0 0 1 0 1.06L5.81 9.25H20.25a.75.75 0 0 1 0 1.5H5.81l3.72 3.72a.75.75 0 1 1-1.06 1.06l-5-5a.75.75 0 0 1 0-1.06l5-5a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Regresar</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Formulario de Contacto -->
+                <div class="w-full h-auto bg-linear-180 from-slate-800/80 to-slate-800 backdrop-blur-xs rounded-lg md:rounded-2xl border-2 border-slate-600 p-4 sm:p-6 md:p-8 mb-6">
+                    <h2 class="text-xl sm:text-2xl md:text-3xl font-spectral text-white mb-6">Contáctanos</h2>
+                    <p class="text-blue-100 text-sm md:text-base mb-6">¿Tienes alguna pregunta o necesitas asistencia? Envíanos un mensaje y te responderemos lo antes posible.</p>
+                    <form id="form-contacto" class="w-full flex flex-col gap-4 md:gap-6">
+                        <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="nombre-contacto" class="block text-sm md:text-base text-blue-100 mb-2">Nombre completo:</label>
+                                <input type="text" id="nombre-contacto" name="nombre" required class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base" placeholder="Tu nombre">
+                            </div>
+                            <div>
+                                <label for="email-contacto" class="block text-sm md:text-base text-blue-100 mb-2">Correo electrónico:</label>
+                                <input type="email" id="email-contacto" name="email" required class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base" placeholder="tu@email.com">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="asunto-contacto" class="block text-sm md:text-base text-blue-100 mb-2">Asunto:</label>
+                            <input type="text" id="asunto-contacto" name="asunto" required class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base" placeholder="Asunto de tu consulta">
+                        </div>
+                        <div>
+                            <label for="mensaje-contacto" class="block text-sm md:text-base text-blue-100 mb-2">Mensaje:</label>
+                            <textarea id="mensaje-contacto" name="mensaje" required rows="5" class="w-full rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base resize-y" placeholder="Escribe tu mensaje aquí..."></textarea>
+                        </div>
+                        <div class="w-full flex flex-col sm:flex-row gap-3 mt-4">
+                            <button type="submit" class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-sm md:text-base font-medium hover:bg-blue-600 transition-all duration-150">
+                                Enviar Mensaje
+                            </button>
+                            <button type="reset" class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-slate-600 text-white text-sm md:text-base font-medium hover:bg-slate-700 transition-all duration-150">
+                                Limpiar
+                            </button>
+                        </div>
+                        <div id="mensaje-envio" class="hidden text-center py-2 rounded-lg"></div>
+                    </form>
+                </div>
+
+                <!-- Preguntas Frecuentes -->
+                <div class="w-full h-auto bg-linear-180 from-slate-800/80 to-slate-800 backdrop-blur-xs rounded-lg md:rounded-2xl border-2 border-slate-600 p-4 sm:p-6 md:p-8 mb-6">
+                    <h2 class="text-xl sm:text-2xl md:text-3xl font-spectral text-white mb-6">Preguntas Frecuentes</h2>
+                    <div class="w-full flex flex-col gap-4">
+                        <!-- Pregunta 1 -->
+                        <div class="w-full border border-slate-600 rounded-lg overflow-hidden">
+                            <button type="button" class="accordion-btn w-full flex items-center justify-between p-4 md:p-6 bg-slate-700/50 hover:bg-slate-700 transition-colors text-left">
+                                <span class="text-white text-sm md:text-base font-medium">¿Qué es SIGP?</span>
+                                <svg class="accordion-icon size-5 text-blue-100 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                            <div class="accordion-content">
+                                <div class="p-4 md:p-6 text-blue-100 text-sm md:text-base">
+                                    <p>SIGP (Sistema de Identificación de Grupos Pandilleriles) es una plataforma diseñada para ayudar a las autoridades y organizaciones a gestionar y consultar información sobre grupos pandilleriles, sus integrantes y eventos relacionados. El sistema permite visualizar ubicaciones en mapas, realizar consultas avanzadas y generar reportes.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pregunta 2 -->
+                        <div class="w-full border border-slate-600 rounded-lg overflow-hidden">
+                            <button type="button" class="accordion-btn w-full flex items-center justify-between p-4 md:p-6 bg-slate-700/50 hover:bg-slate-700 transition-colors text-left">
+                                <span class="text-white text-sm md:text-base font-medium">¿Cómo puedo acceder al sistema?</span>
+                                <svg class="accordion-icon size-5 text-blue-100 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                            <div class="accordion-content">
+                                <div class="p-4 md:p-6 text-blue-100 text-sm md:text-base">
+                                    <p>Para acceder al sistema, necesitas una cuenta de usuario. Si ya tienes una cuenta, puedes iniciar sesión desde el botón "Iniciar Sesión" en el header. Si no tienes cuenta, contacta al administrador del sistema para que te proporcione las credenciales de acceso.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pregunta 3 -->
+                        <div class="w-full border border-slate-600 rounded-lg overflow-hidden">
+                            <button type="button" class="accordion-btn w-full flex items-center justify-between p-4 md:p-6 bg-slate-700/50 hover:bg-slate-700 transition-colors text-left">
+                                <span class="text-white text-sm md:text-base font-medium">¿Cómo puedo consultar información?</span>
+                                <svg class="accordion-icon size-5 text-blue-100 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                            <div class="accordion-content">
+                                <div class="p-4 md:p-6 text-blue-100 text-sm md:text-base">
+                                    <p>Una vez que hayas iniciado sesión, puedes acceder a la sección de "Consultas y Reportes" desde el menú. Allí podrás realizar diferentes tipos de consultas: por eventos, por pandilla, por integrante o una consulta general. También puedes filtrar información directamente en el mapa usando los controles disponibles.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pregunta 4 -->
+                        <div class="w-full border border-slate-600 rounded-lg overflow-hidden">
+                            <button type="button" class="accordion-btn w-full flex items-center justify-between p-4 md:p-6 bg-slate-700/50 hover:bg-slate-700 transition-colors text-left">
+                                <span class="text-white text-sm md:text-base font-medium">¿Qué significan los colores en el mapa?</span>
+                                <svg class="accordion-icon size-5 text-blue-100 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                            <div class="accordion-content">
+                                <div class="p-4 md:p-6 text-blue-100 text-sm md:text-base">
+                                    <p>Los marcadores en el mapa utilizan un sistema de colores para indicar el grado de peligrosidad:</p>
+                                    <ul class="list-disc list-inside mt-2 space-y-1">
+                                        <li><span class="font-semibold text-green-400">Verde:</span> Grado de peligrosidad Bajo</li>
+                                        <li><span class="font-semibold text-yellow-400">Amarillo:</span> Grado de peligrosidad Medio</li>
+                                        <li><span class="font-semibold text-red-400">Rojo:</span> Grado de peligrosidad Alto</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pregunta 5 -->
+                        <div class="w-full border border-slate-600 rounded-lg overflow-hidden">
+                            <button type="button" class="accordion-btn w-full flex items-center justify-between p-4 md:p-6 bg-slate-700/50 hover:bg-slate-700 transition-colors text-left">
+                                <span class="text-white text-sm md:text-base font-medium">¿Cómo puedo generar reportes?</span>
+                                <svg class="accordion-icon size-5 text-blue-100 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                            <div class="accordion-content">
+                                <div class="p-4 md:p-6 text-blue-100 text-sm md:text-base">
+                                    <p>Después de realizar una consulta, verás un botón "Generar Reporte PDF" en la sección de resultados. Al hacer clic en este botón, se generará un documento PDF con toda la información de la consulta realizada, incluyendo filtros aplicados y estadísticas relevantes.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pregunta 6 -->
+                        <div class="w-full border border-slate-600 rounded-lg overflow-hidden">
+                            <button type="button" class="accordion-btn w-full flex items-center justify-between p-4 md:p-6 bg-slate-700/50 hover:bg-slate-700 transition-colors text-left">
+                                <span class="text-white text-sm md:text-base font-medium">¿Qué es el mapa de calor?</span>
+                                <svg class="accordion-icon size-5 text-blue-100 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                            <div class="accordion-content">
+                                <div class="p-4 md:p-6 text-blue-100 text-sm md:text-base">
+                                    <p>El mapa de calor es una visualización que muestra la concentración de ubicaciones en el mapa. Las áreas con mayor intensidad de color indican una mayor concentración de puntos. Puedes activar o desactivar el mapa de calor usando el botón correspondiente en los filtros del mapa.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pregunta 7 -->
+                        <div class="w-full border border-slate-600 rounded-lg overflow-hidden">
+                            <button type="button" class="accordion-btn w-full flex items-center justify-between p-4 md:p-6 bg-slate-700/50 hover:bg-slate-700 transition-colors text-left">
+                                <span class="text-white text-sm md:text-base font-medium">¿Cómo puedo agregar nuevos registros?</span>
+                                <svg class="accordion-icon size-5 text-blue-100 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                            <div class="accordion-content">
+                                <div class="p-4 md:p-6 text-blue-100 text-sm md:text-base">
+                                    <p>Para agregar nuevos registros, necesitas tener permisos de administrador o editor. Si tienes estos permisos, puedes acceder a la opción "Nuevo Registro" desde el menú. Allí podrás registrar nuevas pandillas, integrantes, direcciones y eventos en el sistema.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pregunta 8 -->
+                        <div class="w-full border border-slate-600 rounded-lg overflow-hidden">
+                            <button type="button" class="accordion-btn w-full flex items-center justify-between p-4 md:p-6 bg-slate-700/50 hover:bg-slate-700 transition-colors text-left">
+                                <span class="text-white text-sm md:text-base font-medium">¿Mi información está segura?</span>
+                                <svg class="accordion-icon size-5 text-blue-100 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                            <div class="accordion-content">
+                                <div class="p-4 md:p-6 text-blue-100 text-sm md:text-base">
+                                    <p>Sí, la seguridad de la información es una prioridad. El sistema utiliza autenticación por tokens y solo usuarios autorizados pueden acceder a la información. Para más detalles sobre cómo protegemos tus datos, consulta nuestra <a href="politica_privacidad.html" class="text-blue-300 hover:text-blue-400 underline">Política de Privacidad</a>.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <div id="footer-container"></div>
+    <div id="modal-container"></div>
+    
+    <script src="../javascript/app.js"></script>
+    <script src="../javascript/auth.js"></script>
+    <script>
+        // Funcionalidad de acordeones
+        document.addEventListener('DOMContentLoaded', function() {
+            const accordionButtons = document.querySelectorAll('.accordion-btn');
+            
+            accordionButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const content = this.nextElementSibling;
+                    const icon = this.querySelector('.accordion-icon');
+                    const isOpen = content.classList.contains('open');
+                    
+                    // Cerrar todos los demás acordeones
+                    accordionButtons.forEach(otherButton => {
+                        if (otherButton !== this) {
+                            const otherContent = otherButton.nextElementSibling;
+                            const otherIcon = otherButton.querySelector('.accordion-icon');
+                            otherContent.classList.remove('open');
+                            otherIcon.classList.remove('rotated');
+                        }
+                    });
+                    
+                    // Toggle del acordeón actual
+                    if (isOpen) {
+                        content.classList.remove('open');
+                        icon.classList.remove('rotated');
+                    } else {
+                        content.classList.add('open');
+                        icon.classList.add('rotated');
+                    }
+                });
+            });
+
+            // Manejo del formulario de contacto
+            const formContacto = document.getElementById('form-contacto');
+            const mensajeEnvio = document.getElementById('mensaje-envio');
+            
+            if (formContacto) {
+                formContacto.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const nombre = document.getElementById('nombre-contacto').value.trim();
+                    const email = document.getElementById('email-contacto').value.trim();
+                    const asunto = document.getElementById('asunto-contacto').value.trim();
+                    const mensaje = document.getElementById('mensaje-contacto').value.trim();
+                    
+                    // Validar campos
+                    if (!nombre || !email || !asunto || !mensaje) {
+                        mensajeEnvio.classList.remove('hidden');
+                        mensajeEnvio.classList.add('bg-red-500/20', 'text-red-400', 'border', 'border-red-500');
+                        mensajeEnvio.classList.remove('bg-green-500/20', 'text-green-400', 'border-green-500');
+                        mensajeEnvio.textContent = 'Por favor, completa todos los campos.';
+                        return;
+                    }
+                    
+                    // Mostrar estado de carga
+                    mensajeEnvio.classList.remove('hidden');
+                    mensajeEnvio.classList.add('bg-blue-500/20', 'text-blue-400', 'border', 'border-blue-500');
+                    mensajeEnvio.classList.remove('bg-green-500/20', 'text-green-400', 'bg-red-500/20', 'text-red-400', 'border-green-500', 'border-red-500');
+                    mensajeEnvio.textContent = 'Enviando mensaje...';
+                    
+                    // Deshabilitar el botón de envío
+                    const submitBtn = formContacto.querySelector('button[type="submit"]');
+                    const originalBtnText = submitBtn.textContent;
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Enviando...';
+                    
+                    try {
+                        const response = await fetch('http://localhost:8000/api/contacto/', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                nombre: nombre,
+                                email: email,
+                                asunto: asunto,
+                                mensaje: mensaje
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (response.ok && data.success) {
+                            // Éxito
+                            mensajeEnvio.classList.remove('bg-blue-500/20', 'text-blue-400', 'border-blue-500');
+                            mensajeEnvio.classList.add('bg-green-500/20', 'text-green-400', 'border', 'border-green-500');
+                            mensajeEnvio.textContent = data.message || '¡Mensaje enviado! Nos pondremos en contacto contigo pronto.';
+                            
+                            // Limpiar formulario
+                            formContacto.reset();
+                            
+                            // Ocultar mensaje después de 5 segundos
+                            setTimeout(() => {
+                                mensajeEnvio.classList.add('hidden');
+                                mensajeEnvio.classList.remove('bg-green-500/20', 'text-green-400', 'border', 'border-green-500');
+                            }, 5000);
+                        } else {
+                            // Error del servidor
+                            mensajeEnvio.classList.remove('bg-blue-500/20', 'text-blue-400', 'border-blue-500');
+                            mensajeEnvio.classList.add('bg-red-500/20', 'text-red-400', 'border', 'border-red-500');
+                            let errorMessage = data.message || 'Error al enviar el mensaje. Por favor, intenta nuevamente.';
+                            if (data.error_detail) {
+                                errorMessage += ` (${data.error_detail})`;
+                            }
+                            mensajeEnvio.textContent = errorMessage;
+                        }
+                    } catch (error) {
+                        // Error de conexión
+                        console.error('Error al enviar correo:', error);
+                        mensajeEnvio.classList.remove('bg-blue-500/20', 'text-blue-400', 'border-blue-500');
+                        mensajeEnvio.classList.add('bg-red-500/20', 'text-red-400', 'border', 'border-red-500');
+                        mensajeEnvio.textContent = 'Error de conexión. Por favor, verifica tu conexión a internet e intenta nuevamente.';
+                    } finally {
+                        // Rehabilitar el botón
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalBtnText;
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+

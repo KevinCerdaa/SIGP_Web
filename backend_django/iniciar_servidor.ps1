@@ -10,14 +10,54 @@ Write-Host "  Iniciando SIGP - Servidor y Bot" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "Directorio de trabajo: $(Get-Location)" -ForegroundColor Gray
 
-# Activar entorno virtual
-if (Test-Path "venv\Scripts\Activate.ps1") {
+# Función para verificar si el entorno virtual es válido
+function Test-Venv {
+    param($VenvPath)
+    if (-not (Test-Path "$VenvPath\Scripts\python.exe")) { return $false }
+    
+    # Intentar ejecutar python para ver si funciona (detecta incompatibilidad de arquitectura/versión)
+    try {
+        $process = Start-Process -FilePath "$VenvPath\Scripts\python.exe" -ArgumentList "--version" -NoNewWindow -Wait -PassThru -ErrorAction Stop
+        return $process.ExitCode -eq 0
+    } catch {
+        return $false
+    }
+}
+
+# Verificar y configurar entorno virtual
+$venvPath = Join-Path $scriptPath "venv"
+$venvValid = Test-Venv -VenvPath $venvPath
+
+if (-not $venvValid) {
+    Write-Host ">>> Detectando problemas en el entorno virtual..." -ForegroundColor Yellow
+    if (Test-Path $venvPath) {
+        Write-Host "    El entorno virtual existe pero no es compatible con esta computadora." -ForegroundColor Yellow
+        Write-Host "    (Probablemente fue creado con otra versión de Python)" -ForegroundColor Gray
+        Write-Host "    Eliminando entorno virtual antiguo..." -ForegroundColor Yellow
+        Remove-Item -Path $venvPath -Recurse -Force
+    } else {
+        Write-Host "    No se encontro entorno virtual." -ForegroundColor Yellow
+    }
+
+    Write-Host ">>> Creando nuevo entorno virtual..." -ForegroundColor Cyan
+    python -m venv venv
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Error fatal: No se pudo crear el entorno virtual." -ForegroundColor Red
+        Write-Host "Asegurate de tener Python instalado y en el PATH." -ForegroundColor Red
+        exit
+    }
+    
+    Write-Host ">>> Instalando dependencias (esto puede tardar unos minutos)..." -ForegroundColor Cyan
     . venv\Scripts\Activate.ps1
-    Write-Host "Entorno virtual activado" -ForegroundColor Green
+    pip install -r requirements.txt
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Advertencia: Hubo errores instalando las dependencias." -ForegroundColor Yellow
+    } else {
+        Write-Host "Dependencias instaladas correctamente." -ForegroundColor Green
+    }
 } else {
-    Write-Host "No se encontro el entorno virtual" -ForegroundColor Red
-    Write-Host "Ejecuta primero: python -m venv venv" -ForegroundColor Magenta
-    exit
+    . venv\Scripts\Activate.ps1
+    Write-Host "Entorno virtual activado y validado." -ForegroundColor Green
 }
 
 # Verificar que MySQL este corriendo

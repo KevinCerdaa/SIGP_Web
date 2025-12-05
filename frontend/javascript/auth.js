@@ -66,15 +66,53 @@ async function logout() {
         localStorage.removeItem('user_data');
         localStorage.removeItem('user_rol');
         
-        // Recargar la página para actualizar el header
-        window.location.reload();
+        // Redirigir al index.html usando la función getIndexPath
+        // Si getIndexPath no está disponible, usar lógica similar
+        let indexPath = 'index.html';
+        if (typeof getIndexPath === 'function') {
+            indexPath = getIndexPath();
+        } else {
+            // Lógica de respaldo
+            const path = window.location.pathname;
+            const href = window.location.href;
+            if (path.includes('/frontend/pages/') || href.includes('/frontend/pages/')) {
+                indexPath = '../../index.html';
+            } else if (path.includes('/pages/') || href.includes('/pages/')) {
+                indexPath = '../index.html';
+            } else if (path === '/' || path === '/index.html' || path.endsWith('/index.html') || path.endsWith('index.html')) {
+                indexPath = 'index.html';
+            } else {
+                indexPath = '../index.html';
+            }
+        }
+        
+        window.location.href = indexPath;
     } catch (error) {
         console.error('Error en logout:', error);
         // Aún así limpiar localStorage
         localStorage.removeItem('auth_token');
         localStorage.removeItem('user_data');
         localStorage.removeItem('user_rol');
-        window.location.reload();
+        
+        // Redirigir al index.html
+        let indexPath = 'index.html';
+        if (typeof getIndexPath === 'function') {
+            indexPath = getIndexPath();
+        } else {
+            const path = window.location.pathname;
+            const href = window.location.href;
+            if (path.includes('/frontend/pages/') || href.includes('/frontend/pages/')) {
+                indexPath = '../../index.html';
+            } else if (path.includes('/pages/') || href.includes('/pages/')) {
+                indexPath = '../index.html';
+            } else if (path === '/' || path === '/index.html' || path.endsWith('/index.html') || path.endsWith('index.html')) {
+                indexPath = 'index.html';
+            } else {
+                indexPath = '../index.html';
+            }
+        }
+        
+        window.location.href = indexPath;
     }
 }
 

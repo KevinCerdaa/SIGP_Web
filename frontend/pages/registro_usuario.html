@@ -19,7 +19,7 @@
                     <!-- Botón Regresar -->
                     <div class="w-full flex justify-start mt-2 font-bold">
                         <button type="button"
-                                onclick="window.history.back()"
+                                onclick="typeof goToIndex === 'function' ? goToIndex() : (window.location.href = (window.location.pathname.includes('/frontend/pages/') || window.location.href.includes('/frontend/pages/')) ? '../../index.html' : '../index.html')"
                                 class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-600 text-blue-100 text-sm md:text-base hover:bg-slate-800 hover:text-blue-300 transition-all duration-200">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 md:size-5">
                                 <path fill-rule="evenodd" d="M9.53 4.47a.75.75 0 0 1 0 1.06L5.81 9.25H20.25a.75.75 0 0 1 0 1.5H5.81l3.72 3.72a.75.75 0 1 1-1.06 1.06l-5-5a.75.75 0 0 1 0-1.06l5-5a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
@@ -68,6 +68,12 @@
                             <label for="confirmar-password-usuario" class="w-full text-left text-sm md:text-base text-blue-100 mb-2">Confirmar contraseña:</label>
                             <input type="password" id="confirmar-password-usuario" name="confirmar-password" required class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base" placeholder="Confirme la contraseña">
                             <span id="confirmar-password-error-usuario" class="text-red-500 text-xs sm:text-sm font-bold hidden">Las contraseñas no coinciden</span>
+                        </div>
+                        
+                        <!-- Cargo: Campo de texto libre (ocupa todo el ancho) -->
+                        <div class="w-full h-auto flex flex-col items-start justify-center">
+                            <label for="cargo-usuario" class="w-full text-left text-sm md:text-base text-blue-100 mb-2">Cargo:</label>
+                            <input type="text" id="cargo-usuario" name="cargo" class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base" placeholder="Ingrese el cargo (opcional)">
                         </div>
                         
                         <!-- Rol: Selector (ocupa todo el ancho) -->

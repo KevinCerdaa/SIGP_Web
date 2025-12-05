@@ -43,6 +43,7 @@ class Usuario(AbstractBaseUser):
     correo = models.EmailField(unique=True, max_length=255)
     nombre = models.CharField(max_length=255)
     apellido = models.CharField(max_length=255)
+    cargo = models.CharField(max_length=255, blank=True, null=True)
     rol = models.CharField(max_length=50, choices=ROL_CHOICES)
     genero = models.CharField(max_length=1, choices=GENERO_CHOICES, default='X', blank=True, null=True)
     is_active = models.BooleanField(default=True)
@@ -196,7 +197,7 @@ class Delito(models.Model):
 class Falta(models.Model):
     """Modelo para catálogo de faltas"""
     id_falta = models.AutoField(primary_key=True)
-    nombre = models.CharField(max_length=255)
+    falta = models.CharField(max_length=255, db_column='falta')
     
     class Meta:
         db_table = 'faltas'
@@ -204,7 +205,7 @@ class Falta(models.Model):
         verbose_name_plural = 'Faltas'
     
     def __str__(self):
-        return self.nombre
+        return self.falta
 
 
 class Rivalidad(models.Model):

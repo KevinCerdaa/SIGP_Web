@@ -24,6 +24,49 @@ function getBasePath() {
     return '';
 }
 
+// Función para obtener la ruta correcta al index.html desde cualquier ubicación
+function getIndexPath() {
+    const path = window.location.pathname;
+    const href = window.location.href;
+    
+    // Si estamos en la raíz (index.html)
+    if (path === '/' || path === '/index.html' || path.endsWith('/index.html') || path.endsWith('index.html')) {
+        // Si ya estamos en index.html, retornar la ruta relativa
+        if (path.includes('index.html') || href.includes('index.html')) {
+            return 'index.html';
+        }
+        return 'index.html';
+    }
+    
+    // Si estamos en frontend/pages/, necesitamos subir dos niveles
+    if (path.includes('/frontend/pages/') || href.includes('/frontend/pages/')) {
+        return '../../index.html';
+    }
+    
+    // Si estamos en pages/, necesitamos subir un nivel
+    if (path.includes('/pages/') || href.includes('/pages/')) {
+        return '../index.html';
+    }
+    
+    // Si estamos en file:// protocol
+    if (href.startsWith('file://')) {
+        if (href.includes('/frontend/pages/')) {
+            return '../../index.html';
+        } else if (href.includes('index.html') && !href.includes('/frontend/pages/')) {
+            return 'index.html';
+        }
+    }
+    
+    // Por defecto, intentar subir un nivel
+    return '../index.html';
+}
+
+// Función global para ir al index.html (disponible desde cualquier página)
+function goToIndex() {
+    const indexPath = getIndexPath();
+    window.location.href = indexPath;
+}
+
 // Función para cargar componentes HTML
 async function loadComponent(componentPath, targetElementId) {
     try {

@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="es-mx">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIGP - Editar Registro</title>
     <link rel="stylesheet" href="../styles/output.css">
 </head>
+
 <body class="bg-slate-950 flex flex-col min-h-screen">
     <div id="header-container" class="w-full"></div>
     <main class="w-full h-auto py-4 sm:py-6 md:py-10 flex-1">
@@ -13,28 +15,35 @@
             <div class="w-full px-4 sm:px-6 md:w-4/5 max-w-4xl h-auto flex flex-col items-center justify-center">
                 <!-- Título -->
                 <div class="w-full h-auto flex flex-col items-center justify-center gap-3 md:gap-4 py-4 mb-6">
-                    <h1 class="text-2xl sm:text-3xl md:text-4xl font-spectral text-center text-white">Editar Registro</h1>
+                    <h1 class="text-2xl sm:text-3xl md:text-4xl font-spectral text-center text-white">Editar Registro
+                    </h1>
                     <!-- Botón Regresar -->
                     <div class="w-full flex justify-start mt-2 font-bold">
-                        <button type="button"
-                                onclick="window.history.back()"
-                                class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-600 text-blue-100 text-sm md:text-base hover:bg-slate-800 hover:text-blue-300 transition-all duration-200">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 md:size-5">
-                                <path fill-rule="evenodd" d="M9.53 4.47a.75.75 0 0 1 0 1.06L5.81 9.25H20.25a.75.75 0 0 1 0 1.5H5.81l3.72 3.72a.75.75 0 1 1-1.06 1.06l-5-5a.75.75 0 0 1 0-1.06l5-5a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+                        <button type="button" onclick="typeof goToIndex === 'function' ? goToIndex() : (window.location.href = (window.location.pathname.includes('/frontend/pages/') || window.location.href.includes('/frontend/pages/')) ? '../../index.html' : '../index.html')"
+                            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-600 text-blue-100 text-sm md:text-base hover:bg-slate-800 hover:text-blue-300 transition-all duration-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                class="size-4 md:size-5">
+                                <path fill-rule="evenodd"
+                                    d="M9.53 4.47a.75.75 0 0 1 0 1.06L5.81 9.25H20.25a.75.75 0 0 1 0 1.5H5.81l3.72 3.72a.75.75 0 1 1-1.06 1.06l-5-5a.75.75 0 0 1 0-1.06l5-5a.75.75 0 0 1 1.06 0Z"
+                                    clip-rule="evenodd" />
                             </svg>
                             <span>Regresar</span>
                         </button>
                     </div>
                 </div>
-                
+
                 <!-- Contenido del editar registro -->
-                <div class="w-full h-auto bg-linear-180 from-slate-800/80 to-slate-800 backdrop-blur-xs rounded-lg md:rounded-2xl border-2 border-slate-600 p-4 sm:p-6 md:p-8">
+                <div
+                    class="w-full h-auto bg-linear-180 from-slate-800/80 to-slate-800 backdrop-blur-xs rounded-lg md:rounded-2xl border-2 border-slate-600 p-4 sm:p-6 md:p-8">
                     <!-- Selector de tipo de registro -->
                     <div class="w-full h-auto flex flex-col items-center justify-center gap-6">
                         <div class="w-full h-auto flex flex-col items-start justify-center">
-                            <label for="tipo-registro-edit-select" class="w-full text-left text-sm md:text-base text-blue-100 mb-2">Tipo de registro:</label>
+                            <label for="tipo-registro-edit-select"
+                                class="w-full text-left text-sm md:text-base text-blue-100 mb-2">Tipo de
+                                registro:</label>
                             <div class="relative w-full">
-                                <select id="tipo-registro-edit-select" name="tipo-registro-edit" class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
+                                <select id="tipo-registro-edit-select" name="tipo-registro-edit"
+                                    class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
                                     <option value="" disabled selected>Selecciona el tipo de registro</option>
                                     <option value="pandillas">Pandillas</option>
                                     <option value="integrantes">Integrantes</option>
@@ -45,185 +54,263 @@
                                     <option value="rivalidades">Rivalidades</option>
                                     <option value="redes-sociales">Redes sociales</option>
                                 </select>
-                                <div class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 text-slate-950">
-                                        <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                                <div
+                                    class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                        class="size-6 text-slate-950">
+                                        <path fill-rule="evenodd"
+                                            d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
+                                            clip-rule="evenodd" />
                                     </svg>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Selector de registro específico -->
                         <div class="w-full h-auto flex flex-col items-start justify-center">
-                            <label for="registro-edit-select" class="w-full text-left text-sm md:text-base text-blue-100 mb-2">Selecciona el registro a editar:</label>
+                            <label for="registro-edit-select"
+                                class="w-full text-left text-sm md:text-base text-blue-100 mb-2">Selecciona el registro
+                                a editar:</label>
                             <div class="relative w-full">
-                                <select id="registro-edit-select" name="registro-edit" class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none" disabled>
+                                <select id="registro-edit-select" name="registro-edit"
+                                    class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none"
+                                    disabled>
                                     <option value="" disabled selected>Primero selecciona un tipo de registro</option>
                                 </select>
-                                <div class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 text-slate-950">
-                                        <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                                <div
+                                    class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                        class="size-6 text-slate-950">
+                                        <path fill-rule="evenodd"
+                                            d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
+                                            clip-rule="evenodd" />
                                     </svg>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Botón para continuar -->
                         <div class="w-full h-auto flex flex-col items-center justify-center">
-                            <button type="button" id="btn-continuar-edit-registro" class="w-full h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-sm md:text-base font-medium flex items-center justify-center hover:bg-blue-600 transition-all duration-150 hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            <button type="button" id="btn-continuar-edit-registro"
+                                class="w-full h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-sm md:text-base font-medium flex items-center justify-center hover:bg-blue-600 transition-all duration-150 hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled>
                                 Continuar
                             </button>
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Modal para editar Pandillas (similar al de nuevo registro) -->
-                <dialog id="modal-editar-pandilla" class="bg-transparent border-0 p-0 m-0 max-w-none max-h-none fixed inset-0 flex items-center justify-center z-50" style="margin: auto;">
-                    <div class="w-full sm:w-[90%] md:w-[85%] lg:w-[80%] max-w-5xl max-h-[90vh] bg-linear-180 from-slate-800/80 to-slate-800 backdrop-blur-xs rounded-lg md:rounded-2xl border-2 border-slate-600 flex flex-col overflow-hidden">
+                <dialog id="modal-editar-pandilla"
+                    class="bg-transparent border-0 p-0 m-0 max-w-none max-h-none fixed inset-0 flex items-center justify-center z-50"
+                    style="margin: auto;">
+                    <div
+                        class="w-full sm:w-[90%] md:w-[85%] lg:w-[80%] max-w-5xl max-h-[90vh] bg-linear-180 from-slate-800/80 to-slate-800 backdrop-blur-xs rounded-lg md:rounded-2xl border-2 border-slate-600 flex flex-col overflow-hidden">
                         <!-- Header del modal -->
                         <div class="w-full flex items-center justify-between p-4 sm:p-6 border-b border-slate-600">
                             <h2 class="text-xl sm:text-2xl md:text-3xl font-spectral text-white">Editar Pandilla</h2>
-                            <button id="close-modal-editar-pandilla-btn" class="text-white hover:text-blue-300 transition-all duration-300 hover:cursor-pointer">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
-                                    <path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                            <button id="close-modal-editar-pandilla-btn"
+                                class="text-white hover:text-blue-300 transition-all duration-300 hover:cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                    class="size-6">
+                                    <path fill-rule="evenodd"
+                                        d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z"
+                                        clip-rule="evenodd" />
                                 </svg>
                             </button>
                         </div>
-                        
+
                         <!-- Contenido del modal (scrollable) -->
                         <div class="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
                             <form id="form-editar-pandilla" class="w-full flex flex-col gap-4 md:gap-6">
                                 <!-- Mensajes de error y éxito -->
                                 <div class="w-full">
-                                    <span id="error-message-editar-pandilla" class="text-red-500 text-xs sm:text-sm font-bold hidden"></span>
-                                    <span id="success-message-editar-pandilla" class="text-white text-xs sm:text-sm font-bold hidden"></span>
+                                    <span id="error-message-editar-pandilla"
+                                        class="text-red-500 text-xs sm:text-sm font-bold hidden"></span>
+                                    <span id="success-message-editar-pandilla"
+                                        class="text-white text-xs sm:text-sm font-bold hidden"></span>
                                 </div>
-                                
+
                                 <!-- ID oculto para identificar la pandilla a editar -->
                                 <input type="hidden" id="id-pandilla-edit" name="id_pandilla">
-                                
+
                                 <!-- Primera fila: Nombre y Líder -->
                                 <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label for="nombre-pandilla-edit" class="block text-sm md:text-base text-blue-100 mb-2">Nombre de la pandilla:</label>
-                                        <input type="text" id="nombre-pandilla-edit" name="nombre" required class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
-                                        <span id="nombre-pandilla-edit-error" class="text-red-500 text-xs sm:text-sm font-bold hidden">El nombre es requerido</span>
+                                        <label for="nombre-pandilla-edit"
+                                            class="block text-sm md:text-base text-blue-100 mb-2">Nombre de la
+                                            pandilla:</label>
+                                        <input type="text" id="nombre-pandilla-edit" name="nombre" required
+                                            class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
+                                        <span id="nombre-pandilla-edit-error"
+                                            class="text-red-500 text-xs sm:text-sm font-bold hidden">El nombre es
+                                            requerido</span>
                                     </div>
                                     <div>
-                                        <label for="lider-pandilla-edit" class="block text-sm md:text-base text-blue-100 mb-2">Líder:</label>
-                                        <input type="text" id="lider-pandilla-edit" name="lider" class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
+                                        <label for="lider-pandilla-edit"
+                                            class="block text-sm md:text-base text-blue-100 mb-2">Líder:</label>
+                                        <input type="text" id="lider-pandilla-edit" name="lider"
+                                            class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
                                     </div>
                                 </div>
-                                
+
                                 <!-- Segunda fila: Descripción -->
                                 <div>
-                                    <label for="descripcion-pandilla-edit" class="block text-sm md:text-base text-blue-100 mb-2">Descripción:</label>
-                                    <textarea id="descripcion-pandilla-edit" name="descripcion" rows="3" class="w-full rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base resize-none"></textarea>
+                                    <label for="descripcion-pandilla-edit"
+                                        class="block text-sm md:text-base text-blue-100 mb-2">Descripción:</label>
+                                    <textarea id="descripcion-pandilla-edit" name="descripcion" rows="3"
+                                        class="w-full rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base resize-none"></textarea>
                                 </div>
-                                
+
                                 <!-- Tercera fila: Número de integrantes, Edades aproximadas, Horario de reunión -->
                                 <div class="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div>
-                                        <label for="numero-integrantes-pandilla-edit" class="block text-sm md:text-base text-blue-100 mb-2">Número de integrantes:</label>
-                                        <input type="number" id="numero-integrantes-pandilla-edit" name="numero_integrantes" min="1" class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
+                                        <label for="numero-integrantes-pandilla-edit"
+                                            class="block text-sm md:text-base text-blue-100 mb-2">Número de
+                                            integrantes:</label>
+                                        <input type="number" id="numero-integrantes-pandilla-edit"
+                                            name="numero_integrantes" min="1"
+                                            class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
                                     </div>
                                     <div>
-                                        <label for="edades-aproximadas-pandilla-edit" class="block text-sm md:text-base text-blue-100 mb-2">Edad promedio:</label>
-                                        <input type="number" id="edades-aproximadas-pandilla-edit" name="edades_aproximadas" min="1" max="100" step="0.1" placeholder="Ej: 18.5" class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
-                                        <p class="text-xs text-blue-200 mt-1">Ingresa la edad promedio del grupo (puede ser decimal, ej: 18.5)</p>
+                                        <label for="edades-aproximadas-pandilla-edit"
+                                            class="block text-sm md:text-base text-blue-100 mb-2">Edad promedio:</label>
+                                        <input type="number" id="edades-aproximadas-pandilla-edit"
+                                            name="edades_aproximadas" min="1" max="100" step="0.1"
+                                            placeholder="Ej: 18.5"
+                                            class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
+                                        <p class="text-xs text-blue-200 mt-1">Ingresa la edad promedio del grupo (puede
+                                            ser decimal, ej: 18.5)</p>
                                     </div>
                                     <div>
-                                        <label for="horario-reunion-pandilla-edit" class="block text-sm md:text-base text-blue-100 mb-2">Horario de reunión:</label>
-                                        <input type="text" id="horario-reunion-pandilla-edit" name="horario_reunion" placeholder="Ej: Viernes 20:00-22:00" class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
+                                        <label for="horario-reunion-pandilla-edit"
+                                            class="block text-sm md:text-base text-blue-100 mb-2">Horario de
+                                            reunión:</label>
+                                        <input type="text" id="horario-reunion-pandilla-edit" name="horario_reunion"
+                                            placeholder="Ej: Viernes 20:00-22:00"
+                                            class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
                                     </div>
                                 </div>
-                                
+
                                 <!-- Cuarta fila: Nivel de peligrosidad, Zona, Dirección -->
                                 <div class="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div>
-                                        <label for="peligrosidad-pandilla-edit" class="block text-sm md:text-base text-blue-100 mb-2">Nivel de peligrosidad:</label>
+                                        <label for="peligrosidad-pandilla-edit"
+                                            class="block text-sm md:text-base text-blue-100 mb-2">Nivel de
+                                            peligrosidad:</label>
                                         <div class="relative w-full">
-                                            <select id="peligrosidad-pandilla-edit" name="peligrosidad" required class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
+                                            <select id="peligrosidad-pandilla-edit" name="peligrosidad" required
+                                                class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
                                                 <option value="" disabled selected>Selecciona el nivel</option>
                                                 <option value="1">Bajo</option>
                                                 <option value="2">Medio</option>
                                                 <option value="3">Alto</option>
                                             </select>
-                                            <div class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 text-slate-950">
-                                                    <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                                            <div
+                                                class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                    fill="currentColor" class="size-6 text-slate-950">
+                                                    <path fill-rule="evenodd"
+                                                        d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
+                                                        clip-rule="evenodd" />
                                                 </svg>
                                             </div>
                                         </div>
-                                        <span id="peligrosidad-pandilla-edit-error" class="text-red-500 text-xs sm:text-sm font-bold hidden">El nivel de peligrosidad es requerido</span>
+                                        <span id="peligrosidad-pandilla-edit-error"
+                                            class="text-red-500 text-xs sm:text-sm font-bold hidden">El nivel de
+                                            peligrosidad es requerido</span>
                                     </div>
                                     <div>
-                                        <label for="zona-pandilla-edit" class="block text-sm md:text-base text-blue-100 mb-2">Zona:</label>
+                                        <label for="zona-pandilla-edit"
+                                            class="block text-sm md:text-base text-blue-100 mb-2">Zona:</label>
                                         <div class="relative w-full">
-                                            <select id="zona-pandilla-edit" name="id_zona" required class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
+                                            <select id="zona-pandilla-edit" name="id_zona" required
+                                                class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
                                                 <option value="" disabled selected>Cargando zonas...</option>
                                             </select>
-                                            <div class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 text-slate-950">
-                                                    <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                                            <div
+                                                class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                    fill="currentColor" class="size-6 text-slate-950">
+                                                    <path fill-rule="evenodd"
+                                                        d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
+                                                        clip-rule="evenodd" />
                                                 </svg>
                                             </div>
                                         </div>
-                                        <span id="zona-pandilla-edit-error" class="text-red-500 text-xs sm:text-sm font-bold hidden">La zona es requerida</span>
+                                        <span id="zona-pandilla-edit-error"
+                                            class="text-red-500 text-xs sm:text-sm font-bold hidden">La zona es
+                                            requerida</span>
                                     </div>
                                     <div>
-                                        <label for="direccion-pandilla-edit" class="block text-sm md:text-base text-blue-100 mb-2">Dirección:</label>
+                                        <label for="direccion-pandilla-edit"
+                                            class="block text-sm md:text-base text-blue-100 mb-2">Dirección:</label>
                                         <div class="relative w-full">
-                                            <select id="direccion-pandilla-edit" name="id_direccion" class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
+                                            <select id="direccion-pandilla-edit" name="id_direccion"
+                                                class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
                                                 <option value="" disabled selected>Cargando direcciones...</option>
                                             </select>
-                                            <div class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 text-slate-950">
-                                                    <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                                            <div
+                                                class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                    fill="currentColor" class="size-6 text-slate-950">
+                                                    <path fill-rule="evenodd"
+                                                        d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
+                                                        clip-rule="evenodd" />
                                                 </svg>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Quinta fila: Delitos asociados -->
                                 <div>
-                                    <label class="block text-sm md:text-base text-blue-100 mb-2">Delitos asociados:</label>
-                                    <div id="delitos-pandilla-edit-container" class="w-full min-h-[100px] max-h-[200px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus-within:outline-2 focus-within:outline-blue-600 transition-all duration-300 overflow-y-auto">
+                                    <label class="block text-sm md:text-base text-blue-100 mb-2">Delitos
+                                        asociados:</label>
+                                    <div id="delitos-pandilla-edit-container"
+                                        class="w-full min-h-[100px] max-h-[200px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus-within:outline-2 focus-within:outline-blue-600 transition-all duration-300 overflow-y-auto">
                                         <p class="text-slate-500 text-sm">Cargando delitos...</p>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Sexta fila: Faltas asociadas -->
                                 <div>
-                                    <label class="block text-sm md:text-base text-blue-100 mb-2">Faltas asociadas:</label>
-                                    <div id="faltas-pandilla-edit-container" class="w-full min-h-[100px] max-h-[200px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus-within:outline-2 focus-within:outline-blue-600 transition-all duration-300 overflow-y-auto">
+                                    <label class="block text-sm md:text-base text-blue-100 mb-2">Faltas
+                                        asociadas:</label>
+                                    <div id="faltas-pandilla-edit-container"
+                                        class="w-full min-h-[100px] max-h-[200px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus-within:outline-2 focus-within:outline-blue-600 transition-all duration-300 overflow-y-auto">
                                         <p class="text-slate-500 text-sm">Cargando faltas...</p>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Séptima fila: Rivalidades -->
                                 <div>
-                                    <label class="block text-sm md:text-base text-blue-100 mb-2">Rivalidades (otras pandillas):</label>
-                                    <div id="rivalidades-pandilla-edit-container" class="w-full min-h-[100px] max-h-[200px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus-within:outline-2 focus-within:outline-blue-600 transition-all duration-300 overflow-y-auto">
+                                    <label class="block text-sm md:text-base text-blue-100 mb-2">Rivalidades (otras
+                                        pandillas):</label>
+                                    <div id="rivalidades-pandilla-edit-container"
+                                        class="w-full min-h-[100px] max-h-[200px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus-within:outline-2 focus-within:outline-blue-600 transition-all duration-300 overflow-y-auto">
                                         <p class="text-slate-500 text-sm">Cargando pandillas...</p>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Octava fila: Redes sociales -->
                                 <div>
-                                    <label class="block text-sm md:text-base text-blue-100 mb-2">Redes sociales asociadas:</label>
-                                    <div id="redes-sociales-pandilla-edit-container" class="w-full min-h-[100px] max-h-[200px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus-within:outline-2 focus-within:outline-blue-600 transition-all duration-300 overflow-y-auto">
+                                    <label class="block text-sm md:text-base text-blue-100 mb-2">Redes sociales
+                                        asociadas:</label>
+                                    <div id="redes-sociales-pandilla-edit-container"
+                                        class="w-full min-h-[100px] max-h-[200px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus-within:outline-2 focus-within:outline-blue-600 transition-all duration-300 overflow-y-auto">
                                         <p class="text-slate-500 text-sm">Cargando redes sociales...</p>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Botones de acción -->
                                 <div class="w-full flex flex-col sm:flex-row gap-3 mt-4">
-                                    <button type="submit" class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-sm md:text-base font-medium hover:bg-blue-600 transition-all duration-150">
+                                    <button type="submit"
+                                        class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-sm md:text-base font-medium hover:bg-blue-600 transition-all duration-150">
                                         Actualizar Pandilla
                                     </button>
-                                    <button type="button" id="cancelar-editar-pandilla-btn" class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-slate-600 text-white text-sm md:text-base font-medium hover:bg-slate-700 transition-all duration-150">
+                                    <button type="button" id="cancelar-editar-pandilla-btn"
+                                        class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-slate-600 text-white text-sm md:text-base font-medium hover:bg-slate-700 transition-all duration-150">
                                         Cancelar
                                     </button>
                                 </div>
@@ -231,116 +318,190 @@
                         </div>
                     </div>
                 </dialog>
-                
+
                 <!-- Modal para editar Integrantes -->
-                <dialog id="modal-editar-integrante" class="bg-transparent border-0 p-0 m-0 max-w-none max-h-none fixed inset-0 flex items-center justify-center z-50" style="margin: auto;">
-                    <div class="w-full sm:w-[90%] md:w-[85%] lg:w-[80%] max-w-5xl max-h-[90vh] bg-linear-180 from-slate-800/80 to-slate-800 backdrop-blur-xs rounded-lg md:rounded-2xl border-2 border-slate-600 flex flex-col overflow-hidden">
+                <dialog id="modal-editar-integrante"
+                    class="bg-transparent border-0 p-0 m-0 max-w-none max-h-none fixed inset-0 flex items-center justify-center z-50"
+                    style="margin: auto;">
+                    <div
+                        class="w-full sm:w-[90%] md:w-[85%] lg:w-[80%] max-w-5xl max-h-[90vh] bg-linear-180 from-slate-800/80 to-slate-800 backdrop-blur-xs rounded-lg md:rounded-2xl border-2 border-slate-600 flex flex-col overflow-hidden">
                         <!-- Header del modal -->
                         <div class="w-full flex items-center justify-between p-4 sm:p-6 border-b border-slate-600">
                             <h2 class="text-xl sm:text-2xl md:text-3xl font-spectral text-white">Editar Integrante</h2>
-                            <button id="close-modal-editar-integrante-btn" class="text-white hover:text-blue-300 transition-all duration-300 hover:cursor-pointer">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
-                                    <path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                            <button id="close-modal-editar-integrante-btn"
+                                class="text-white hover:text-blue-300 transition-all duration-300 hover:cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                    class="size-6">
+                                    <path fill-rule="evenodd"
+                                        d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z"
+                                        clip-rule="evenodd" />
                                 </svg>
                             </button>
                         </div>
-                        
+
                         <!-- Contenido del modal (scrollable) -->
                         <div class="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
                             <form id="form-editar-integrante" class="w-full flex flex-col gap-4 md:gap-6">
                                 <input type="hidden" id="id-integrante-edit" name="id_integrante">
-                                
+
                                 <!-- Mensajes de error y éxito -->
                                 <div class="w-full">
-                                    <span id="error-message-editar-integrante" class="text-red-500 text-xs sm:text-sm font-bold hidden"></span>
-                                    <span id="success-message-editar-integrante" class="text-white text-xs sm:text-sm font-bold hidden"></span>
+                                    <span id="error-message-editar-integrante"
+                                        class="text-red-500 text-xs sm:text-sm font-bold hidden"></span>
+                                    <span id="success-message-editar-integrante"
+                                        class="text-white text-xs sm:text-sm font-bold hidden"></span>
                                 </div>
-                                
+
                                 <!-- Nombre y Apellidos -->
                                 <div class="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div>
-                                        <label for="nombre-integrante-edit" class="block text-sm md:text-base text-blue-100 mb-2">Nombre:</label>
-                                        <input type="text" id="nombre-integrante-edit" name="nombre" required class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
+                                        <label for="nombre-integrante-edit"
+                                            class="block text-sm md:text-base text-blue-100 mb-2">Nombre:</label>
+                                        <input type="text" id="nombre-integrante-edit" name="nombre" required
+                                            class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
                                     </div>
                                     <div>
-                                        <label for="apellido-paterno-integrante-edit" class="block text-sm md:text-base text-blue-100 mb-2">Apellido Paterno:</label>
-                                        <input type="text" id="apellido-paterno-integrante-edit" name="apellido_paterno" class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
+                                        <label for="apellido-paterno-integrante-edit"
+                                            class="block text-sm md:text-base text-blue-100 mb-2">Apellido
+                                            Paterno:</label>
+                                        <input type="text" id="apellido-paterno-integrante-edit" name="apellido_paterno"
+                                            class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
                                     </div>
                                     <div>
-                                        <label for="apellido-materno-integrante-edit" class="block text-sm md:text-base text-blue-100 mb-2">Apellido Materno:</label>
-                                        <input type="text" id="apellido-materno-integrante-edit" name="apellido_materno" class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
+                                        <label for="apellido-materno-integrante-edit"
+                                            class="block text-sm md:text-base text-blue-100 mb-2">Apellido
+                                            Materno:</label>
+                                        <input type="text" id="apellido-materno-integrante-edit" name="apellido_materno"
+                                            class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
                                     </div>
                                 </div>
-                                
+
                                 <!-- Alias, Fecha de Nacimiento -->
                                 <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label for="alias-integrante-edit" class="block text-sm md:text-base text-blue-100 mb-2">Alias:</label>
-                                        <input type="text" id="alias-integrante-edit" name="alias" class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
+                                        <label for="alias-integrante-edit"
+                                            class="block text-sm md:text-base text-blue-100 mb-2">Alias:</label>
+                                        <input type="text" id="alias-integrante-edit" name="alias"
+                                            class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
                                     </div>
                                     <div>
-                                        <label for="fecha-nacimiento-integrante-edit" class="block text-sm md:text-base text-blue-100 mb-2">Fecha de Nacimiento:</label>
-                                        <input type="date" id="fecha-nacimiento-integrante-edit" name="fecha_nacimiento" class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
+                                        <label for="fecha-nacimiento-integrante-edit"
+                                            class="block text-sm md:text-base text-blue-100 mb-2">Fecha de
+                                            Nacimiento:</label>
+                                        <input type="date" id="fecha-nacimiento-integrante-edit" name="fecha_nacimiento"
+                                            class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
                                     </div>
                                 </div>
-                                
+
                                 <!-- Pandilla y Dirección -->
                                 <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label for="pandilla-integrante-edit" class="block text-sm md:text-base text-blue-100 mb-2">Pandilla:</label>
+                                        <label for="pandilla-integrante-edit"
+                                            class="block text-sm md:text-base text-blue-100 mb-2">Pandilla:</label>
                                         <div class="relative w-full">
-                                            <select id="pandilla-integrante-edit" name="id_pandilla" class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
+                                            <select id="pandilla-integrante-edit" name="id_pandilla"
+                                                class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
                                                 <option value="" disabled selected>Cargando...</option>
                                             </select>
-                                            <div class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 text-slate-950">
-                                                    <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                                            <div
+                                                class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                    fill="currentColor" class="size-6 text-slate-950">
+                                                    <path fill-rule="evenodd"
+                                                        d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
+                                                        clip-rule="evenodd" />
                                                 </svg>
                                             </div>
                                         </div>
                                     </div>
                                     <div>
-                                        <label for="direccion-integrante-edit" class="block text-sm md:text-base text-blue-100 mb-2">Dirección:</label>
+                                        <label for="direccion-integrante-edit"
+                                            class="block text-sm md:text-base text-blue-100 mb-2">Dirección:</label>
                                         <div class="relative w-full">
-                                            <select id="direccion-integrante-edit" name="id_direccion" class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
+                                            <select id="direccion-integrante-edit" name="id_direccion"
+                                                class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
                                                 <option value="" disabled selected>Cargando...</option>
                                             </select>
-                                            <div class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 text-slate-950">
-                                                    <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                                            <div
+                                                class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                    fill="currentColor" class="size-6 text-slate-950">
+                                                    <path fill-rule="evenodd"
+                                                        d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
+                                                        clip-rule="evenodd" />
                                                 </svg>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                
+
+                                <!-- Delitos asociados -->
+                                <div>
+                                    <label class="block text-sm md:text-base text-blue-100 mb-2">Delitos
+                                        asociados:</label>
+                                    <div id="delitos-integrante-edit-container"
+                                        class="w-full min-h-[100px] max-h-[200px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 overflow-y-auto">
+                                        <p class="text-slate-500 text-sm">Cargando delitos...</p>
+                                    </div>
+                                </div>
+
+                                <!-- Faltas asociadas -->
+                                <div>
+                                    <label class="block text-sm md:text-base text-blue-100 mb-2">Faltas
+                                        asociadas:</label>
+                                    <div id="faltas-integrante-edit-container"
+                                        class="w-full min-h-[100px] max-h-[200px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 overflow-y-auto">
+                                        <p class="text-slate-500 text-sm">Cargando faltas...</p>
+                                    </div>
+                                </div>
+
+                                <!-- Redes sociales -->
+                                <div>
+                                    <label class="block text-sm md:text-base text-blue-100 mb-2">Redes sociales:</label>
+                                    <div id="redes-sociales-integrante-edit-container"
+                                        class="w-full min-h-[100px] max-h-[200px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 overflow-y-auto">
+                                        <p class="text-slate-500 text-sm">Cargando redes sociales...</p>
+                                    </div>
+                                </div>
+
                                 <!-- Imágenes existentes -->
                                 <div class="w-full">
-                                    <label class="block text-sm md:text-base text-blue-100 mb-2">Imágenes Actuales:</label>
-                                    <div id="imagenes-actuales-integrante-edit" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+                                    <label class="block text-sm md:text-base text-blue-100 mb-2">Imágenes
+                                        Actuales:</label>
+                                    <div id="imagenes-actuales-integrante-edit"
+                                        class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
                                 </div>
-                                
+
                                 <!-- Subir nuevas imágenes -->
                                 <div class="w-full">
-                                    <label class="block text-sm md:text-base text-blue-100 mb-2">Agregar Nuevas Imágenes:</label>
-                                    <label for="imagenes-integrante-edit" class="w-full flex flex-col items-center justify-center border-2 border-dashed border-slate-400 rounded-lg p-6 cursor-pointer hover:border-blue-400 hover:bg-slate-700/30 transition-all duration-300">
-                                        <input type="file" id="imagenes-integrante-edit" name="imagenes" multiple accept="image/*" class="hidden">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-12 text-blue-400 mb-3">
+                                    <label class="block text-sm md:text-base text-blue-100 mb-2">Agregar Nuevas
+                                        Imágenes:</label>
+                                    <label for="imagenes-integrante-edit"
+                                        class="w-full flex flex-col items-center justify-center border-2 border-dashed border-slate-400 rounded-lg p-6 cursor-pointer hover:border-blue-400 hover:bg-slate-700/30 transition-all duration-300">
+                                        <input type="file" id="imagenes-integrante-edit" name="imagenes" multiple
+                                            accept="image/*" class="hidden">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round" class="size-12 text-blue-400 mb-3">
                                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                             <polyline points="17 8 12 3 7 8"></polyline>
                                             <line x1="12" y1="3" x2="12" y2="15"></line>
                                         </svg>
-                                        <span class="text-blue-100 font-medium text-sm md:text-base mb-1">Haz clic para agregar imágenes</span>
+                                        <span class="text-blue-100 font-medium text-sm md:text-base mb-1">Haz clic para
+                                            agregar imágenes</span>
                                     </label>
-                                    <div id="imagenes-preview-edit-container" class="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+                                    <div id="imagenes-preview-edit-container"
+                                        class="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
                                 </div>
-                                
+
                                 <!-- Botones de acción -->
                                 <div class="w-full flex flex-col sm:flex-row gap-3 mt-4">
-                                    <button type="submit" class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-sm md:text-base font-medium hover:bg-blue-600 transition-all duration-150">
+                                    <button type="submit"
+                                        class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-sm md:text-base font-medium hover:bg-blue-600 transition-all duration-150">
                                         Actualizar Integrante
                                     </button>
-                                    <button type="button" id="cancelar-editar-integrante-btn" class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-slate-600 text-white text-sm md:text-base font-medium hover:bg-slate-700 transition-all duration-150">
+                                    <button type="button" id="cancelar-editar-integrante-btn"
+                                        class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-slate-600 text-white text-sm md:text-base font-medium hover:bg-slate-700 transition-all duration-150">
                                         Cancelar
                                     </button>
                                 </div>
@@ -348,133 +509,180 @@
                         </div>
                     </div>
                 </dialog>
-                
+
                 <!-- Modal para editar Eventos -->
-                <dialog id="modal-editar-evento" class="bg-transparent border-0 p-0 m-0 max-w-none max-h-none fixed inset-0 flex items-center justify-center z-50" style="margin: auto;">
-                    <div class="w-full sm:w-[90%] md:w-[85%] lg:w-[80%] max-w-5xl max-h-[90vh] bg-linear-180 from-slate-800/80 to-slate-800 backdrop-blur-xs rounded-lg md:rounded-2xl border-2 border-slate-600 flex flex-col overflow-hidden">
+                <dialog id="modal-editar-evento"
+                    class="bg-transparent border-0 p-0 m-0 max-w-none max-h-none fixed inset-0 flex items-center justify-center z-50"
+                    style="margin: auto;">
+                    <div
+                        class="w-full sm:w-[90%] md:w-[85%] lg:w-[80%] max-w-5xl max-h-[90vh] bg-linear-180 from-slate-800/80 to-slate-800 backdrop-blur-xs rounded-lg md:rounded-2xl border-2 border-slate-600 flex flex-col overflow-hidden">
                         <!-- Header del modal -->
                         <div class="w-full flex items-center justify-between p-4 sm:p-6 border-b border-slate-600">
                             <h2 class="text-xl sm:text-2xl md:text-3xl font-spectral text-white">Editar Evento</h2>
-                            <button id="close-modal-editar-evento-btn" class="text-white hover:text-blue-300 transition-all duration-300 hover:cursor-pointer">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
-                                    <path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                            <button id="close-modal-editar-evento-btn"
+                                class="text-white hover:text-blue-300 transition-all duration-300 hover:cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                    class="size-6">
+                                    <path fill-rule="evenodd"
+                                        d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z"
+                                        clip-rule="evenodd" />
                                 </svg>
                             </button>
                         </div>
-                        
+
                         <!-- Contenido del modal (scrollable) -->
                         <div class="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
                             <form id="form-editar-evento" class="w-full flex flex-col gap-4 md:gap-6">
                                 <input type="hidden" id="id-evento-edit" name="id_evento">
-                                
+
                                 <!-- Mensajes de error y éxito -->
                                 <div class="w-full">
-                                    <span id="error-message-editar-evento" class="text-red-500 text-xs sm:text-sm font-bold hidden"></span>
-                                    <span id="success-message-editar-evento" class="text-white text-xs sm:text-sm font-bold hidden"></span>
+                                    <span id="error-message-editar-evento"
+                                        class="text-red-500 text-xs sm:text-sm font-bold hidden"></span>
+                                    <span id="success-message-editar-evento"
+                                        class="text-white text-xs sm:text-sm font-bold hidden"></span>
                                 </div>
-                                
+
                                 <!-- Tipo de Evento -->
                                 <div class="w-full">
-                                    <label for="tipo-evento-edit" class="block text-sm md:text-base text-blue-100 mb-2">Tipo de Evento:</label>
+                                    <label for="tipo-evento-edit"
+                                        class="block text-sm md:text-base text-blue-100 mb-2">Tipo de Evento:</label>
                                     <div class="relative w-full">
-                                        <select id="tipo-evento-edit" name="tipo" required class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
+                                        <select id="tipo-evento-edit" name="tipo" required
+                                            class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
                                             <option value="" disabled selected>Selecciona el tipo de evento</option>
                                             <option value="riña">Riña</option>
                                             <option value="delito">Delito</option>
                                             <option value="falta">Falta</option>
                                         </select>
-                                        <div class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 text-slate-950">
-                                                <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                                        <div
+                                            class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                fill="currentColor" class="size-6 text-slate-950">
+                                                <path fill-rule="evenodd"
+                                                    d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
+                                                    clip-rule="evenodd" />
                                             </svg>
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Fecha y Hora -->
                                 <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label for="fecha-evento-edit" class="block text-sm md:text-base text-blue-100 mb-2">Fecha:</label>
-                                        <input type="date" id="fecha-evento-edit" name="fecha" required class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
+                                        <label for="fecha-evento-edit"
+                                            class="block text-sm md:text-base text-blue-100 mb-2">Fecha:</label>
+                                        <input type="date" id="fecha-evento-edit" name="fecha" required
+                                            class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
                                     </div>
                                     <div>
-                                        <label for="hora-evento-edit" class="block text-sm md:text-base text-blue-100 mb-2">Hora:</label>
-                                        <input type="time" id="hora-evento-edit" name="hora" class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
+                                        <label for="hora-evento-edit"
+                                            class="block text-sm md:text-base text-blue-100 mb-2">Hora:</label>
+                                        <input type="time" id="hora-evento-edit" name="hora"
+                                            class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
                                     </div>
                                 </div>
-                                
+
                                 <!-- Delito o Falta (dinámico) -->
                                 <div id="delito-falta-container-edit" class="w-full hidden">
-                                    <label id="delito-falta-label-edit" class="block text-sm md:text-base text-blue-100 mb-2"></label>
+                                    <label id="delito-falta-label-edit"
+                                        class="block text-sm md:text-base text-blue-100 mb-2"></label>
                                     <div class="relative w-full">
-                                        <select id="delito-falta-select-edit" name="delito_falta" class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
+                                        <select id="delito-falta-select-edit" name="delito_falta"
+                                            class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
                                             <option value="" disabled selected>Cargando...</option>
                                         </select>
-                                        <div class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 text-slate-950">
-                                                <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                                        <div
+                                            class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                fill="currentColor" class="size-6 text-slate-950">
+                                                <path fill-rule="evenodd"
+                                                    d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
+                                                    clip-rule="evenodd" />
                                             </svg>
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Pandilla e Integrante -->
                                 <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label for="pandilla-evento-edit" class="block text-sm md:text-base text-blue-100 mb-2">Pandilla:</label>
+                                        <label for="pandilla-evento-edit"
+                                            class="block text-sm md:text-base text-blue-100 mb-2">Pandilla:</label>
                                         <div class="relative w-full">
-                                            <select id="pandilla-evento-edit" name="id_pandilla" class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
+                                            <select id="pandilla-evento-edit" name="id_pandilla"
+                                                class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
                                                 <option value="" disabled selected>Cargando...</option>
                                             </select>
-                                            <div class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 text-slate-950">
-                                                    <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                                            <div
+                                                class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                    fill="currentColor" class="size-6 text-slate-950">
+                                                    <path fill-rule="evenodd"
+                                                        d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
+                                                        clip-rule="evenodd" />
                                                 </svg>
                                             </div>
                                         </div>
                                     </div>
                                     <div>
-                                        <label for="integrante-evento-edit" class="block text-sm md:text-base text-blue-100 mb-2">Integrante:</label>
+                                        <label for="integrante-evento-edit"
+                                            class="block text-sm md:text-base text-blue-100 mb-2">Integrante:</label>
                                         <div class="relative w-full">
-                                            <select id="integrante-evento-edit" name="id_integrante" class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
+                                            <select id="integrante-evento-edit" name="id_integrante"
+                                                class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
                                                 <option value="" disabled selected>Cargando...</option>
                                             </select>
-                                            <div class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 text-slate-950">
-                                                    <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                                            <div
+                                                class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                    fill="currentColor" class="size-6 text-slate-950">
+                                                    <path fill-rule="evenodd"
+                                                        d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
+                                                        clip-rule="evenodd" />
                                                 </svg>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Dirección -->
                                 <div class="w-full">
-                                    <label for="direccion-evento-edit" class="block text-sm md:text-base text-blue-100 mb-2">Dirección:</label>
+                                    <label for="direccion-evento-edit"
+                                        class="block text-sm md:text-base text-blue-100 mb-2">Dirección:</label>
                                     <div class="relative w-full">
-                                        <select id="direccion-evento-edit" name="id_direccion" class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
+                                        <select id="direccion-evento-edit" name="id_direccion"
+                                            class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
                                             <option value="" disabled selected>Cargando...</option>
                                         </select>
-                                        <div class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 text-slate-950">
-                                                <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                                        <div
+                                            class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                fill="currentColor" class="size-6 text-slate-950">
+                                                <path fill-rule="evenodd"
+                                                    d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
+                                                    clip-rule="evenodd" />
                                             </svg>
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Descripción -->
                                 <div class="w-full">
-                                    <label for="descripcion-evento-edit" class="block text-sm md:text-base text-blue-100 mb-2">Descripción:</label>
-                                    <textarea id="descripcion-evento-edit" name="descripcion" rows="4" class="w-full rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base resize-none"></textarea>
+                                    <label for="descripcion-evento-edit"
+                                        class="block text-sm md:text-base text-blue-100 mb-2">Descripción:</label>
+                                    <textarea id="descripcion-evento-edit" name="descripcion" rows="4"
+                                        class="w-full rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base resize-none"></textarea>
                                 </div>
-                                
+
                                 <!-- Botones de acción -->
                                 <div class="w-full flex flex-col sm:flex-row gap-3 mt-4">
-                                    <button type="submit" class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-sm md:text-base font-medium hover:bg-blue-600 transition-all duration-150">
+                                    <button type="submit"
+                                        class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-sm md:text-base font-medium hover:bg-blue-600 transition-all duration-150">
                                         Actualizar Evento
                                     </button>
-                                    <button type="button" id="cancelar-editar-evento-btn" class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-slate-600 text-white text-sm md:text-base font-medium hover:bg-slate-700 transition-all duration-150">
+                                    <button type="button" id="cancelar-editar-evento-btn"
+                                        class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-slate-600 text-white text-sm md:text-base font-medium hover:bg-slate-700 transition-all duration-150">
                                         Cancelar
                                     </button>
                                 </div>
@@ -482,43 +690,56 @@
                         </div>
                     </div>
                 </dialog>
-                
+
                 <!-- Modal para editar Delitos -->
-                <dialog id="modal-editar-delito" class="bg-transparent border-0 p-0 m-0 max-w-none max-h-none fixed inset-0 flex items-center justify-center z-50" style="margin: auto;">
-                    <div class="w-full sm:w-[90%] md:w-[70%] lg:w-[60%] min-w-[500px] md:min-w-[600px] max-w-4xl max-h-[90vh] bg-linear-180 from-slate-800/80 to-slate-800 backdrop-blur-xs rounded-lg md:rounded-2xl border-2 border-slate-600 flex flex-col overflow-hidden">
+                <dialog id="modal-editar-delito"
+                    class="bg-transparent border-0 p-0 m-0 max-w-none max-h-none fixed inset-0 flex items-center justify-center z-50"
+                    style="margin: auto;">
+                    <div
+                        class="w-full sm:w-[90%] md:w-[70%] lg:w-[60%] min-w-[500px] md:min-w-[600px] max-w-4xl max-h-[90vh] bg-linear-180 from-slate-800/80 to-slate-800 backdrop-blur-xs rounded-lg md:rounded-2xl border-2 border-slate-600 flex flex-col overflow-hidden">
                         <!-- Header del modal -->
                         <div class="w-full flex items-center justify-between p-4 sm:p-6 border-b border-slate-600">
                             <h2 class="text-xl sm:text-2xl md:text-3xl font-spectral text-white">Editar Delito</h2>
-                            <button id="close-modal-editar-delito-btn" class="text-white hover:text-blue-300 transition-all duration-300 hover:cursor-pointer">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
-                                    <path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                            <button id="close-modal-editar-delito-btn"
+                                class="text-white hover:text-blue-300 transition-all duration-300 hover:cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                    class="size-6">
+                                    <path fill-rule="evenodd"
+                                        d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z"
+                                        clip-rule="evenodd" />
                                 </svg>
                             </button>
                         </div>
-                        
+
                         <!-- Contenido del modal (scrollable) -->
                         <div class="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
                             <form id="form-editar-delito" class="w-full flex flex-col gap-4 md:gap-6">
                                 <input type="hidden" id="id-delito-edit" name="id_delito">
-                                
+
                                 <!-- Mensajes de error y éxito -->
                                 <div class="w-full">
-                                    <span id="error-message-editar-delito" class="text-red-500 text-xs sm:text-sm font-bold hidden"></span>
-                                    <span id="success-message-editar-delito" class="text-white text-xs sm:text-sm font-bold hidden"></span>
+                                    <span id="error-message-editar-delito"
+                                        class="text-red-500 text-xs sm:text-sm font-bold hidden"></span>
+                                    <span id="success-message-editar-delito"
+                                        class="text-white text-xs sm:text-sm font-bold hidden"></span>
                                 </div>
-                                
+
                                 <!-- Nombre del delito -->
                                 <div class="w-full">
-                                    <label for="nombre-delito-edit" class="block text-sm md:text-base text-blue-100 mb-2">Nombre del Delito:</label>
-                                    <input type="text" id="nombre-delito-edit" name="nombre" required class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
+                                    <label for="nombre-delito-edit"
+                                        class="block text-sm md:text-base text-blue-100 mb-2">Nombre del Delito:</label>
+                                    <input type="text" id="nombre-delito-edit" name="nombre" required
+                                        class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
                                 </div>
-                                
+
                                 <!-- Botones de acción -->
                                 <div class="w-full flex flex-col sm:flex-row gap-3 mt-4">
-                                    <button type="submit" class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-sm md:text-base font-medium hover:bg-blue-600 transition-all duration-150">
+                                    <button type="submit"
+                                        class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-sm md:text-base font-medium hover:bg-blue-600 transition-all duration-150">
                                         Actualizar Delito
                                     </button>
-                                    <button type="button" id="cancelar-editar-delito-btn" class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-slate-600 text-white text-sm md:text-base font-medium hover:bg-slate-700 transition-all duration-150">
+                                    <button type="button" id="cancelar-editar-delito-btn"
+                                        class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-slate-600 text-white text-sm md:text-base font-medium hover:bg-slate-700 transition-all duration-150">
                                         Cancelar
                                     </button>
                                 </div>
@@ -526,43 +747,57 @@
                         </div>
                     </div>
                 </dialog>
-                
+
                 <!-- Modal para editar Faltas -->
-                <dialog id="modal-editar-falta" class="bg-transparent border-0 p-0 m-0 max-w-none max-h-none fixed inset-0 flex items-center justify-center z-50" style="margin: auto;">
-                    <div class="w-full sm:w-[90%] md:w-[70%] lg:w-[60%] min-w-[500px] md:min-w-[600px] max-w-4xl max-h-[90vh] bg-linear-180 from-slate-800/80 to-slate-800 backdrop-blur-xs rounded-lg md:rounded-2xl border-2 border-slate-600 flex flex-col overflow-hidden">
+                <dialog id="modal-editar-falta"
+                    class="bg-transparent border-0 p-0 m-0 max-w-none max-h-none fixed inset-0 flex items-center justify-center z-50"
+                    style="margin: auto;">
+                    <div
+                        class="w-full sm:w-[90%] md:w-[70%] lg:w-[60%] min-w-[500px] md:min-w-[600px] max-w-4xl max-h-[90vh] bg-linear-180 from-slate-800/80 to-slate-800 backdrop-blur-xs rounded-lg md:rounded-2xl border-2 border-slate-600 flex flex-col overflow-hidden">
                         <!-- Header del modal -->
                         <div class="w-full flex items-center justify-between p-4 sm:p-6 border-b border-slate-600">
                             <h2 class="text-xl sm:text-2xl md:text-3xl font-spectral text-white">Editar Falta</h2>
-                            <button id="close-modal-editar-falta-btn" class="text-white hover:text-blue-300 transition-all duration-300 hover:cursor-pointer">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
-                                    <path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                            <button id="close-modal-editar-falta-btn"
+                                class="text-white hover:text-blue-300 transition-all duration-300 hover:cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                    class="size-6">
+                                    <path fill-rule="evenodd"
+                                        d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z"
+                                        clip-rule="evenodd" />
                                 </svg>
                             </button>
                         </div>
-                        
+
                         <!-- Contenido del modal (scrollable) -->
                         <div class="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
                             <form id="form-editar-falta" class="w-full flex flex-col gap-4 md:gap-6">
                                 <input type="hidden" id="id-falta-edit" name="id_falta">
-                                
+
                                 <!-- Mensajes de error y éxito -->
                                 <div class="w-full">
-                                    <span id="error-message-editar-falta" class="text-red-500 text-xs sm:text-sm font-bold hidden"></span>
-                                    <span id="success-message-editar-falta" class="text-white text-xs sm:text-sm font-bold hidden"></span>
+                                    <span id="error-message-editar-falta"
+                                        class="text-red-500 text-xs sm:text-sm font-bold hidden"></span>
+                                    <span id="success-message-editar-falta"
+                                        class="text-white text-xs sm:text-sm font-bold hidden"></span>
                                 </div>
-                                
+
                                 <!-- Nombre de la falta -->
                                 <div class="w-full">
-                                    <label for="nombre-falta-edit" class="block text-sm md:text-base text-blue-100 mb-2">Nombre de la Falta:</label>
-                                    <input type="text" id="nombre-falta-edit" name="nombre" required class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
+                                    <label for="nombre-falta-edit"
+                                        class="block text-sm md:text-base text-blue-100 mb-2">Nombre de la
+                                        Falta:</label>
+                                    <input type="text" id="nombre-falta-edit" name="nombre" required
+                                        class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
                                 </div>
-                                
+
                                 <!-- Botones de acción -->
                                 <div class="w-full flex flex-col sm:flex-row gap-3 mt-4">
-                                    <button type="submit" class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-sm md:text-base font-medium hover:bg-blue-600 transition-all duration-150">
+                                    <button type="submit"
+                                        class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-sm md:text-base font-medium hover:bg-blue-600 transition-all duration-150">
                                         Actualizar Falta
                                     </button>
-                                    <button type="button" id="cancelar-editar-falta-btn" class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-slate-600 text-white text-sm md:text-base font-medium hover:bg-slate-700 transition-all duration-150">
+                                    <button type="button" id="cancelar-editar-falta-btn"
+                                        class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-slate-600 text-white text-sm md:text-base font-medium hover:bg-slate-700 transition-all duration-150">
                                         Cancelar
                                     </button>
                                 </div>
@@ -570,73 +805,99 @@
                         </div>
                     </div>
                 </dialog>
-                
+
                 <!-- Modal para editar Direcciones -->
-                <dialog id="modal-editar-direccion" class="bg-transparent border-0 p-0 m-0 max-w-none max-h-none fixed inset-0 flex items-center justify-center z-50" style="margin: auto;">
-                    <div class="w-full sm:w-[90%] md:w-[85%] lg:w-[80%] max-w-5xl max-h-[90vh] bg-linear-180 from-slate-800/80 to-slate-800 backdrop-blur-xs rounded-lg md:rounded-2xl border-2 border-slate-600 flex flex-col overflow-hidden">
+                <dialog id="modal-editar-direccion"
+                    class="bg-transparent border-0 p-0 m-0 max-w-none max-h-none fixed inset-0 flex items-center justify-center z-50"
+                    style="margin: auto;">
+                    <div
+                        class="w-full sm:w-[90%] md:w-[85%] lg:w-[80%] max-w-5xl max-h-[90vh] bg-linear-180 from-slate-800/80 to-slate-800 backdrop-blur-xs rounded-lg md:rounded-2xl border-2 border-slate-600 flex flex-col overflow-hidden">
                         <!-- Header del modal -->
                         <div class="w-full flex items-center justify-between p-4 sm:p-6 border-b border-slate-600">
                             <h2 class="text-xl sm:text-2xl md:text-3xl font-spectral text-white">Editar Dirección</h2>
-                            <button id="close-modal-editar-direccion-btn" class="text-white hover:text-blue-300 transition-all duration-300 hover:cursor-pointer">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
-                                    <path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                            <button id="close-modal-editar-direccion-btn"
+                                class="text-white hover:text-blue-300 transition-all duration-300 hover:cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                    class="size-6">
+                                    <path fill-rule="evenodd"
+                                        d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z"
+                                        clip-rule="evenodd" />
                                 </svg>
                             </button>
                         </div>
-                        
+
                         <!-- Contenido del modal (scrollable) -->
                         <div class="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
                             <form id="form-editar-direccion" class="w-full flex flex-col gap-4 md:gap-6">
                                 <input type="hidden" id="id-direccion-edit" name="id_direccion">
-                                
+
                                 <!-- Mensajes de error y éxito -->
                                 <div class="w-full">
-                                    <span id="error-message-editar-direccion" class="text-red-500 text-xs sm:text-sm font-bold hidden"></span>
-                                    <span id="success-message-editar-direccion" class="text-white text-xs sm:text-sm font-bold hidden"></span>
+                                    <span id="error-message-editar-direccion"
+                                        class="text-red-500 text-xs sm:text-sm font-bold hidden"></span>
+                                    <span id="success-message-editar-direccion"
+                                        class="text-white text-xs sm:text-sm font-bold hidden"></span>
                                 </div>
-                                
+
                                 <!-- Calle y Número -->
                                 <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label for="calle-direccion-edit" class="block text-sm md:text-base text-blue-100 mb-2">Calle:</label>
-                                        <input type="text" id="calle-direccion-edit" name="calle" required class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
+                                        <label for="calle-direccion-edit"
+                                            class="block text-sm md:text-base text-blue-100 mb-2">Calle:</label>
+                                        <input type="text" id="calle-direccion-edit" name="calle" required
+                                            class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
                                     </div>
                                     <div>
-                                        <label for="numero-direccion-edit" class="block text-sm md:text-base text-blue-100 mb-2">Número:</label>
-                                        <input type="text" id="numero-direccion-edit" name="numero" class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
+                                        <label for="numero-direccion-edit"
+                                            class="block text-sm md:text-base text-blue-100 mb-2">Número:</label>
+                                        <input type="text" id="numero-direccion-edit" name="numero"
+                                            class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
                                     </div>
                                 </div>
-                                
+
                                 <!-- Colonia y Código Postal -->
                                 <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label for="colonia-direccion-edit" class="block text-sm md:text-base text-blue-100 mb-2">Colonia:</label>
-                                        <input type="text" id="colonia-direccion-edit" name="colonia" class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
+                                        <label for="colonia-direccion-edit"
+                                            class="block text-sm md:text-base text-blue-100 mb-2">Colonia:</label>
+                                        <input type="text" id="colonia-direccion-edit" name="colonia"
+                                            class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
                                     </div>
                                     <div>
-                                        <label for="codigo-postal-direccion-edit" class="block text-sm md:text-base text-blue-100 mb-2">Código Postal:</label>
-                                        <input type="text" id="codigo-postal-direccion-edit" name="codigo_postal" pattern="[0-9]{5}" maxlength="5" class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
+                                        <label for="codigo-postal-direccion-edit"
+                                            class="block text-sm md:text-base text-blue-100 mb-2">Código Postal:</label>
+                                        <input type="text" id="codigo-postal-direccion-edit" name="codigo_postal"
+                                            pattern="[0-9]{5}" maxlength="5"
+                                            class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
                                     </div>
                                 </div>
-                                
+
                                 <!-- Latitud y Longitud -->
                                 <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label for="latitud-direccion-edit" class="block text-sm md:text-base text-blue-100 mb-2">Latitud:</label>
-                                        <input type="number" id="latitud-direccion-edit" name="latitud" step="0.0000001" required class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
+                                        <label for="latitud-direccion-edit"
+                                            class="block text-sm md:text-base text-blue-100 mb-2">Latitud:</label>
+                                        <input type="number" id="latitud-direccion-edit" name="latitud" step="0.0000001"
+                                            required
+                                            class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
                                     </div>
                                     <div>
-                                        <label for="longitud-direccion-edit" class="block text-sm md:text-base text-blue-100 mb-2">Longitud:</label>
-                                        <input type="number" id="longitud-direccion-edit" name="longitud" step="0.0000001" required class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
+                                        <label for="longitud-direccion-edit"
+                                            class="block text-sm md:text-base text-blue-100 mb-2">Longitud:</label>
+                                        <input type="number" id="longitud-direccion-edit" name="longitud"
+                                            step="0.0000001" required
+                                            class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
                                     </div>
                                 </div>
-                                
+
                                 <!-- Botones de acción -->
                                 <div class="w-full flex flex-col sm:flex-row gap-3 mt-4">
-                                    <button type="submit" class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-sm md:text-base font-medium hover:bg-blue-600 transition-all duration-150">
+                                    <button type="submit"
+                                        class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-sm md:text-base font-medium hover:bg-blue-600 transition-all duration-150">
                                         Actualizar Dirección
                                     </button>
-                                    <button type="button" id="cancelar-editar-direccion-btn" class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-slate-600 text-white text-sm md:text-base font-medium hover:bg-slate-700 transition-all duration-150">
+                                    <button type="button" id="cancelar-editar-direccion-btn"
+                                        class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-slate-600 text-white text-sm md:text-base font-medium hover:bg-slate-700 transition-all duration-150">
                                         Cancelar
                                     </button>
                                 </div>
@@ -644,67 +905,91 @@
                         </div>
                     </div>
                 </dialog>
-                
+
                 <!-- Modal para editar Rivalidades -->
-                <dialog id="modal-editar-rivalidad" class="bg-transparent border-0 p-0 m-0 max-w-none max-h-none fixed inset-0 flex items-center justify-center z-50" style="margin: auto;">
-                    <div class="w-full sm:w-[90%] md:w-[70%] lg:w-[60%] min-w-[500px] md:min-w-[600px] max-w-4xl max-h-[90vh] bg-linear-180 from-slate-800/80 to-slate-800 backdrop-blur-xs rounded-lg md:rounded-2xl border-2 border-slate-600 flex flex-col overflow-hidden">
+                <dialog id="modal-editar-rivalidad"
+                    class="bg-transparent border-0 p-0 m-0 max-w-none max-h-none fixed inset-0 flex items-center justify-center z-50"
+                    style="margin: auto;">
+                    <div
+                        class="w-full sm:w-[90%] md:w-[70%] lg:w-[60%] min-w-[500px] md:min-w-[600px] max-w-4xl max-h-[90vh] bg-linear-180 from-slate-800/80 to-slate-800 backdrop-blur-xs rounded-lg md:rounded-2xl border-2 border-slate-600 flex flex-col overflow-hidden">
                         <!-- Header del modal -->
                         <div class="w-full flex items-center justify-between p-4 sm:p-6 border-b border-slate-600">
                             <h2 class="text-xl sm:text-2xl md:text-3xl font-spectral text-white">Editar Rivalidad</h2>
-                            <button id="close-modal-editar-rivalidad-btn" class="text-white hover:text-blue-300 transition-all duration-300 hover:cursor-pointer">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
-                                    <path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                            <button id="close-modal-editar-rivalidad-btn"
+                                class="text-white hover:text-blue-300 transition-all duration-300 hover:cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                    class="size-6">
+                                    <path fill-rule="evenodd"
+                                        d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z"
+                                        clip-rule="evenodd" />
                                 </svg>
                             </button>
                         </div>
-                        
+
                         <!-- Contenido del modal (scrollable) -->
                         <div class="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
                             <form id="form-editar-rivalidad" class="w-full flex flex-col gap-4 md:gap-6">
                                 <input type="hidden" id="id-rivalidad-edit" name="id_rivalidad">
-                                
+
                                 <!-- Mensajes de error y éxito -->
                                 <div class="w-full">
-                                    <span id="error-message-editar-rivalidad" class="text-red-500 text-xs sm:text-sm font-bold hidden"></span>
-                                    <span id="success-message-editar-rivalidad" class="text-white text-xs sm:text-sm font-bold hidden"></span>
+                                    <span id="error-message-editar-rivalidad"
+                                        class="text-red-500 text-xs sm:text-sm font-bold hidden"></span>
+                                    <span id="success-message-editar-rivalidad"
+                                        class="text-white text-xs sm:text-sm font-bold hidden"></span>
                                 </div>
-                                
+
                                 <!-- Pandilla 1 y Pandilla 2 -->
                                 <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label for="pandilla-1-rivalidad-edit" class="block text-sm md:text-base text-blue-100 mb-2">Pandilla 1:</label>
+                                        <label for="pandilla-1-rivalidad-edit"
+                                            class="block text-sm md:text-base text-blue-100 mb-2">Pandilla 1:</label>
                                         <div class="relative w-full">
-                                            <select id="pandilla-1-rivalidad-edit" name="id_pandilla" required class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
+                                            <select id="pandilla-1-rivalidad-edit" name="id_pandilla" required
+                                                class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
                                                 <option value="" disabled selected>Cargando...</option>
                                             </select>
-                                            <div class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 text-slate-950">
-                                                    <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                                            <div
+                                                class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                    fill="currentColor" class="size-6 text-slate-950">
+                                                    <path fill-rule="evenodd"
+                                                        d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
+                                                        clip-rule="evenodd" />
                                                 </svg>
                                             </div>
                                         </div>
                                     </div>
                                     <div>
-                                        <label for="pandilla-2-rivalidad-edit" class="block text-sm md:text-base text-blue-100 mb-2">Pandilla 2 (Rival):</label>
+                                        <label for="pandilla-2-rivalidad-edit"
+                                            class="block text-sm md:text-base text-blue-100 mb-2">Pandilla 2
+                                            (Rival):</label>
                                         <div class="relative w-full">
-                                            <select id="pandilla-2-rivalidad-edit" name="id_pandilla_rival" required class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
+                                            <select id="pandilla-2-rivalidad-edit" name="id_pandilla_rival" required
+                                                class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
                                                 <option value="" disabled selected>Cargando...</option>
                                             </select>
-                                            <div class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 text-slate-950">
-                                                    <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                                            <div
+                                                class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                    fill="currentColor" class="size-6 text-slate-950">
+                                                    <path fill-rule="evenodd"
+                                                        d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
+                                                        clip-rule="evenodd" />
                                                 </svg>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Botones de acción -->
                                 <div class="w-full flex flex-col sm:flex-row gap-3 mt-4">
-                                    <button type="submit" class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-sm md:text-base font-medium hover:bg-blue-600 transition-all duration-150">
+                                    <button type="submit"
+                                        class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-sm md:text-base font-medium hover:bg-blue-600 transition-all duration-150">
                                         Actualizar Rivalidad
                                     </button>
-                                    <button type="button" id="cancelar-editar-rivalidad-btn" class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-slate-600 text-white text-sm md:text-base font-medium hover:bg-slate-700 transition-all duration-150">
+                                    <button type="button" id="cancelar-editar-rivalidad-btn"
+                                        class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-slate-600 text-white text-sm md:text-base font-medium hover:bg-slate-700 transition-all duration-150">
                                         Cancelar
                                     </button>
                                 </div>
@@ -712,36 +997,47 @@
                         </div>
                     </div>
                 </dialog>
-                
+
                 <!-- Modal para editar Redes Sociales -->
-                <dialog id="modal-editar-red-social" class="bg-transparent border-0 p-0 m-0 max-w-none max-h-none fixed inset-0 flex items-center justify-center z-50" style="margin: auto;">
-                    <div class="w-full sm:w-[90%] md:w-[70%] lg:w-[60%] min-w-[500px] md:min-w-[600px] max-w-4xl max-h-[90vh] bg-linear-180 from-slate-800/80 to-slate-800 backdrop-blur-xs rounded-lg md:rounded-2xl border-2 border-slate-600 flex flex-col overflow-hidden">
+                <dialog id="modal-editar-red-social"
+                    class="bg-transparent border-0 p-0 m-0 max-w-none max-h-none fixed inset-0 flex items-center justify-center z-50"
+                    style="margin: auto;">
+                    <div
+                        class="w-full sm:w-[90%] md:w-[70%] lg:w-[60%] min-w-[500px] md:min-w-[600px] max-w-4xl max-h-[90vh] bg-linear-180 from-slate-800/80 to-slate-800 backdrop-blur-xs rounded-lg md:rounded-2xl border-2 border-slate-600 flex flex-col overflow-hidden">
                         <!-- Header del modal -->
                         <div class="w-full flex items-center justify-between p-4 sm:p-6 border-b border-slate-600">
                             <h2 class="text-xl sm:text-2xl md:text-3xl font-spectral text-white">Editar Red Social</h2>
-                            <button id="close-modal-editar-red-social-btn" class="text-white hover:text-blue-300 transition-all duration-300 hover:cursor-pointer">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
-                                    <path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                            <button id="close-modal-editar-red-social-btn"
+                                class="text-white hover:text-blue-300 transition-all duration-300 hover:cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                    class="size-6">
+                                    <path fill-rule="evenodd"
+                                        d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z"
+                                        clip-rule="evenodd" />
                                 </svg>
                             </button>
                         </div>
-                        
+
                         <!-- Contenido del modal (scrollable) -->
                         <div class="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
                             <form id="form-editar-red-social" class="w-full flex flex-col gap-4 md:gap-6">
                                 <input type="hidden" id="id-red-social-edit" name="id_red_social">
-                                
+
                                 <!-- Mensajes de error y éxito -->
                                 <div class="w-full">
-                                    <span id="error-message-editar-red-social" class="text-red-500 text-xs sm:text-sm font-bold hidden"></span>
-                                    <span id="success-message-editar-red-social" class="text-white text-xs sm:text-sm font-bold hidden"></span>
+                                    <span id="error-message-editar-red-social"
+                                        class="text-red-500 text-xs sm:text-sm font-bold hidden"></span>
+                                    <span id="success-message-editar-red-social"
+                                        class="text-white text-xs sm:text-sm font-bold hidden"></span>
                                 </div>
-                                
+
                                 <!-- Plataforma -->
                                 <div class="w-full">
-                                    <label for="plataforma-red-social-edit" class="block text-sm md:text-base text-blue-100 mb-2">Plataforma:</label>
+                                    <label for="plataforma-red-social-edit"
+                                        class="block text-sm md:text-base text-blue-100 mb-2">Plataforma:</label>
                                     <div class="relative w-full">
-                                        <select id="plataforma-red-social-edit" name="plataforma" required class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
+                                        <select id="plataforma-red-social-edit" name="plataforma" required
+                                            class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
                                             <option value="" disabled selected>Selecciona una plataforma</option>
                                             <option value="Facebook">Facebook</option>
                                             <option value="Instagram">Instagram</option>
@@ -753,32 +1049,43 @@
                                             <option value="Snapchat">Snapchat</option>
                                             <option value="Otro">Otro</option>
                                         </select>
-                                        <div class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 text-slate-950">
-                                                <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                                        <div
+                                            class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                fill="currentColor" class="size-6 text-slate-950">
+                                                <path fill-rule="evenodd"
+                                                    d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
+                                                    clip-rule="evenodd" />
                                             </svg>
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Handle y URL -->
                                 <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label for="handle-red-social-edit" class="block text-sm md:text-base text-blue-100 mb-2">Handle/Usuario:</label>
-                                        <input type="text" id="handle-red-social-edit" name="handle" class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
+                                        <label for="handle-red-social-edit"
+                                            class="block text-sm md:text-base text-blue-100 mb-2">Handle/Usuario:</label>
+                                        <input type="text" id="handle-red-social-edit" name="handle"
+                                            class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
                                     </div>
                                     <div>
-                                        <label for="url-red-social-edit" class="block text-sm md:text-base text-blue-100 mb-2">URL del Perfil:</label>
-                                        <input type="url" id="url-red-social-edit" name="url" class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
+                                        <label for="url-red-social-edit"
+                                            class="block text-sm md:text-base text-blue-100 mb-2">URL del
+                                            Perfil:</label>
+                                        <input type="url" id="url-red-social-edit" name="url"
+                                            class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
                                     </div>
                                 </div>
-                                
+
                                 <!-- Botones de acción -->
                                 <div class="w-full flex flex-col sm:flex-row gap-3 mt-4">
-                                    <button type="submit" class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-sm md:text-base font-medium hover:bg-blue-600 transition-all duration-150">
+                                    <button type="submit"
+                                        class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-sm md:text-base font-medium hover:bg-blue-600 transition-all duration-150">
                                         Actualizar Red Social
                                     </button>
-                                    <button type="button" id="cancelar-editar-red-social-btn" class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-slate-600 text-white text-sm md:text-base font-medium hover:bg-slate-700 transition-all duration-150">
+                                    <button type="button" id="cancelar-editar-red-social-btn"
+                                        class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-slate-600 text-white text-sm md:text-base font-medium hover:bg-slate-700 transition-all duration-150">
                                         Cancelar
                                     </button>
                                 </div>
@@ -791,10 +1098,10 @@
     </main>
     <div id="footer-container"></div>
     <div id="modal-container"></div>
-    
+
     <script src="../javascript/app.js"></script>
     <script src="../javascript/auth.js"></script>
     <script src="../javascript/editar_registro.js"></script>
 </body>
-</html>
 
+</html>

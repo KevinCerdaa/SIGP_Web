@@ -94,21 +94,41 @@ def user_info_view(request):
 @permission_classes([IsAuthenticated])
 def update_profile_view(request):
     """
-    Endpoint para actualizar el nombre y apellido del usuario.
+    Endpoint para actualizar el nombre, apellido, cargo y género del usuario.
     """
     nombre = request.data.get('nombre')
     apellido = request.data.get('apellido')
+    cargo = request.data.get('cargo')
+    genero = request.data.get('genero')
     
-    if not nombre or not apellido:
-        return Response({
-            'success': False,
-            'message': 'El nombre y apellido son requeridos'
-        }, status=status.HTTP_400_BAD_REQUEST)
+    # Si se proporcionan nombre y apellido, validar que no estén vacíos
+    if nombre is not None and apellido is not None:
+        if not nombre or not apellido:
+            return Response({
+                'success': False,
+                'message': 'El nombre y apellido son requeridos'
+            }, status=status.HTTP_400_BAD_REQUEST)
     
     try:
         user = request.user
-        user.nombre = nombre
-        user.apellido = apellido
+        
+        # Actualizar solo los campos proporcionados
+        if nombre is not None:
+            user.nombre = nombre
+        if apellido is not None:
+            user.apellido = apellido
+        if cargo is not None:
+            user.cargo = cargo.strip() if cargo and cargo.strip() else None
+        if genero is not None:
+            # Validar que el género sea válido
+            if genero in ['M', 'F', 'X']:
+                user.genero = genero
+            else:
+                return Response({
+                    'success': False,
+                    'message': 'Género inválido. Debe ser M, F o X'
+                }, status=status.HTTP_400_BAD_REQUEST)
+        
         user.save()
         
         serializer = UsuarioSerializer(user)
@@ -262,6 +282,7 @@ def register_user(request):
     apellido = request.data.get('apellido')
     correo = request.data.get('correo')
     password = request.data.get('password')
+    cargo = request.data.get('cargo', '')  # Campo opcional
     rol = request.data.get('rol')
     genero = request.data.get('genero', 'X')  # Por defecto 'X' si no se proporciona
     user_name = request.data.get('user_name', correo.split('@')[0] if correo else '')
@@ -306,6 +327,7 @@ def register_user(request):
             password=password,
             nombre=nombre,
             apellido=apellido,
+            cargo=cargo if cargo else None,
             user_name=user_name,
             rol=rol,
             genero=genero
@@ -331,15 +353,16 @@ def register_user(request):
 @permission_classes([AllowAny])
 def get_addresses(request):
     """
-    Endpoint para obtener todas las direcciones con pandillas.
-    Devuelve las pandillas con sus direcciones para mostrar en el mapa.
+    Endpoint para obtener todas las direcciones con pandillas y eventos.
+    Devuelve las pandillas y eventos con sus direcciones para mostrar en el mapa.
     """
     from django.db import connection
     
     try:
         with connection.cursor() as cursor:
+            locations = []
+            
             # Obtener todas las pandillas con sus direcciones
-            # Usar LEFT JOIN para incluir pandillas aunque no tengan dirección asignada
             cursor.execute("""
                 SELECT 
                     P.id_pandilla AS id,
@@ -363,7 +386,6 @@ def get_addresses(request):
                 ORDER BY P.id_pandilla DESC
             """)
             
-            locations = []
             for row in cursor.fetchall():
                 # Verificar que tenga coordenadas válidas
                 if row[4] and row[5]:  # latitud y longitud
@@ -371,15 +393,14 @@ def get_addresses(request):
                         lat = float(row[4])
                         lng = float(row[5])
                         
-                        print(f"Procesando pandilla {row[0]} ({row[1]}): lat={lat}, lng={lng}")
-                        
                         # Validar que las coordenadas estén en un rango razonable para San Luis Potosí
-                        # Ajustado para incluir coordenadas más amplias del área metropolitana
                         if 22.0 <= lat <= 22.5 and -101.5 <= lng <= -100.0:
                             locations.append({
+                                'tipo': 'pandilla',
                                 'id': row[0],
+                                'id_pandilla': row[0],
                                 'nombre_pandilla': row[1] or 'Sin nombre',
-                                'grado_peligro': row[2] if row[2] is not None else 0,
+                                'grado_peligro': row[2] if row[2] is not None else 'Alto',
                                 'lat': lat,
                                 'lng': lng,
                                 'calle': row[6] or '',
@@ -387,16 +408,78 @@ def get_addresses(request):
                                 'colonia': row[8] or '',
                                 'id_zona': row[3] if row[3] else None
                             })
-                            print(f"  ✅ Pandilla {row[0]} agregada a locations")
-                        else:
-                            print(f"  ⚠️ Pandilla {row[0]} fuera del rango válido (lat: 22.0-22.5, lng: -101.5 a -100.0)")
                     except (ValueError, TypeError) as e:
                         print(f"❌ Error al procesar coordenadas para pandilla {row[0]}: {e}")
                         continue
-                else:
-                    print(f"⚠️ Pandilla {row[0]} no tiene coordenadas válidas")
             
-            print(f"Total de pandillas encontradas con coordenadas: {len(locations)}")
+            # Obtener todos los eventos con sus direcciones
+            # Verificar que la tabla eventos existe
+            cursor.execute("SHOW TABLES LIKE 'eventos'")
+            if cursor.fetchone():
+                cursor.execute("""
+                    SELECT 
+                        E.id_evento,
+                        E.id_delito,
+                        E.id_falta,
+                        E.id_pandilla,
+                        E.id_direccion,
+                        D.latitud,
+                        D.longitud,
+                        D.calle,
+                        D.numero,
+                        D.colonia,
+                        P.nombre AS nombre_pandilla,
+                        P.id_zona,
+                        P.peligrosidad
+                    FROM 
+                        eventos E
+                    LEFT JOIN 
+                        direcciones D ON E.id_direccion = D.id_direccion
+                    LEFT JOIN 
+                        pandillas P ON E.id_pandilla = P.id_pandilla
+                    WHERE 
+                        D.latitud IS NOT NULL 
+                        AND D.longitud IS NOT NULL
+                    ORDER BY E.id_evento DESC
+                """)
+                
+                for row in cursor.fetchall():
+                    if row[5] and row[6]:  # latitud y longitud
+                        try:
+                            lat = float(row[5])
+                            lng = float(row[6])
+                            
+                            # Validar coordenadas
+                            if 22.0 <= lat <= 22.5 and -101.5 <= lng <= -100.0:
+                                # Determinar tipo de evento
+                                tipo_evento = 'riña'
+                                if row[1]:  # id_delito
+                                    tipo_evento = 'delito'
+                                elif row[2]:  # id_falta
+                                    tipo_evento = 'falta'
+                                
+                                locations.append({
+                                    'tipo': 'evento',
+                                    'id': row[0],
+                                    'id_evento': row[0],
+                                    'tipo_evento': tipo_evento,
+                                    'id_delito': row[1],
+                                    'id_falta': row[2],
+                                    'id_pandilla': row[3],
+                                    'nombre_pandilla': row[10] or 'Sin nombre',
+                                    'grado_peligro': row[12] if row[12] is not None else 'Alto',
+                                    'lat': lat,
+                                    'lng': lng,
+                                    'calle': row[7] or '',
+                                    'numero': row[8] or '',
+                                    'colonia': row[9] or '',
+                                    'id_zona': row[11] if row[11] else None
+                                })
+                        except (ValueError, TypeError) as e:
+                            print(f"❌ Error al procesar coordenadas para evento {row[0]}: {e}")
+                            continue
+            
+            print(f"Total de ubicaciones encontradas (pandillas + eventos): {len(locations)}")
             return Response(locations, status=status.HTTP_200_OK)
     except Exception as e:
         import traceback
@@ -797,11 +880,74 @@ def create_integrante(request):
             
             id_integrante = cursor.lastrowid
             
+            # Insertar relaciones con delitos (solo si la tabla existe y hay delitos)
+            delitos = request.data.get('delitos', [])
+            if delitos:
+                try:
+                    cursor.execute("SHOW TABLES LIKE 'integrantes_delitos'")
+                    if cursor.fetchone():
+                        for delito_id in delitos:
+                            try:
+                                cursor.execute("""
+                                    INSERT INTO integrantes_delitos (id_integrante, id_delito)
+                                    VALUES (%s, %s)
+                                    ON DUPLICATE KEY UPDATE id_integrante=id_integrante
+                                """, [id_integrante, delito_id])
+                            except Exception as e:
+                                print(f"Error al insertar delito {delito_id}: {str(e)}")
+                                continue
+                except Exception as e:
+                    print(f"Tabla integrantes_delitos no disponible: {str(e)}")
+
+            # Insertar relaciones con faltas (solo si la tabla existe y hay faltas)
+            faltas = request.data.get('faltas', [])
+            if faltas:
+                try:
+                    cursor.execute("SHOW TABLES LIKE 'integrantes_faltas'")
+                    if cursor.fetchone():
+                        for falta_id in faltas:
+                            try:
+                                cursor.execute("""
+                                    INSERT INTO integrantes_faltas (id_integrante, id_falta)
+                                    VALUES (%s, %s)
+                                    ON DUPLICATE KEY UPDATE id_integrante=id_integrante
+                                """, [id_integrante, falta_id])
+                            except Exception as e:
+                                print(f"Error al insertar falta {falta_id}: {str(e)}")
+                                continue
+                except Exception as e:
+                    print(f"Tabla integrantes_faltas no disponible: {str(e)}")
+
+            # Insertar redes sociales (solo si la tabla existe y hay redes)
+            redes_sociales = request.data.get('redes_sociales', [])
+            if redes_sociales:
+                try:
+                    cursor.execute("SHOW TABLES LIKE 'redes_integrantes'")
+                    if cursor.fetchone():
+                        for red_id in redes_sociales:
+                            try:
+                                cursor.execute("""
+                                    INSERT INTO redes_integrantes (id_integrante, id_red_social)
+                                    VALUES (%s, %s)
+                                    ON DUPLICATE KEY UPDATE id_integrante=id_integrante
+                                """, [id_integrante, red_id])
+                            except Exception as e:
+                                print(f"Error al insertar red social {red_id}: {str(e)}")
+                                continue
+                except Exception as e:
+                    print(f"Tabla redes_integrantes no disponible: {str(e)}")
+
             # Guardar las imágenes
             imagenes_guardadas = []
             if imagenes:
-                # Crear directorio de media si no existe
-                media_dir = settings.MEDIA_ROOT / 'integrantes'
+                from django.conf import settings
+                from pathlib import Path
+                import os
+                import uuid
+                
+                # Convertir MEDIA_ROOT a Path si es string
+                media_root = Path(settings.MEDIA_ROOT) if isinstance(settings.MEDIA_ROOT, str) else settings.MEDIA_ROOT
+                media_dir = media_root / 'integrantes'
                 media_dir.mkdir(parents=True, exist_ok=True)
                 
                 for imagen in imagenes:
@@ -812,7 +958,7 @@ def create_integrante(request):
                         ruta_archivo = media_dir / nombre_archivo
                         
                         # Guardar el archivo
-                        with open(ruta_archivo, 'wb+') as destino:
+                        with open(str(ruta_archivo), 'wb+') as destino:
                             for chunk in imagen.chunks():
                                 destino.write(chunk)
                         
@@ -1079,32 +1225,63 @@ def create_evento(request):
 @permission_classes([IsAuthenticated])
 def get_all_integrantes(request):
     """
-    Endpoint para obtener todos los integrantes.
+    Endpoint para obtener todos los integrantes usando SQL directo.
+    Consulta la tabla 'integrantes' directamente.
     Solo disponible para usuarios autenticados.
     """
     try:
-        from .models import Integrante
-        integrantes = Integrante.objects.all()
-        
-        # Serializar manualmente ya que no tenemos serializer
-        integrantes_data = []
-        for integrante in integrantes:
-            integrantes_data.append({
-                'id_integrante': integrante.id_integrante,
-                'nombre': integrante.nombre,
-                'apellido_paterno': integrante.apellido_paterno or '',
-                'apellido_materno': integrante.apellido_materno or '',
-                'alias': integrante.alias or '',
-                'fecha_nacimiento': str(integrante.fecha_nacimiento) if integrante.fecha_nacimiento else None,
-                'id_pandilla': integrante.id_pandilla.id_pandilla if integrante.id_pandilla else None,
-                'id_direccion': integrante.id_direccion.id_direccion if integrante.id_direccion else None
-            })
-        
-        return Response({
-            'success': True,
-            'integrantes': integrantes_data
-        }, status=status.HTTP_200_OK)
+        with connection.cursor() as cursor:
+            # Verificar que la tabla 'integrantes' existe
+            cursor.execute("SHOW TABLES LIKE 'integrantes'")
+            if not cursor.fetchone():
+                return Response({
+                    'success': True,
+                    'integrantes': [],
+                    'message': 'La tabla integrantes no existe'
+                }, status=status.HTTP_200_OK)
+            
+            # Consultar directamente la tabla integrantes
+            cursor.execute("""
+                SELECT 
+                    id_integrante,
+                    nombre,
+                    apellido_paterno,
+                    apellido_materno,
+                    alias,
+                    fecha_nacimiento,
+                    id_pandilla,
+                    id_direccion
+                FROM integrantes
+                ORDER BY id_integrante ASC
+            """)
+            
+            rows = cursor.fetchall()
+            integrantes_data = []
+            
+            for row in rows:
+                integrantes_data.append({
+                    'id_integrante': int(row[0]),  # Asegurar que es int
+                    'nombre': row[1] or '',
+                    'apellido_paterno': row[2] or '',
+                    'apellido_materno': row[3] or '',
+                    'alias': row[4] or '',
+                    'fecha_nacimiento': str(row[5]) if row[5] else None,
+                    'id_pandilla': int(row[6]) if row[6] is not None else None,
+                    'id_direccion': int(row[7]) if row[7] is not None else None
+                })
+            
+            print(f"✅ get_all_integrantes: Se encontraron {len(integrantes_data)} integrantes")
+            print(f"   IDs encontrados: {[i['id_integrante'] for i in integrantes_data]}")
+            
+            return Response({
+                'success': True,
+                'integrantes': integrantes_data
+            }, status=status.HTTP_200_OK)
+            
     except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"❌ Error en get_all_integrantes: {error_trace}")
         return Response({
             'success': False,
             'message': f'Error al obtener integrantes: {str(e)}'
@@ -1175,12 +1352,12 @@ def create_falta(request):
     Solo disponible para usuarios autenticados.
     """
     try:
-        nombre = request.data.get('nombre')
+        falta = request.data.get('nombre') or request.data.get('falta')
         
-        if not nombre:
+        if not falta:
             return Response({
                 'success': False,
-                'message': 'El nombre es requerido'
+                'message': 'El nombre de la falta es requerido'
             }, status=status.HTTP_400_BAD_REQUEST)
         
         # Crear la falta usando SQL directo
@@ -1194,7 +1371,7 @@ def create_falta(request):
                 }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
             # Verificar si la falta ya existe
-            cursor.execute("SELECT id_falta FROM faltas WHERE nombre = %s", [nombre])
+            cursor.execute("SELECT id_falta FROM faltas WHERE falta = %s", [falta])
             if cursor.fetchone():
                 return Response({
                     'success': False,
@@ -1202,14 +1379,14 @@ def create_falta(request):
                 }, status=status.HTTP_400_BAD_REQUEST)
             
             # Insertar la falta
-            cursor.execute("INSERT INTO faltas (nombre) VALUES (%s)", [nombre])
+            cursor.execute("INSERT INTO faltas (falta) VALUES (%s)", [falta])
             id_falta = cursor.lastrowid
             
             return Response({
                 'success': True,
                 'message': 'Falta creada correctamente',
                 'id_falta': id_falta,
-                'nombre': nombre
+                'falta': falta
             }, status=status.HTTP_201_CREATED)
             
     except Exception as e:
@@ -1446,14 +1623,41 @@ def get_pandilla(request, id_pandilla):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_integrante(request, id_integrante):
-    """Obtener un integrante específico por ID"""
+    """Obtener un integrante específico por ID usando SQL directo"""
     try:
+        # Validar ID
+        try:
+            id_integrante_int = int(id_integrante)
+        except (ValueError, TypeError):
+            return Response({
+                'success': False,
+                'message': 'ID de integrante inválido'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
         with connection.cursor() as cursor:
+            # Verificar que la tabla existe
+            cursor.execute("SHOW TABLES LIKE 'integrantes'")
+            if not cursor.fetchone():
+                return Response({
+                    'success': False,
+                    'message': 'La tabla de integrantes no existe'
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            # Obtener datos del integrante
             cursor.execute("""
-                SELECT id_integrante, nombre, apellido_paterno, apellido_materno, 
-                       alias, fecha_nacimiento, id_pandilla, id_direccion
-                FROM integrantes WHERE id_integrante = %s
-            """, [id_integrante])
+                SELECT 
+                    id_integrante,
+                    nombre,
+                    apellido_paterno,
+                    apellido_materno,
+                    alias,
+                    fecha_nacimiento,
+                    id_pandilla,
+                    id_direccion
+                FROM integrantes 
+                WHERE id_integrante = %s
+            """, [id_integrante_int])
+            
             row = cursor.fetchone()
             
             if not row:
@@ -1462,26 +1666,89 @@ def get_integrante(request, id_integrante):
                     'message': 'Integrante no encontrado'
                 }, status=status.HTTP_404_NOT_FOUND)
             
+            # Construir objeto integrante
             integrante = {
                 'id_integrante': row[0],
-                'nombre': row[1],
+                'nombre': row[1] or '',
                 'apellido_paterno': row[2] or '',
                 'apellido_materno': row[3] or '',
                 'alias': row[4] or '',
                 'fecha_nacimiento': str(row[5]) if row[5] else None,
-                'id_pandilla': row[6],
-                'id_direccion': row[7]
+                'id_pandilla': int(row[6]) if row[6] is not None else None,
+                'id_direccion': int(row[7]) if row[7] is not None else None,
+                'imagenes': [],
+                'faltas': [],
+                'redes_sociales': []
             }
             
+            # Obtener faltas
+            try:
+                cursor.execute("SHOW TABLES LIKE 'integrantes_faltas'")
+                if cursor.fetchone():
+                    cursor.execute("""
+                        SELECT f.id_falta, f.nombre 
+                        FROM integrantes_faltas ifa
+                        JOIN faltas f ON ifa.id_falta = f.id_falta
+                        WHERE ifa.id_integrante = %s
+                    """, [id_integrante_int])
+                    for falta_row in cursor.fetchall():
+                        integrante['faltas'].append({
+                            'id_falta': falta_row[0],
+                            'nombre': falta_row[1]
+                        })
+            except Exception as e:
+                print(f"Error obteniendo faltas: {e}")
+
+            # Obtener redes sociales
+            try:
+                cursor.execute("SHOW TABLES LIKE 'redes_integrantes'")
+                if cursor.fetchone():
+                    cursor.execute("""
+                        SELECT r.id_red_social, r.plataforma, r.handle, r.url
+                        FROM redes_integrantes ri
+                        JOIN redes_sociales r ON ri.id_red_social = r.id_red_social
+                        WHERE ri.id_integrante = %s
+                    """, [id_integrante_int])
+                    for red_row in cursor.fetchall():
+                        integrante['redes_sociales'].append({
+                            'id_red_social': red_row[0],
+                            'plataforma': red_row[1],
+                            'handle': red_row[2],
+                            'url': red_row[3]
+                        })
+            except Exception as e:
+                print(f"Error obteniendo redes sociales: {e}")
+
             # Obtener imágenes
-            cursor.execute("SELECT id_imagen, url_imagen, descripcion FROM imagenes_integrantes WHERE id_integrante = %s", [id_integrante])
-            integrante['imagenes'] = [{'id_imagen': row[0], 'url_imagen': row[1], 'descripcion': row[2]} for row in cursor.fetchall()]
+            try:
+                cursor.execute("SHOW TABLES LIKE 'imagenes_integrantes'")
+                if cursor.fetchone():
+                    cursor.execute("""
+                        SELECT id_imagen, url_imagen, descripcion 
+                        FROM imagenes_integrantes 
+                        WHERE id_integrante = %s
+                        ORDER BY id_imagen
+                    """, [id_integrante_int])
+                    
+                    for img_row in cursor.fetchall():
+                        integrante['imagenes'].append({
+                            'id_imagen': img_row[0],
+                            'url_imagen': img_row[1] or '',
+                            'descripcion': img_row[2] or ''
+                        })
+            except Exception as img_error:
+                print(f"Error al obtener imágenes: {img_error}")
+                integrante['imagenes'] = []
             
             return Response({
                 'success': True,
                 'integrante': integrante
             }, status=status.HTTP_200_OK)
+            
     except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"Error en get_integrante: {error_trace}")
         return Response({
             'success': False,
             'message': f'Error al obtener el integrante: {str(e)}'
@@ -1571,7 +1838,7 @@ def get_falta(request, id_falta):
     """Obtener una falta específica por ID"""
     try:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT id_falta, nombre FROM faltas WHERE id_falta = %s", [id_falta])
+            cursor.execute("SELECT id_falta, falta FROM faltas WHERE id_falta = %s", [id_falta])
             row = cursor.fetchone()
             
             if not row:
@@ -1582,7 +1849,7 @@ def get_falta(request, id_falta):
             
             return Response({
                 'success': True,
-                'falta': {'id_falta': row[0], 'nombre': row[1]}
+                'falta': {'id_falta': row[0], 'falta': row[1]}
             }, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({
@@ -1783,12 +2050,12 @@ def get_all_faltas(request):
     """Obtener todas las faltas"""
     try:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT id_falta, nombre FROM faltas ORDER BY nombre")
+            cursor.execute("SELECT id_falta, falta FROM faltas ORDER BY falta")
             faltas = []
             for row in cursor.fetchall():
                 faltas.append({
                     'id_falta': row[0],
-                    'nombre': row[1]
+                    'falta': row[1]
                 })
             return Response({
                 'success': True,
@@ -2007,14 +2274,77 @@ def update_integrante(request, id_integrante):
             """, [nombre, apellido_paterno, apellido_materno, alias, 
                   fecha_nacimiento or None, id_pandilla or None, id_direccion or None, id_integrante])
             
+            # Actualizar Delitos
+            delitos = request.data.get('delitos', [])
+            if delitos is not None: # Solo si se envía el campo delitos
+                try:
+                    cursor.execute("SHOW TABLES LIKE 'integrantes_delitos'")
+                    if cursor.fetchone():
+                        # Eliminar delitos existentes
+                        cursor.execute("DELETE FROM integrantes_delitos WHERE id_integrante = %s", [id_integrante])
+                        # Insertar nuevos
+                        for delito_id in delitos:
+                            try:
+                                cursor.execute("""
+                                    INSERT INTO integrantes_delitos (id_integrante, id_delito)
+                                    VALUES (%s, %s)
+                                """, [id_integrante, delito_id])
+                            except Exception as e:
+                                print(f"Error al insertar delito {delito_id}: {str(e)}")
+                except Exception as e:
+                    print(f"Error actualizando delitos: {str(e)}")
+
+            # Actualizar Faltas
+            faltas = request.data.get('faltas', [])
+            if faltas is not None: # Solo si se envía el campo faltas
+                try:
+                    cursor.execute("SHOW TABLES LIKE 'integrantes_faltas'")
+                    if cursor.fetchone():
+                        # Eliminar faltas existentes
+                        cursor.execute("DELETE FROM integrantes_faltas WHERE id_integrante = %s", [id_integrante])
+                        # Insertar nuevas
+                        for falta_id in faltas:
+                            try:
+                                cursor.execute("""
+                                    INSERT INTO integrantes_faltas (id_integrante, id_falta)
+                                    VALUES (%s, %s)
+                                """, [id_integrante, falta_id])
+                            except Exception as e:
+                                print(f"Error al insertar falta {falta_id}: {str(e)}")
+                except Exception as e:
+                    print(f"Error actualizando faltas: {str(e)}")
+
+            # Actualizar Redes Sociales
+            redes_sociales = request.data.get('redes_sociales', [])
+            if redes_sociales is not None: # Solo si se envía el campo redes_sociales
+                try:
+                    cursor.execute("SHOW TABLES LIKE 'redes_integrantes'")
+                    if cursor.fetchone():
+                        # Eliminar redes existentes
+                        cursor.execute("DELETE FROM redes_integrantes WHERE id_integrante = %s", [id_integrante])
+                        # Insertar nuevas
+                        for red_id in redes_sociales:
+                            try:
+                                cursor.execute("""
+                                    INSERT INTO redes_integrantes (id_integrante, id_red_social)
+                                    VALUES (%s, %s)
+                                """, [id_integrante, red_id])
+                            except Exception as e:
+                                print(f"Error al insertar red social {red_id}: {str(e)}")
+                except Exception as e:
+                    print(f"Error actualizando redes sociales: {str(e)}")
+
             # Manejar nuevas imágenes si se proporcionan
             imagenes = request.FILES.getlist('imagenes') if hasattr(request, 'FILES') and request.FILES else []
             if imagenes:
                 from django.conf import settings
+                from pathlib import Path
                 import os
                 import uuid
                 
-                media_dir = settings.MEDIA_ROOT / 'integrantes'
+                # Convertir MEDIA_ROOT a Path si es string
+                media_root = Path(settings.MEDIA_ROOT) if isinstance(settings.MEDIA_ROOT, str) else settings.MEDIA_ROOT
+                media_dir = media_root / 'integrantes'
                 media_dir.mkdir(parents=True, exist_ok=True)
                 
                 for imagen in imagenes:
@@ -2023,7 +2353,7 @@ def update_integrante(request, id_integrante):
                         nombre_archivo = f"{uuid.uuid4()}{ext}"
                         ruta_archivo = media_dir / nombre_archivo
                         
-                        with open(ruta_archivo, 'wb+') as destino:
+                        with open(str(ruta_archivo), 'wb+') as destino:
                             for chunk in imagen.chunks():
                                 destino.write(chunk)
                         
@@ -2033,7 +2363,9 @@ def update_integrante(request, id_integrante):
                             VALUES (%s, %s, %s, NOW())
                         """, [id_integrante, url_imagen, None])
                     except Exception as e:
+                        import traceback
                         print(f"Error al guardar imagen: {str(e)}")
+                        print(traceback.format_exc())
                         continue
             
             return Response({
@@ -2144,14 +2476,14 @@ def update_falta(request, id_falta):
                     'message': 'Falta no encontrada'
                 }, status=status.HTTP_404_NOT_FOUND)
             
-            nombre = request.data.get('nombre')
-            if not nombre:
+            falta = request.data.get('nombre') or request.data.get('falta')
+            if not falta:
                 return Response({
                     'success': False,
-                    'message': 'El nombre es requerido'
+                    'message': 'El nombre de la falta es requerido'
                 }, status=status.HTTP_400_BAD_REQUEST)
             
-            cursor.execute("UPDATE faltas SET nombre = %s WHERE id_falta = %s", [nombre, id_falta])
+            cursor.execute("UPDATE faltas SET falta = %s WHERE id_falta = %s", [falta, id_falta])
             
             return Response({
                 'success': True,
@@ -2297,23 +2629,45 @@ def consulta_eventos(request):
     Consulta de eventos por rango de fechas.
     Retorna eventos con información completa: fecha, hora, tipo, delito/falta, pandilla(s), zona, dirección.
     Ordenados por fecha ASC (más antiguos primero) y hora ASC.
+    Filtros opcionales: tipo_evento, delito_falta (formato: "delito_ID" o "falta_ID")
     """
     try:
-        fecha_inicial = request.GET.get('fecha_inicial')
-        fecha_final = request.GET.get('fecha_final')
+        fecha_inicial = request.GET.get('fecha_inicial', '').strip()
+        fecha_final = request.GET.get('fecha_final', '').strip()
+        tipo_evento = request.GET.get('tipo_evento', '').strip()
+        delito_falta = request.GET.get('delito_falta', '').strip()
+        zona_id = request.GET.get('zona', '').strip()
+        mostrar_todos = request.GET.get('mostrar_todos', 'false').lower() == 'true'
         
-        if not fecha_inicial or not fecha_final:
-            return Response({
-                'success': False,
-                'message': 'Las fechas inicial y final son requeridas'
-            }, status=status.HTTP_400_BAD_REQUEST)
+        # Si mostrar_todos es true, no requerir fechas
+        if not mostrar_todos:
+            if not fecha_inicial or not fecha_final:
+                return Response({
+                    'success': False,
+                    'message': 'Las fechas inicial y final son requeridas'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Validar que fecha_inicial <= fecha_final
+            if fecha_inicial > fecha_final:
+                return Response({
+                    'success': False,
+                    'message': 'La fecha inicial debe ser anterior o igual a la fecha final'
+                }, status=status.HTTP_400_BAD_REQUEST)
         
-        # Validar que fecha_inicial <= fecha_final
-        if fecha_inicial > fecha_final:
-            return Response({
-                'success': False,
-                'message': 'La fecha inicial debe ser anterior o igual a la fecha final'
-            }, status=status.HTTP_400_BAD_REQUEST)
+        # Procesar filtro de delito/falta
+        id_delito = None
+        id_falta = None
+        if delito_falta:
+            if delito_falta.startswith('delito_'):
+                try:
+                    id_delito = int(delito_falta.replace('delito_', ''))
+                except ValueError:
+                    pass
+            elif delito_falta.startswith('falta_'):
+                try:
+                    id_falta = int(delito_falta.replace('falta_', ''))
+                except ValueError:
+                    pass
         
         with connection.cursor() as cursor:
             # Verificar que la tabla existe
@@ -2331,10 +2685,69 @@ def consulta_eventos(request):
             tiene_id_zona = 'id_zona' in columnas_existentes
             tiene_id_integrante = 'id_integrante' in columnas_existentes
             
+            # Construir condiciones WHERE dinámicamente
+            where_conditions = ["E.fecha IS NOT NULL"]
+            params = []
+            
+            # Solo agregar filtros de fecha si no se está mostrando todos
+            if not mostrar_todos and fecha_inicial and fecha_final:
+                where_conditions.append("DATE(E.fecha) >= DATE(%s)")
+                where_conditions.append("DATE(E.fecha) <= DATE(%s)")
+                params.extend([fecha_inicial, fecha_final])
+            
+            # Solo aplicar filtros adicionales si NO se está mostrando todos
+            if not mostrar_todos:
+                # Filtro por tipo de evento
+                if tipo_evento:
+                    # Verificar si la tabla tiene campo 'tipo'
+                    tiene_campo_tipo = 'tipo' in columnas_existentes
+                    if tiene_campo_tipo:
+                        # Si tiene campo tipo, usarlo directamente
+                        where_conditions.append("E.tipo = %s")
+                        params.append(tipo_evento)
+                    else:
+                        # Si no tiene campo tipo, determinar por id_delito/id_falta
+                        if tipo_evento == 'delito':
+                            where_conditions.append("E.id_delito IS NOT NULL")
+                        elif tipo_evento == 'falta':
+                            where_conditions.append("E.id_falta IS NOT NULL")
+                        elif tipo_evento == 'riña':
+                            where_conditions.append("E.id_delito IS NULL AND E.id_falta IS NULL")
+                
+                # Filtro por delito específico
+                if id_delito:
+                    where_conditions.append("E.id_delito = %s")
+                    params.append(id_delito)
+                
+                # Filtro por falta específica
+                if id_falta:
+                    where_conditions.append("E.id_falta = %s")
+                    params.append(id_falta)
+                
+                # Filtro por zona (a través de la pandilla o dirección)
+                if zona_id:
+                    try:
+                        zona_id_int = int(zona_id)
+                        # Filtrar por zona a través de la pandilla asociada al evento
+                        where_conditions.append("""
+                            (E.id_pandilla IN (SELECT id_pandilla FROM pandillas WHERE id_zona = %s)
+                            OR E.id_direccion IN (SELECT id_direccion FROM direcciones WHERE id_zona = %s))
+                        """)
+                        params.append(zona_id_int)
+                        params.append(zona_id_int)
+                    except (ValueError, TypeError):
+                        pass
+            
             # Construir la consulta base según las columnas disponibles
+            # Incluir campo 'tipo' si existe
+            tiene_campo_tipo = 'tipo' in columnas_existentes
+            campo_tipo = ', E.tipo' if tiene_campo_tipo else ''
+            
+            # Construir la cláusula WHERE de forma segura
+            where_clause = ' AND '.join(where_conditions) if where_conditions else '1=1'
+            
             if tiene_id_zona:
-                # Si tiene id_zona, usar todas las columnas
-                query_base = """
+                query_base = f"""
                     SELECT 
                         E.id_evento,
                         E.id_delito,
@@ -2345,16 +2758,13 @@ def consulta_eventos(request):
                         E.id_direccion,
                         E.fecha,
                         E.hora,
-                        E.descripcion
+                        E.descripcion{campo_tipo}
                     FROM eventos E
-                    WHERE E.fecha IS NOT NULL 
-                      AND DATE(E.fecha) >= DATE(%s)
-                      AND DATE(E.fecha) <= DATE(%s)
+                    WHERE {where_clause}
                     ORDER BY E.fecha ASC, E.hora ASC, E.id_evento ASC
                 """
             else:
-                # Si no tiene id_zona, omitirla
-                query_base = """
+                query_base = f"""
                     SELECT 
                         E.id_evento,
                         E.id_delito,
@@ -2364,49 +2774,43 @@ def consulta_eventos(request):
                         E.id_direccion,
                         E.fecha,
                         E.hora,
-                        E.descripcion
+                        E.descripcion{campo_tipo}
                     FROM eventos E
-                    WHERE E.fecha IS NOT NULL 
-                      AND DATE(E.fecha) >= DATE(%s)
-                      AND DATE(E.fecha) <= DATE(%s)
+                    WHERE {where_clause}
                     ORDER BY E.fecha ASC, E.hora ASC, E.id_evento ASC
                 """
             
-            cursor.execute(query_base, [fecha_inicial, fecha_final])
+            cursor.execute(query_base, params)
             eventos_raw = cursor.fetchall()
             eventos = []
             
             for evento_row in eventos_raw:
-                # Mapear índices según si tiene id_zona o no
+                # Mapear índices según si tiene id_zona y tipo
+                idx = 0
+                evento_id = evento_row[idx]; idx += 1
+                id_delito = evento_row[idx]; idx += 1
+                id_falta = evento_row[idx]; idx += 1
+                id_integrante = evento_row[idx]; idx += 1
+                id_pandilla = evento_row[idx]; idx += 1
                 if tiene_id_zona:
-                    evento_id = evento_row[0]
-                    id_delito = evento_row[1]
-                    id_falta = evento_row[2]
-                    id_integrante = evento_row[3]
-                    id_pandilla = evento_row[4]
-                    id_zona = evento_row[5]
-                    id_direccion = evento_row[6]
-                    fecha = evento_row[7]
-                    hora = evento_row[8]
-                    descripcion = evento_row[9]
+                    id_zona = evento_row[idx]; idx += 1
                 else:
-                    evento_id = evento_row[0]
-                    id_delito = evento_row[1]
-                    id_falta = evento_row[2]
-                    id_integrante = evento_row[3]
-                    id_pandilla = evento_row[4]
-                    id_direccion = evento_row[5]
-                    fecha = evento_row[6]
-                    hora = evento_row[7]
-                    descripcion = evento_row[8]
                     id_zona = None
+                id_direccion = evento_row[idx]; idx += 1
+                fecha = evento_row[idx]; idx += 1
+                hora = evento_row[idx]; idx += 1
+                descripcion = evento_row[idx]; idx += 1
                 
-                # Determinar el tipo
-                tipo_evento = 'riña'
-                if id_delito:
-                    tipo_evento = 'delito'
-                elif id_falta:
-                    tipo_evento = 'falta'
+                # Obtener tipo del campo si existe, sino determinarlo
+                if tiene_campo_tipo:
+                    tipo_evento = evento_row[idx] if idx < len(evento_row) else 'riña'
+                else:
+                    # Determinar el tipo basándose en id_delito o id_falta
+                    tipo_evento = 'riña'
+                    if id_delito:
+                        tipo_evento = 'delito'
+                    elif id_falta:
+                        tipo_evento = 'falta'
                 
                 # Obtener delito
                 delito_nombre = ''
@@ -2423,7 +2827,7 @@ def consulta_eventos(request):
                 falta_nombre = ''
                 if id_falta:
                     try:
-                        cursor.execute("SELECT nombre FROM faltas WHERE id_falta = %s", [id_falta])
+                        cursor.execute("SELECT falta FROM faltas WHERE id_falta = %s", [id_falta])
                         falta_result = cursor.fetchone()
                         if falta_result:
                             falta_nombre = falta_result[0] or ''
@@ -2633,23 +3037,30 @@ def consulta_pandillas(request):
 @permission_classes([IsAuthenticated])
 def consulta_integrantes(request):
     """
-    Consulta de integrantes por nombre, apellido o alias con búsqueda inteligente.
-    - Busca simultáneamente en nombre, apellido paterno, apellido materno y alias
-    - Si la búsqueda tiene múltiples palabras, prioriza coincidencias exactas
-    - Ordena por relevancia: coincidencias exactas primero, luego parciales
-    Retorna integrantes con información completa: nombre, alias, fecha nacimiento, pandilla, dirección, delitos y faltas.
+    Consulta de integrantes por nombre, apellido o alias.
+    Busca en la tabla INTEGRANTES (no en faltas).
     """
     try:
+        # Obtener parámetro de búsqueda (opcional si hay filtro de pandillas)
         busqueda = request.GET.get('busqueda', '').strip()
         
-        if not busqueda:
-            return Response({
-                'success': False,
-                'message': 'El criterio de búsqueda es requerido'
-            }, status=status.HTTP_400_BAD_REQUEST)
+        # Filtro por pandillas (lista de IDs) - aceptar tanto 'pandillas' como 'pandillas[]'
+        pandillas_ids = request.GET.getlist('pandillas') or request.GET.getlist('pandillas[]')
+        
+        # Filtro por zona
+        zona_id = request.GET.get('zona', '').strip()
+        
+        # Filtro por peligrosidad
+        peligrosidad = request.GET.get('peligrosidad', '').strip()
+        
+        # Filtro por delitos (lista de IDs)
+        delitos_ids = request.GET.getlist('delitos') or request.GET.getlist('delitos[]')
+        
+        # Permitir búsqueda sin filtros (todos los integrantes), solo por nombre, solo por pandillas, o ambos
+        # No se requiere validación, se puede buscar sin filtros
         
         with connection.cursor() as cursor:
-            # Verificar que la tabla existe
+            # Verificar que la tabla INTEGRANTES existe
             cursor.execute("SHOW TABLES LIKE 'integrantes'")
             if not cursor.fetchone():
                 return Response({
@@ -2658,154 +3069,197 @@ def consulta_integrantes(request):
                     'message': 'La tabla de integrantes no existe aún'
                 }, status=status.HTTP_200_OK)
             
-            # Limpiar y preparar la búsqueda
-            busqueda_limpia = busqueda.strip()
-            busqueda_like = f'%{busqueda_limpia}%'
+            # Construir condiciones WHERE dinámicamente
+            where_conditions = []
+            params = []
             
-            # Construir la consulta con búsqueda simplificada y ordenamiento por relevancia
-            # Buscar en: nombre, apellido_paterno, apellido_materno, alias
-            # Priorizar: 1) Coincidencias exactas del nombre completo, 2) Coincidencias en nombre, 3) Coincidencias en apellidos, 4) Coincidencias en alias
-            query = """
-                SELECT 
-                    I.id_integrante,
-                    I.nombre,
-                    I.apellido_paterno,
-                    I.apellido_materno,
-                    I.alias,
-                    I.fecha_nacimiento,
-                    CONCAT(
-                        COALESCE(I.nombre, ''),
-                        COALESCE(CONCAT(' ', I.apellido_paterno), ''),
-                        COALESCE(CONCAT(' ', I.apellido_materno), '')
-                    ) as nombre_completo,
-                    P.nombre as pandilla_nombre,
-                    CONCAT(DIR.calle, ' ', COALESCE(DIR.numero, ''), ', ', COALESCE(DIR.colonia, '')) as direccion,
-                    CASE 
-                        WHEN CONCAT(
-                            COALESCE(I.nombre, ''),
-                            COALESCE(CONCAT(' ', I.apellido_paterno), ''),
-                            COALESCE(CONCAT(' ', I.apellido_materno), '')
-                        ) LIKE %s THEN 1
-                        WHEN I.nombre LIKE %s THEN 2
-                        WHEN I.apellido_paterno LIKE %s OR I.apellido_materno LIKE %s THEN 3
-                        WHEN I.alias LIKE %s THEN 4
-                        ELSE 5
-                    END as relevancia
-                FROM integrantes I
-                LEFT JOIN pandillas P ON I.id_pandilla = P.id_pandilla
-                LEFT JOIN direcciones DIR ON I.id_direccion = DIR.id_direccion
-                WHERE (
-                    I.nombre LIKE %s 
-                    OR I.apellido_paterno LIKE %s 
-                    OR I.apellido_materno LIKE %s 
-                    OR I.alias LIKE %s
+            # Condición de búsqueda por nombre/alias (opcional)
+            if busqueda:
+                busqueda_like = f'%{busqueda}%'
+                where_conditions.append("""
+                    (integrantes.nombre LIKE %s 
+                    OR integrantes.apellido_paterno LIKE %s 
+                    OR integrantes.apellido_materno LIKE %s 
+                    OR integrantes.alias LIKE %s
                     OR CONCAT(
-                        COALESCE(I.nombre, ''),
-                        COALESCE(CONCAT(' ', I.apellido_paterno), ''),
-                        COALESCE(CONCAT(' ', I.apellido_materno), '')
-                    ) LIKE %s
-                )
-                ORDER BY relevancia ASC, I.nombre ASC, I.apellido_paterno ASC, I.apellido_materno ASC
+                        COALESCE(integrantes.nombre, ''),
+                        COALESCE(CONCAT(' ', integrantes.apellido_paterno), ''),
+                        COALESCE(CONCAT(' ', integrantes.apellido_materno), '')
+                    ) LIKE %s)
+                """)
+                params.extend([busqueda_like] * 5)  # 5 parámetros para la búsqueda
+            
+            # Filtro por pandillas
+            if pandillas_ids:
+                # Validar que sean enteros
+                try:
+                    pandillas_ids_int = [int(pid) for pid in pandillas_ids if pid]
+                    if pandillas_ids_int:
+                        placeholders = ','.join(['%s'] * len(pandillas_ids_int))
+                        where_conditions.append(f"integrantes.id_pandilla IN ({placeholders})")
+                        params.extend(pandillas_ids_int)
+                except ValueError:
+                    pass
+
+            # Filtro por zona (a través de la pandilla)
+            if zona_id:
+                try:
+                    zona_id_int = int(zona_id)
+                    where_conditions.append("pandillas.id_zona = %s")
+                    params.append(zona_id_int)
+                except (ValueError, TypeError):
+                    pass
+
+            # Filtro por peligrosidad (a través de la pandilla)
+            if peligrosidad:
+                # Mapear peligrosidad a valores numéricos si es necesario
+                # Asumiendo que peligrosidad puede ser "Bajo", "Medio", "Alto" o un número
+                peligrosidad_map = {
+                    'Bajo': [1, 2, 3],
+                    'Medio': [4, 5, 6],
+                    'Alto': [7, 8, 9, 10]
+                }
+                
+                if peligrosidad in peligrosidad_map:
+                    valores = peligrosidad_map[peligrosidad]
+                    placeholders = ','.join(['%s'] * len(valores))
+                    where_conditions.append(f"pandillas.peligrosidad IN ({placeholders})")
+                    params.extend(valores)
+                else:
+                    try:
+                        peligrosidad_int = int(peligrosidad)
+                        where_conditions.append("pandillas.peligrosidad = %s")
+                        params.append(peligrosidad_int)
+                    except (ValueError, TypeError):
+                        pass
+
+            # Filtro por delitos (a través de la tabla integrantes_delitos)
+            if delitos_ids:
+                try:
+                    delitos_ids_int = [int(did) for did in delitos_ids if did]
+                    if delitos_ids_int:
+                        # Usar subconsulta para filtrar por delitos
+                        placeholders = ','.join(['%s'] * len(delitos_ids_int))
+                        where_conditions.append(f"""integrantes.id_integrante IN (
+                            SELECT DISTINCT id_integrante 
+                            FROM integrantes_delitos 
+                            WHERE id_delito IN ({placeholders})
+                        )""")
+                        params.extend(delitos_ids_int)
+                except ValueError:
+                    pass
+
+            # Si no hay condiciones, retornar todos los integrantes
+            # Construir la consulta SQL
+            if where_conditions:
+                where_clause = ' AND '.join(where_conditions)
+            else:
+                where_clause = '1=1'  # Sin filtros, mostrar todos
+            
+            sql_query = f"""
+                SELECT 
+                    integrantes.id_integrante,
+                    integrantes.nombre,
+                    integrantes.apellido_paterno,
+                    integrantes.apellido_materno,
+                    integrantes.alias,
+                    integrantes.fecha_nacimiento,
+                    CONCAT(
+                        COALESCE(integrantes.nombre, ''),
+                        COALESCE(CONCAT(' ', integrantes.apellido_paterno), ''),
+                        COALESCE(CONCAT(' ', integrantes.apellido_materno), '')
+                    ) as nombre_completo,
+                    pandillas.nombre as pandilla_nombre,
+                    CONCAT(
+                        COALESCE(direcciones.calle, ''),
+                        COALESCE(CONCAT(' ', direcciones.numero), ''),
+                        COALESCE(CONCAT(', ', direcciones.colonia), '')
+                    ) as direccion,
+                    (SELECT url_imagen FROM imagenes_integrantes WHERE id_integrante = integrantes.id_integrante ORDER BY fecha_subida DESC LIMIT 1) as url_imagen
+                FROM integrantes
+                LEFT JOIN pandillas ON integrantes.id_pandilla = pandillas.id_pandilla
+                LEFT JOIN direcciones ON integrantes.id_direccion = direcciones.id_direccion
+                WHERE {where_clause}
+                ORDER BY integrantes.nombre ASC, integrantes.apellido_paterno ASC
             """
             
-            # Parámetros: primero los del CASE (relevancia), luego los del WHERE
-            todos_parametros = [
-                busqueda_like,  # CASE: nombre completo
-                busqueda_like,  # CASE: nombre
-                busqueda_like,  # CASE: apellido paterno
-                busqueda_like,  # CASE: apellido materno
-                busqueda_like,  # CASE: alias
-                busqueda_like,  # WHERE: nombre
-                busqueda_like,  # WHERE: apellido_paterno
-                busqueda_like,  # WHERE: apellido_materno
-                busqueda_like,  # WHERE: alias
-                busqueda_like   # WHERE: nombre completo
-            ]
+            # Ejecutar consulta en tabla INTEGRANTES
+            cursor.execute(sql_query, params)
             
-            cursor.execute(query, todos_parametros)
-            
-            integrantes_data = []
             rows = cursor.fetchall()
+            integrantes_data = []
             
+            # Procesar resultados
             for row in rows:
+                id_integrante = row[0]
+                
                 integrante = {
-                    'id_integrante': row[0],
+                    'id_integrante': id_integrante,
                     'nombre': row[1] or '',
                     'apellido_paterno': row[2] or '',
                     'apellido_materno': row[3] or '',
                     'alias': row[4] or '',
                     'fecha_nacimiento': str(row[5]) if row[5] else None,
                     'nombre_completo': row[6] or row[1] or 'Sin nombre',
-                    'pandilla_nombre': row[7] if len(row) > 7 else None,
-                    'direccion': row[8] if len(row) > 8 else '',
+                    'pandilla_nombre': row[7] if len(row) > 7 and row[7] else None,
+                    'direccion': row[8] if len(row) > 8 and row[8] else '',
+                    'url_imagen': row[9] if len(row) > 9 and row[9] else None,
                     'delitos': [],
-                    'faltas': []
+                    'faltas': [],
+                    'redes_sociales': []
                 }
                 
                 # Obtener delitos del integrante
-                cursor.execute("""
-                    SELECT D.id_delito, D.nombre
-                    FROM integrantes_delitos ID
-                    JOIN delitos D ON ID.id_delito = D.id_delito
-                    WHERE ID.id_integrante = %s
-                """, [integrante['id_integrante']])
-                
-                for delito_row in cursor.fetchall():
-                    integrante['delitos'].append({
-                        'id_delito': delito_row[0],
-                        'nombre': delito_row[1]
-                    })
+                try:
+                    cursor.execute("""
+                        SELECT delitos.id_delito, delitos.nombre
+                        FROM integrantes_delitos
+                        JOIN delitos ON integrantes_delitos.id_delito = delitos.id_delito
+                        WHERE integrantes_delitos.id_integrante = %s
+                    """, [id_integrante])
+                    
+                    for delito_row in cursor.fetchall():
+                        integrante['delitos'].append({
+                            'id_delito': delito_row[0],
+                            'nombre': delito_row[1]
+                        })
+                except Exception:
+                    pass
                 
                 # Obtener faltas del integrante
                 try:
-                    # Usar LEFT JOIN para evitar errores si no hay faltas asociadas
-                    # Verificar primero si las tablas existen
-                    cursor.execute("SHOW TABLES LIKE 'integrantes_faltas'")
-                    tabla_if_existe = cursor.fetchone()
+                    cursor.execute("""
+                        SELECT f.id_falta, f.falta 
+                        FROM integrantes_faltas ifa
+                        JOIN faltas f ON ifa.id_falta = f.id_falta
+                        WHERE ifa.id_integrante = %s
+                    """, [id_integrante])
                     
-                    cursor.execute("SHOW TABLES LIKE 'faltas'")
-                    tabla_faltas_existe = cursor.fetchone()
-                    
-                    if tabla_if_existe and tabla_faltas_existe:
-                        # Verificar las columnas de la tabla faltas
-                        cursor.execute("SHOW COLUMNS FROM faltas")
-                        columnas_faltas = [col[0] for col in cursor.fetchall()]
-                        
-                        if 'nombre' in columnas_faltas:
-                            # La tabla tiene la columna nombre, hacer la consulta normal
-                            cursor.execute("""
-                                SELECT faltas.id_falta, faltas.nombre
-                                FROM integrantes_faltas
-                                JOIN faltas ON integrantes_faltas.id_falta = faltas.id_falta
-                                WHERE integrantes_faltas.id_integrante = %s
-                            """, [integrante['id_integrante']])
-                        else:
-                            # La tabla no tiene columna nombre, intentar obtener solo el id
-                            print(f"Advertencia: La tabla faltas no tiene columna 'nombre', columnas disponibles: {columnas_faltas}")
-                            cursor.execute("""
-                                SELECT integrantes_faltas.id_falta
-                                FROM integrantes_faltas
-                                WHERE integrantes_faltas.id_integrante = %s
-                            """, [integrante['id_integrante']])
-                            for falta_row in cursor.fetchall():
-                                integrante['faltas'].append({
-                                    'id_falta': falta_row[0],
-                                    'nombre': f'Falta {falta_row[0]}'
-                                })
-                            continue  # Saltar el procesamiento normal
-                        
-                        for falta_row in cursor.fetchall():
-                            integrante['faltas'].append({
-                                'id_falta': falta_row[0],
-                                'nombre': falta_row[1] if len(falta_row) > 1 else f'Falta {falta_row[0]}'
-                            })
+                    for falta_row in cursor.fetchall():
+                        integrante['faltas'].append({
+                            'id_falta': falta_row[0],
+                            'falta': falta_row[1] or '',
+                            'nombre': falta_row[1] or ''  # Mantener compatibilidad
+                        })
+                except Exception:
+                    pass
+
+                # Obtener imagen más reciente del integrante
+                try:
+                    cursor.execute("""
+                        SELECT url_imagen 
+                        FROM imagenes_integrantes 
+                        WHERE id_integrante = %s 
+                        ORDER BY fecha_subida DESC 
+                        LIMIT 1
+                    """, [id_integrante])
+                    img_row = cursor.fetchone()
+                    if img_row:
+                        integrante['imagen_url'] = img_row[0]
                     else:
-                        print(f"Advertencia: Tablas de faltas no existen. integrantes_faltas: {tabla_if_existe}, faltas: {tabla_faltas_existe}")
-                except Exception as e:
-                    import traceback
-                    error_trace = traceback.format_exc()
-                    print(f"Error al obtener faltas del integrante {integrante['id_integrante']}: {error_trace}")
-                    # Continuar sin las faltas si hay error
+                        integrante['imagen_url'] = None
+                except Exception:
+                    integrante['imagen_url'] = None
                 
                 integrantes_data.append(integrante)
             
@@ -2813,6 +3267,7 @@ def consulta_integrantes(request):
                 'success': True,
                 'integrantes': integrantes_data
             }, status=status.HTTP_200_OK)
+            
     except Exception as e:
         import traceback
         error_trace = traceback.format_exc()
@@ -2891,16 +3346,59 @@ def consulta_pandillas(request):
     """
     try:
         nombre = request.GET.get('nombre', '').strip()
+        zona_id = request.GET.get('zona', '').strip()
+        peligrosidad = request.GET.get('peligrosidad', '').strip()
         
-        if not nombre:
-            return Response({
-                'success': False,
-                'message': 'El nombre de la pandilla es requerido'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
+        # Permitir búsqueda sin nombre si hay otros filtros
         with connection.cursor() as cursor:
-            # Buscar pandillas que coincidan con el nombre (búsqueda parcial)
-            cursor.execute("""
+            # Construir condiciones WHERE dinámicamente
+            where_conditions = []
+            params = []
+            
+            # Filtro por nombre (opcional)
+            if nombre:
+                where_conditions.append("P.nombre LIKE %s")
+                params.append(f'%{nombre}%')
+            
+            # Filtro por zona
+            if zona_id:
+                try:
+                    zona_id_int = int(zona_id)
+                    where_conditions.append("P.id_zona = %s")
+                    params.append(zona_id_int)
+                except (ValueError, TypeError):
+                    pass
+            
+            # Filtro por peligrosidad
+            if peligrosidad:
+                # Mapear peligrosidad a valores numéricos
+                peligrosidad_map = {
+                    'Bajo': [1, 2, 3],
+                    'Medio': [4, 5, 6],
+                    'Alto': [7, 8, 9, 10]
+                }
+                
+                if peligrosidad in peligrosidad_map:
+                    valores = peligrosidad_map[peligrosidad]
+                    placeholders = ','.join(['%s'] * len(valores))
+                    where_conditions.append(f"P.peligrosidad IN ({placeholders})")
+                    params.extend(valores)
+                else:
+                    try:
+                        peligrosidad_int = int(peligrosidad)
+                        where_conditions.append("P.peligrosidad = %s")
+                        params.append(peligrosidad_int)
+                    except (ValueError, TypeError):
+                        pass
+            
+            # Si no hay condiciones, retornar todas las pandillas
+            if not where_conditions:
+                where_clause = '1=1'
+            else:
+                where_clause = ' AND '.join(where_conditions)
+            
+            # Buscar pandillas que coincidan con los filtros
+            cursor.execute(f"""
                 SELECT 
                     P.id_pandilla,
                     P.nombre,
@@ -2915,9 +3413,9 @@ def consulta_pandillas(request):
                 FROM pandillas P
                 LEFT JOIN zonas Z ON P.id_zona = Z.id_zona
                 LEFT JOIN direcciones DIR ON P.id_direccion = DIR.id_direccion
-                WHERE P.nombre LIKE %s
+                WHERE {where_clause}
                 ORDER BY P.nombre
-            """, [f'%{nombre}%'])
+            """, params)
             
             pandillas = []
             for row in cursor.fetchall():
@@ -2942,6 +3440,43 @@ def consulta_pandillas(request):
                         'alias': int_row[2] or ''
                     })
                 
+                # Obtener delitos de la pandilla
+                delitos = []
+                try:
+                    cursor.execute("""
+                        SELECT delitos.id_delito, delitos.nombre
+                        FROM pandillas_delitos
+                        JOIN delitos ON pandillas_delitos.id_delito = delitos.id_delito
+                        WHERE pandillas_delitos.id_pandilla = %s
+                    """, [pandilla_id])
+                    
+                    for delito_row in cursor.fetchall():
+                        delitos.append({
+                            'id_delito': delito_row[0],
+                            'nombre': delito_row[1]
+                        })
+                except Exception:
+                    pass
+                
+                # Obtener faltas de la pandilla
+                faltas = []
+                try:
+                    cursor.execute("""
+                        SELECT f.id_falta, f.falta 
+                        FROM pandillas_faltas pf
+                        JOIN faltas f ON pf.id_falta = f.id_falta
+                        WHERE pf.id_pandilla = %s
+                    """, [pandilla_id])
+                    
+                    for falta_row in cursor.fetchall():
+                        faltas.append({
+                            'id_falta': falta_row[0],
+                            'falta': falta_row[1] or '',
+                            'nombre': falta_row[1] or ''  # Mantener compatibilidad
+                        })
+                except Exception:
+                    pass
+                
                 pandillas.append({
                     'id_pandilla': pandilla_id,
                     'nombre': row[1],
@@ -2953,7 +3488,9 @@ def consulta_pandillas(request):
                     'peligrosidad': row[7],
                     'zona_nombre': row[8],
                     'direccion': row[9] or 'N/A',
-                    'integrantes': integrantes
+                    'integrantes': integrantes,
+                    'delitos': delitos,
+                    'faltas': faltas
                 })
             
             return Response({
@@ -2975,7 +3512,7 @@ def consulta_pandillas(request):
 def consulta_pandillas_general(request):
     """
     Consulta general de todas las pandillas.
-    Retorna solo los datos de la tabla pandillas, sin listar integrantes.
+    Retorna pandillas con información completa y lista de integrantes.
     """
     try:
         with connection.cursor() as cursor:
@@ -2999,8 +3536,72 @@ def consulta_pandillas_general(request):
             
             pandillas = []
             for row in cursor.fetchall():
+                pandilla_id = row[0]
+                
+                # Obtener integrantes de esta pandilla
+                cursor.execute("""
+                    SELECT 
+                        I.id_integrante,
+                        I.nombre,
+                        I.apellido_paterno,
+                        I.apellido_materno,
+                        I.alias,
+                        CONCAT(I.nombre, ' ', COALESCE(I.apellido_paterno, ''), ' ', COALESCE(I.apellido_materno, '')) AS nombre_completo
+                    FROM integrantes I
+                    WHERE I.id_pandilla = %s
+                    ORDER BY I.nombre
+                """, [pandilla_id])
+                
+                integrantes = []
+                for int_row in cursor.fetchall():
+                    integrantes.append({
+                        'id_integrante': int_row[0],
+                        'nombre': int_row[1] or '',
+                        'apellido_paterno': int_row[2] or '',
+                        'apellido_materno': int_row[3] or '',
+                        'alias': int_row[4] or '',
+                        'nombre_completo': int_row[5].strip() if int_row[5] else ''
+                    })
+                
+                # Obtener delitos de la pandilla
+                delitos = []
+                try:
+                    cursor.execute("""
+                        SELECT delitos.id_delito, delitos.nombre
+                        FROM pandillas_delitos
+                        JOIN delitos ON pandillas_delitos.id_delito = delitos.id_delito
+                        WHERE pandillas_delitos.id_pandilla = %s
+                    """, [pandilla_id])
+                    
+                    for delito_row in cursor.fetchall():
+                        delitos.append({
+                            'id_delito': delito_row[0],
+                            'nombre': delito_row[1]
+                        })
+                except Exception:
+                    pass
+                
+                # Obtener faltas de la pandilla
+                faltas = []
+                try:
+                    cursor.execute("""
+                        SELECT f.id_falta, f.falta 
+                        FROM pandillas_faltas pf
+                        JOIN faltas f ON pf.id_falta = f.id_falta
+                        WHERE pf.id_pandilla = %s
+                    """, [pandilla_id])
+                    
+                    for falta_row in cursor.fetchall():
+                        faltas.append({
+                            'id_falta': falta_row[0],
+                            'falta': falta_row[1] or '',
+                            'nombre': falta_row[1] or ''  # Mantener compatibilidad
+                        })
+                except Exception:
+                    pass
+                
                 pandillas.append({
-                    'id_pandilla': row[0],
+                    'id_pandilla': pandilla_id,
                     'nombre': row[1],
                     'descripcion': row[2] or '',
                     'lider': row[3] or '',
@@ -3009,7 +3610,10 @@ def consulta_pandillas_general(request):
                     'horario_reunion': row[6] or '',
                     'peligrosidad': row[7],
                     'zona_nombre': row[8],
-                    'direccion': row[9] or 'N/A'
+                    'direccion': row[9] or 'N/A',
+                    'integrantes': integrantes,
+                    'delitos': delitos,
+                    'faltas': faltas
                 })
             
             return Response({

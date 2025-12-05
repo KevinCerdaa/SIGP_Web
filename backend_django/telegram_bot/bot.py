@@ -9,6 +9,7 @@ import sys
 import django
 import logging
 import asyncio
+from urllib.parse import quote_plus
 from dotenv import load_dotenv
 
 # Configurar Django antes de importar modelos
@@ -16,7 +17,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'sigp_backend.settings')
 django.setup()
 
-from telegram import Update
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters
 from telegram import InputMediaPhoto
 from django.contrib.auth import authenticate
@@ -65,6 +66,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "/integrantes <pandilla> - Listar integrantes de una pandilla\n"
             "/integrante <nombre o alias> - Buscar información completa de un integrante\n"
             "/eventos - Ver eventos recientes\n"
+            "/logout o /cerrar_sesion - Cerrar sesión\n"
             "/help - Mostrar ayuda\n"
         )
         await update.message.reply_text(welcome_message, parse_mode='Markdown')
@@ -212,6 +214,7 @@ async def receive_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "/pandilla <nombre> - Buscar una pandilla específica\n"
                 "/integrantes <pandilla> - Listar integrantes de una pandilla\n"
                 "/eventos - Ver eventos recientes\n"
+                "/logout o /cerrar_sesion - Cerrar sesión\n"
                 "/help - Mostrar ayuda\n"
             )
             await update.message.reply_text(welcome_message, parse_mode='Markdown')
@@ -278,7 +281,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "`/integrantes <pandilla>` - Lista los integrantes de una pandilla\n"
             "`/integrante <nombre o alias>` - Busca información completa de un integrante\n"
             "`/eventos` - Muestra los últimos 10 eventos registrados\n"
-            "`/logout` - Cerrar sesión\n"
+            "`/logout` o `/cerrar_sesion` - Cerrar sesión\n"
             "`/help` - Muestra esta ayuda\n\n"
             "*Ejemplos:*\n"
             "`/pandilla Los Zetas`\n"
@@ -317,8 +320,11 @@ def require_auth(func):
 
 
 async def listar_pandillas(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Comando /pandillas - Listar todas las pandillas"""
-    # Verificar autenticación manualmente
+    """
+    Comando /pandillas - Listar todas las pandillas
+    Usa la misma consulta SQL que consulta_pandillas_general del sitio web
+    """
+    # Verificar autenticación
     user = context.user_data.get('authenticated_user')
     if not user:
         await update.message.reply_text(
@@ -331,7 +337,48 @@ async def listar_pandillas(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     
     try:
-        pandillas = await sync_to_async(list)(Pandilla.objects.all().order_by('nombre'))
+        def obtener_pandillas():
+            """Consulta SQL igual a consulta_pandillas_general del sitio web"""
+            try:
+                with connection.cursor() as cursor:
+                    cursor.execute("""
+                        SELECT 
+                            P.id_pandilla,
+                            P.nombre,
+                            P.descripcion,
+                            P.lider,
+                            P.numero_integrantes,
+                            P.edades_promedio,
+                            P.horario_reunion,
+                            P.peligrosidad,
+                            Z.nombre AS zona_nombre,
+                            CONCAT(DIR.calle, ' ', COALESCE(DIR.numero, ''), ', ', COALESCE(DIR.colonia, '')) AS direccion
+                        FROM pandillas P
+                        LEFT JOIN zonas Z ON P.id_zona = Z.id_zona
+                        LEFT JOIN direcciones DIR ON P.id_direccion = DIR.id_direccion
+                        ORDER BY P.nombre
+                    """)
+                    
+                    pandillas_data = []
+                    for row in cursor.fetchall():
+                        pandillas_data.append({
+                            'id_pandilla': row[0],
+                            'nombre': row[1],
+                            'descripcion': row[2] or '',
+                            'lider': row[3] or '',
+                            'numero_integrantes': row[4],
+                            'edades_promedio': float(row[5]) if row[5] else None,
+                            'horario_reunion': row[6] or '',
+                            'peligrosidad': row[7],
+                            'zona_nombre': row[8],
+                            'direccion': row[9] or 'N/A'
+                        })
+                    return pandillas_data
+            except Exception as e:
+                logger.error(f"Error en obtener_pandillas: {e}", exc_info=True)
+                raise
+        
+        pandillas = await sync_to_async(obtener_pandillas)()
         
         if not pandillas:
             await update.message.reply_text("No hay pandillas registradas en la base de datos.")
@@ -343,12 +390,15 @@ async def listar_pandillas(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 'Bajo': '🟢',
                 'Medio': '🟡',
                 'Alto': '🔴'
-            }.get(pandilla.peligrosidad, '⚪')
+            }.get(pandilla['peligrosidad'], '⚪')
             
-            message += f"{peligrosidad_emoji} *{pandilla.nombre}*\n"
-            if pandilla.numero_integrantes:
-                message += f"   👥 Integrantes: {pandilla.numero_integrantes}\n"
-            message += f"   ⚠️ Peligrosidad: {pandilla.peligrosidad}\n\n"
+            message += f"{peligrosidad_emoji} *{pandilla['nombre']}*\n"
+            if pandilla['numero_integrantes']:
+                message += f"   👥 Integrantes: {pandilla['numero_integrantes']}\n"
+            message += f"   ⚠️ Peligrosidad: {pandilla['peligrosidad']}\n"
+            if pandilla['zona_nombre']:
+                message += f"   📍 Zona: {pandilla['zona_nombre']}\n"
+            message += "\n"
         
         # Telegram tiene límite de 4096 caracteres por mensaje
         if len(message) > 4000:
@@ -356,13 +406,16 @@ async def listar_pandillas(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         await update.message.reply_text(message, parse_mode='Markdown')
     except Exception as e:
-        logger.error(f"Error al listar pandillas: {e}")
+        logger.error(f"Error al listar pandillas: {e}", exc_info=True)
         await update.message.reply_text("❌ Error al consultar las pandillas. Intenta más tarde.")
 
 
 async def buscar_pandilla(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Comando /pandilla <nombre> - Buscar información de una pandilla"""
-    # Verificar autenticación manualmente
+    """
+    Comando /pandilla <nombre> - Buscar información de una pandilla
+    Usa la misma consulta SQL que consulta_pandillas del sitio web
+    """
+    # Verificar autenticación
     user = context.user_data.get('authenticated_user')
     if not user:
         await update.message.reply_text(
@@ -385,7 +438,112 @@ async def buscar_pandilla(update: Update, context: ContextTypes.DEFAULT_TYPE):
     nombre_buscar = ' '.join(context.args)
     
     try:
-        pandilla = await sync_to_async(lambda: Pandilla.objects.filter(nombre__icontains=nombre_buscar).first())()
+        def obtener_pandilla(nombre):
+            """Consulta SQL igual a consulta_pandillas del sitio web"""
+            try:
+                with connection.cursor() as cursor:
+                    # Buscar pandillas que coincidan con el nombre (búsqueda parcial)
+                    cursor.execute("""
+                        SELECT 
+                            P.id_pandilla,
+                            P.nombre,
+                            P.descripcion,
+                            P.lider,
+                            P.numero_integrantes,
+                            P.edades_promedio,
+                            P.horario_reunion,
+                            P.peligrosidad,
+                            Z.nombre AS zona_nombre,
+                            CONCAT(DIR.calle, ' ', COALESCE(DIR.numero, ''), ', ', COALESCE(DIR.colonia, '')) AS direccion
+                        FROM pandillas P
+                        LEFT JOIN zonas Z ON P.id_zona = Z.id_zona
+                        LEFT JOIN direcciones DIR ON P.id_direccion = DIR.id_direccion
+                        WHERE P.nombre LIKE %s
+                        ORDER BY P.nombre
+                        LIMIT 1
+                    """, [f'%{nombre}%'])
+                    
+                    row = cursor.fetchone()
+                    if not row:
+                        return None
+                    
+                    pandilla_id = row[0]
+                    
+                    # Obtener integrantes de esta pandilla
+                    cursor.execute("""
+                        SELECT 
+                            I.id_integrante,
+                            CONCAT(I.nombre, ' ', COALESCE(I.apellido_paterno, ''), ' ', COALESCE(I.apellido_materno, '')) AS nombre_completo,
+                            I.alias
+                        FROM integrantes I
+                        WHERE I.id_pandilla = %s
+                        ORDER BY I.nombre
+                    """, [pandilla_id])
+                    
+                    integrantes = []
+                    for int_row in cursor.fetchall():
+                        integrantes.append({
+                            'id_integrante': int_row[0],
+                            'nombre_completo': int_row[1].strip() if int_row[1] else '',
+                            'alias': int_row[2] or ''
+                        })
+                    
+                    # Obtener delitos
+                    delitos = []
+                    try:
+                        cursor.execute("""
+                            SELECT D.nombre 
+                            FROM pandillas_delitos PD
+                            JOIN delitos D ON PD.id_delito = D.id_delito
+                            WHERE PD.id_pandilla = %s
+                        """, [pandilla_id])
+                        delitos = [row[0] for row in cursor.fetchall()]
+                    except Exception:
+                        pass
+                    
+                    # Obtener faltas
+                    faltas = []
+                    try:
+                        cursor.execute("""
+                            SELECT F.falta 
+                            FROM pandillas_faltas PF
+                            JOIN faltas F ON PF.id_falta = F.id_falta
+                            WHERE PF.id_pandilla = %s
+                        """, [pandilla_id])
+                        faltas = [row[0] for row in cursor.fetchall()]
+                    except Exception:
+                        try:
+                            # Intentar con columna 'nombre' si 'falta' no existe
+                            cursor.execute("""
+                                SELECT F.nombre 
+                                FROM pandillas_faltas PF
+                                JOIN faltas F ON PF.id_falta = F.id_falta
+                                WHERE PF.id_pandilla = %s
+                            """, [pandilla_id])
+                            faltas = [row[0] for row in cursor.fetchall()]
+                        except Exception:
+                            pass
+                    
+                    return {
+                        'id_pandilla': pandilla_id,
+                        'nombre': row[1],
+                        'descripcion': row[2] or '',
+                        'lider': row[3] or '',
+                        'numero_integrantes': row[4],
+                        'edades_promedio': float(row[5]) if row[5] else None,
+                        'horario_reunion': row[6] or '',
+                        'peligrosidad': row[7],
+                        'zona_nombre': row[8],
+                        'direccion': row[9] or 'N/A',
+                        'integrantes': integrantes,
+                        'delitos': delitos,
+                        'faltas': faltas
+                    }
+            except Exception as e:
+                logger.error(f"Error en obtener_pandilla: {e}", exc_info=True)
+                raise
+        
+        pandilla = await sync_to_async(obtener_pandilla)(nombre_buscar)
         
         if not pandilla:
             await update.message.reply_text(
@@ -397,102 +555,73 @@ async def buscar_pandilla(update: Update, context: ContextTypes.DEFAULT_TYPE):
             'Bajo': '🟢',
             'Medio': '🟡',
             'Alto': '🔴'
-        }.get(pandilla.peligrosidad, '⚪')
+        }.get(pandilla['peligrosidad'], '⚪')
         
         message = f"📊 *Información de la Pandilla*\n\n"
-        message += f"*Nombre:* {pandilla.nombre}\n"
-        message += f"*Peligrosidad:* {peligrosidad_emoji} {pandilla.peligrosidad}\n"
+        message += f"*Nombre:* {pandilla['nombre']}\n"
+        message += f"*Peligrosidad:* {peligrosidad_emoji} {pandilla['peligrosidad']}\n"
         
-        if pandilla.lider:
-            message += f"*Líder:* {pandilla.lider}\n"
-        if pandilla.numero_integrantes:
-            message += f"*Número de integrantes:* {pandilla.numero_integrantes}\n"
-        if pandilla.edades_promedio:
-            message += f"*Edad promedio:* {pandilla.edades_promedio} años\n"
-        if pandilla.horario_reunion:
-            message += f"*Horario de reunión:* {pandilla.horario_reunion}\n"
-        if pandilla.descripcion:
-            message += f"\n*Descripción:*\n{pandilla.descripcion}\n"
+        if pandilla['lider']:
+            message += f"*Líder:* {pandilla['lider']}\n"
+        if pandilla['numero_integrantes']:
+            message += f"*Número de integrantes:* {pandilla['numero_integrantes']}\n"
+        if pandilla['edades_promedio']:
+            message += f"*Edad promedio:* {pandilla['edades_promedio']} años\n"
+        if pandilla['horario_reunion']:
+            message += f"*Horario de reunión:* {pandilla['horario_reunion']}\n"
+        if pandilla['zona_nombre']:
+            message += f"*Zona:* {pandilla['zona_nombre']}\n"
+        # Crear botón de Google Maps si hay dirección
+        reply_markup = None
+        if pandilla['direccion'] and pandilla['direccion'] != 'N/A':
+            message += f"*Dirección:* {pandilla['direccion']}\n"
+            # Crear botón para ver en Google Maps
+            direccion_codificada = quote_plus(pandilla['direccion'])
+            google_maps_url = f"https://www.google.com/maps/search/?api=1&query={direccion_codificada}"
+            keyboard = [[InlineKeyboardButton("📍 Ver en Google Maps", url=google_maps_url)]]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+        elif pandilla['direccion']:
+            message += f"*Dirección:* {pandilla['direccion']}\n"
         
-        # Obtener delitos asociados
-        def get_delitos_faltas(pandilla_id):
-            with connection.cursor() as cursor:
-                # Obtener delitos
-                delitos_nombres = []
-                try:
-                    cursor.execute("""
-                        SELECT D.nombre 
-                        FROM pandillas_delitos PD
-                        JOIN delitos D ON PD.id_delito = D.id_delito
-                        WHERE PD.id_pandilla = %s
-                    """, [pandilla_id])
-                    delitos_nombres = [row[0] for row in cursor.fetchall()]
-                except Exception:
-                    pass
-                
-                # Obtener faltas
-                faltas_nombres = []
-                try:
-                    cursor.execute("""
-                        SELECT F.nombre 
-                        FROM pandillas_faltas PF
-                        JOIN faltas F ON PF.id_falta = F.id_falta
-                        WHERE PF.id_pandilla = %s
-                    """, [pandilla_id])
-                    faltas_nombres = [row[0] for row in cursor.fetchall()]
-                except Exception:
-                    pass
-                
-                return delitos_nombres, faltas_nombres
+        if pandilla['descripcion']:
+            message += f"\n*Descripción:*\n{pandilla['descripcion']}\n"
         
-        delitos, faltas = await sync_to_async(get_delitos_faltas)(pandilla.id_pandilla)
-        
-        if delitos:
+        # Delitos asociados
+        if pandilla['delitos']:
             message += f"\n*Delitos asociados:*\n"
-            for delito in delitos:
+            for delito in pandilla['delitos'][:10]:  # Limitar a 10
                 message += f"  • {delito}\n"
         else:
             message += f"\n*Delitos asociados:* Ninguno registrado\n"
         
-        if faltas:
+        # Faltas cometidas
+        if pandilla['faltas']:
             message += f"\n*Faltas cometidas:*\n"
-            for falta in faltas:
+            for falta in pandilla['faltas'][:10]:  # Limitar a 10
                 message += f"  • {falta}\n"
         else:
             message += f"\n*Faltas cometidas:* Ninguna registrada\n"
         
-        # Lugar de reunión principal y enlace de Google Maps
-        if pandilla.id_direccion:
-            direccion = await sync_to_async(lambda: pandilla.id_direccion)()
-            if direccion:
-                lugar_reunion = f"{direccion.calle}"
-                if direccion.numero:
-                    lugar_reunion += f" {direccion.numero}"
-                if direccion.colonia:
-                    lugar_reunion += f", {direccion.colonia}"
-                
-                message += f"\n*Lugar de reunión principal:*\n{lugar_reunion}\n"
-                
-                # Generar enlace de Google Maps
-                if direccion.latitud and direccion.longitud:
-                    maps_url = f"https://www.google.com/maps?q={direccion.latitud},{direccion.longitud}"
-                    message += f"📍 [Ver en Google Maps]({maps_url})\n"
+        # Integrantes
+        if pandilla['integrantes']:
+            message += f"\n*Integrantes registrados:* {len(pandilla['integrantes'])}\n"
+            message += f"Usa `/integrantes {pandilla['nombre']}` para ver la lista completa"
         
-        # Contar integrantes reales
-        num_integrantes_real = await sync_to_async(lambda: Integrante.objects.filter(id_pandilla=pandilla).count())()
-        if num_integrantes_real > 0:
-            message += f"\n*Integrantes registrados:* {num_integrantes_real}\n"
-            message += f"Usa `/integrantes {pandilla.nombre}` para ver la lista completa"
-        
-        await update.message.reply_text(message, parse_mode='Markdown')
+        await update.message.reply_text(message, parse_mode='Markdown', reply_markup=reply_markup)
     except Exception as e:
-        logger.error(f"Error al buscar pandilla: {e}")
-        await update.message.reply_text("❌ Error al buscar la pandilla. Intenta más tarde.")
+        logger.error(f"Error al buscar pandilla: {e}", exc_info=True)
+        error_msg = f"❌ Error al buscar la pandilla: {str(e)}"
+        if len(error_msg) > 4000:
+            error_msg = error_msg[:4000]
+        await update.message.reply_text(error_msg)
 
 
 async def listar_integrantes(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Comando /integrantes <pandilla> - Listar integrantes de una pandilla"""
-    # Verificar autenticación manualmente
+    """
+    Comando /integrantes <pandilla> - Listar integrantes de una pandilla
+    Usa la misma consulta SQL que consulta_pandillas del sitio web (sección de integrantes)
+    """
+    # Verificar autenticación
     user = context.user_data.get('authenticated_user')
     if not user:
         await update.message.reply_text(
@@ -515,39 +644,71 @@ async def listar_integrantes(update: Update, context: ContextTypes.DEFAULT_TYPE)
     nombre_pandilla = ' '.join(context.args)
     
     try:
-        pandilla = await sync_to_async(lambda: Pandilla.objects.filter(nombre__icontains=nombre_pandilla).first())()
+        def obtener_integrantes_pandilla(nombre):
+            """Consulta SQL igual a la sección de integrantes en consulta_pandillas del sitio web"""
+            try:
+                with connection.cursor() as cursor:
+                    # Primero buscar la pandilla
+                    cursor.execute("""
+                        SELECT id_pandilla, nombre
+                        FROM pandillas
+                        WHERE nombre LIKE %s
+                        LIMIT 1
+                    """, [f'%{nombre}%'])
+                    
+                    pandilla_row = cursor.fetchone()
+                    if not pandilla_row:
+                        return None, []
+                    
+                    pandilla_id = pandilla_row[0]
+                    pandilla_nombre = pandilla_row[1]
+                    
+                    # Obtener integrantes de esta pandilla (misma consulta que el sitio web)
+                    cursor.execute("""
+                        SELECT 
+                            I.id_integrante,
+                            CONCAT(I.nombre, ' ', COALESCE(I.apellido_paterno, ''), ' ', COALESCE(I.apellido_materno, '')) AS nombre_completo,
+                            I.alias
+                        FROM integrantes I
+                        WHERE I.id_pandilla = %s
+                        ORDER BY I.nombre
+                    """, [pandilla_id])
+                    
+                    integrantes = []
+                    for int_row in cursor.fetchall():
+                        integrantes.append({
+                            'id_integrante': int_row[0],
+                            'nombre_completo': int_row[1].strip() if int_row[1] else '',
+                            'alias': int_row[2] or ''
+                        })
+                    
+                    return pandilla_nombre, integrantes
+            except Exception as e:
+                logger.error(f"Error en obtener_integrantes_pandilla: {e}", exc_info=True)
+                raise
         
-        if not pandilla:
+        pandilla_nombre, integrantes = await sync_to_async(obtener_integrantes_pandilla)(nombre_pandilla)
+        
+        if not pandilla_nombre:
             await update.message.reply_text(
                 f"❌ No se encontró ninguna pandilla con el nombre '{nombre_pandilla}'"
             )
             return
         
-        # Obtener el ID de la pandilla para el filtro
-        pandilla_id = pandilla.id_pandilla
-        integrantes = await sync_to_async(lambda: list(Integrante.objects.filter(id_pandilla=pandilla).order_by('nombre')))()
-        
         if not integrantes:
             await update.message.reply_text(
-                f"ℹ️ No hay integrantes registrados para la pandilla '{pandilla.nombre}'"
+                f"ℹ️ No hay integrantes registrados para la pandilla '{pandilla_nombre}'"
             )
             return
         
-        message = f"👥 *Integrantes de {pandilla.nombre}:*\n\n"
+        message = f"👥 *Integrantes de {pandilla_nombre}:*\n\n"
         
         for integrante in integrantes[:20]:  # Limitar a 20 para no exceder límite
-            nombre_completo = integrante.nombre
-            if integrante.apellido_paterno:
-                nombre_completo += f" {integrante.apellido_paterno}"
-            if integrante.apellido_materno:
-                nombre_completo += f" {integrante.apellido_materno}"
-            
+            nombre_completo = integrante['nombre_completo'] or 'Sin nombre'
             message += f"• *{nombre_completo}*"
-            if integrante.alias:
-                message += f" (Alias: {integrante.alias})"
-            if integrante.fecha_nacimiento:
-                message += f"\n  📅 Nacimiento: {integrante.fecha_nacimiento}"
-            message += "\n\n"
+            if integrante['alias']:
+                message += f" (Alias: {integrante['alias']})"
+            message += "\n"
         
         if len(integrantes) > 20:
             message += f"\n... y {len(integrantes) - 20} más"
@@ -562,8 +723,11 @@ async def listar_integrantes(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 
 async def listar_eventos(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Comando /eventos - Listar eventos recientes"""
-    # Verificar autenticación manualmente
+    """
+    Comando /eventos - Listar eventos recientes
+    Usa la misma consulta SQL que consulta_eventos del sitio web (adaptada para últimos eventos)
+    """
+    # Verificar autenticación
     user = context.user_data.get('authenticated_user')
     if not user:
         await update.message.reply_text(
@@ -576,59 +740,293 @@ async def listar_eventos(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     
     try:
-        # Usar select_related para cargar las relaciones de una vez y evitar consultas adicionales
-        eventos = await sync_to_async(lambda: list(
-            Evento.objects.select_related('id_integrante', 'id_pandilla')
-            .all()
-            .order_by('-fecha', '-hora')[:10]
-        ))()
+        def obtener_eventos():
+            """Consulta SQL basada en consulta_eventos del sitio web"""
+            try:
+                with connection.cursor() as cursor:
+                    # Verificar que la tabla existe
+                    cursor.execute("SHOW TABLES LIKE 'eventos'")
+                    if not cursor.fetchone():
+                        return []
+                    
+                    # Verificar qué columnas existen en la tabla
+                    cursor.execute("SHOW COLUMNS FROM eventos")
+                    columnas_existentes = [row[0] for row in cursor.fetchall()]
+                    tiene_id_zona = 'id_zona' in columnas_existentes
+                    tiene_id_integrante = 'id_integrante' in columnas_existentes
+                    
+                    # Construir la consulta base según las columnas disponibles (igual que el sitio web)
+                    if tiene_id_zona:
+                        query_base = """
+                            SELECT 
+                                E.id_evento,
+                                E.id_delito,
+                                E.id_falta,
+                                E.id_integrante,
+                                E.id_pandilla,
+                                E.id_zona,
+                                E.id_direccion,
+                                E.fecha,
+                                E.hora,
+                                E.descripcion
+                            FROM eventos E
+                            WHERE E.fecha IS NOT NULL 
+                            ORDER BY E.fecha DESC, E.hora DESC, E.id_evento DESC
+                            LIMIT 10
+                        """
+                    else:
+                        query_base = """
+                            SELECT 
+                                E.id_evento,
+                                E.id_delito,
+                                E.id_falta,
+                                E.id_integrante,
+                                E.id_pandilla,
+                                E.id_direccion,
+                                E.fecha,
+                                E.hora,
+                                E.descripcion
+                            FROM eventos E
+                            WHERE E.fecha IS NOT NULL 
+                            ORDER BY E.fecha DESC, E.hora DESC, E.id_evento DESC
+                            LIMIT 10
+                        """
+                    
+                    cursor.execute(query_base)
+                    eventos_raw = cursor.fetchall()
+                    eventos = []
+                    
+                    for evento_row in eventos_raw:
+                        # Mapear índices según si tiene id_zona o no (igual que el sitio web)
+                        if tiene_id_zona:
+                            evento_id = evento_row[0]
+                            id_delito = evento_row[1]
+                            id_falta = evento_row[2]
+                            id_integrante = evento_row[3]
+                            id_pandilla = evento_row[4]
+                            id_zona = evento_row[5]
+                            id_direccion = evento_row[6]
+                            fecha = evento_row[7]
+                            hora = evento_row[8]
+                            descripcion = evento_row[9]
+                        else:
+                            evento_id = evento_row[0]
+                            id_delito = evento_row[1]
+                            id_falta = evento_row[2]
+                            id_integrante = evento_row[3]
+                            id_pandilla = evento_row[4]
+                            id_direccion = evento_row[5]
+                            fecha = evento_row[6]
+                            hora = evento_row[7]
+                            descripcion = evento_row[8]
+                            id_zona = None
+                        
+                        # Determinar el tipo (igual que el sitio web)
+                        tipo_evento = 'riña'
+                        if id_delito:
+                            tipo_evento = 'delito'
+                        elif id_falta:
+                            tipo_evento = 'falta'
+                        
+                        # Obtener delito
+                        delito_nombre = ''
+                        if id_delito:
+                            try:
+                                cursor.execute("SELECT nombre FROM delitos WHERE id_delito = %s", [id_delito])
+                                delito_result = cursor.fetchone()
+                                if delito_result:
+                                    delito_nombre = delito_result[0] or ''
+                            except Exception:
+                                pass
+                        
+                        # Obtener falta
+                        falta_nombre = ''
+                        if id_falta:
+                            try:
+                                cursor.execute("SELECT nombre FROM faltas WHERE id_falta = %s", [id_falta])
+                                falta_result = cursor.fetchone()
+                                if falta_result:
+                                    falta_nombre = falta_result[0] or ''
+                            except Exception:
+                                try:
+                                    # Intentar con columna 'falta' si 'nombre' no existe
+                                    cursor.execute("SELECT falta FROM faltas WHERE id_falta = %s", [id_falta])
+                                    falta_result = cursor.fetchone()
+                                    if falta_result:
+                                        falta_nombre = falta_result[0] or ''
+                                except Exception:
+                                    pass
+                        
+                        # Obtener integrante
+                        integrante_nombre = ''
+                        if id_integrante and tiene_id_integrante:
+                            try:
+                                cursor.execute("""
+                                    SELECT CONCAT(
+                                        COALESCE(nombre, ''), ' ',
+                                        COALESCE(apellido_paterno, ''), ' ',
+                                        COALESCE(apellido_materno, '')
+                                    )
+                                    FROM integrantes WHERE id_integrante = %s
+                                """, [id_integrante])
+                                integrante_result = cursor.fetchone()
+                                if integrante_result and integrante_result[0]:
+                                    integrante_nombre = integrante_result[0].strip()
+                            except Exception:
+                                pass
+                        
+                        # Obtener pandilla
+                        pandilla_nombre = ''
+                        if id_pandilla:
+                            try:
+                                cursor.execute("SELECT nombre FROM pandillas WHERE id_pandilla = %s", [id_pandilla])
+                                pandilla_result = cursor.fetchone()
+                                if pandilla_result:
+                                    pandilla_nombre = pandilla_result[0] or ''
+                            except Exception:
+                                pass
+                        
+                        # Obtener zona
+                        zona_nombre = ''
+                        if id_zona:
+                            try:
+                                cursor.execute("SELECT nombre FROM zonas WHERE id_zona = %s", [id_zona])
+                                zona_result = cursor.fetchone()
+                                if zona_result:
+                                    zona_nombre = zona_result[0] or ''
+                            except Exception:
+                                pass
+                        elif id_pandilla:
+                            # Si no hay id_zona en eventos, intentar obtenerlo de la pandilla
+                            try:
+                                cursor.execute("""
+                                    SELECT Z.nombre 
+                                    FROM pandillas P
+                                    LEFT JOIN zonas Z ON P.id_zona = Z.id_zona
+                                    WHERE P.id_pandilla = %s
+                                """, [id_pandilla])
+                                zona_result = cursor.fetchone()
+                                if zona_result and zona_result[0]:
+                                    zona_nombre = zona_result[0]
+                            except Exception:
+                                pass
+                        
+                        # Obtener dirección
+                        direccion = ''
+                        if id_direccion:
+                            try:
+                                cursor.execute("""
+                                    SELECT CONCAT(
+                                        COALESCE(calle, ''), ' ',
+                                        COALESCE(numero, ''), ', ',
+                                        COALESCE(colonia, '')
+                                    )
+                                    FROM direcciones WHERE id_direccion = %s
+                                """, [id_direccion])
+                                dir_result = cursor.fetchone()
+                                if dir_result and dir_result[0]:
+                                    direccion = dir_result[0].strip()
+                            except Exception:
+                                pass
+                        
+                        eventos.append({
+                            'tipo': tipo_evento,
+                            'fecha': str(fecha) if fecha else None,
+                            'hora': str(hora) if hora else None,
+                            'descripcion': descripcion or '',
+                            'delito_nombre': delito_nombre,
+                            'falta_nombre': falta_nombre,
+                            'integrante_nombre': integrante_nombre,
+                            'pandilla_nombre': pandilla_nombre,
+                            'zona_nombre': zona_nombre,
+                            'direccion': direccion
+                        })
+                    
+                    return eventos
+            except Exception as e:
+                logger.error(f"Error en obtener_eventos: {e}", exc_info=True)
+                raise
+        
+        eventos = await sync_to_async(obtener_eventos)()
         
         if not eventos:
             await update.message.reply_text("No hay eventos registrados en la base de datos.")
             return
         
-        message = "📅 *Eventos Recientes:*\n\n"
-        
+        # Enviar cada evento como mensaje separado para poder agregar botones individuales
         for evento in eventos:
-            tipo_emoji = {
-                'riña': '⚔️',
-                'delito': '🚨',
-                'falta': '⚠️'
-            }.get(evento.tipo.lower() if evento.tipo else 'riña', '📌')
-            
-            message += f"{tipo_emoji} *{evento.tipo.upper() if evento.tipo else 'EVENTO'}*\n"
-            message += f"📅 Fecha: {evento.fecha}"
-            if evento.hora:
-                message += f" 🕐 {evento.hora}"
-            message += "\n"
-            
-            # Acceder a los campos relacionados de forma segura
-            if evento.id_integrante:
-                integrante_nombre = str(evento.id_integrante)
-                message += f"👤 Integrante: {integrante_nombre}\n"
-            if evento.id_pandilla:
-                pandilla_nombre = evento.id_pandilla.nombre if evento.id_pandilla else "Sin nombre"
-                message += f"🏴 Pandilla: {pandilla_nombre}\n"
-            if evento.descripcion:
-                desc = evento.descripcion[:100] if evento.descripcion else ""
-                if len(evento.descripcion) > 100:
-                    desc += "..."
-                message += f"📝 {desc}\n"
-            
-            message += "\n"
-        
-        if len(message) > 4000:
-            message = message[:4000] + "\n\n... (mensaje truncado)"
-        
-        await update.message.reply_text(message, parse_mode='Markdown')
+            try:
+                tipo = evento.get('tipo', 'evento') or 'evento'
+                tipo_emoji = {
+                    'riña': '⚔️',
+                    'delito': '🚨',
+                    'falta': '⚠️'
+                }.get(tipo.lower(), '📌')
+                
+                message = f"{tipo_emoji} *{tipo.upper()}*\n"
+                
+                fecha = evento.get('fecha')
+                if fecha:
+                    message += f"📅 Fecha: {fecha}"
+                
+                hora = evento.get('hora')
+                if hora:
+                    message += f" 🕐 {hora}"
+                
+                message += "\n"
+                
+                if evento.get('delito_nombre'):
+                    message += f"🚨 Delito: {evento['delito_nombre']}\n"
+                elif evento.get('falta_nombre'):
+                    message += f"⚠️ Falta: {evento['falta_nombre']}\n"
+                
+                if evento.get('integrante_nombre'):
+                    message += f"👤 Integrante: {evento['integrante_nombre']}\n"
+                
+                if evento.get('pandilla_nombre'):
+                    message += f"🏴 Pandilla: {evento['pandilla_nombre']}\n"
+                
+                if evento.get('zona_nombre'):
+                    message += f"📍 Zona: {evento['zona_nombre']}\n"
+                
+                # Crear botón de Google Maps si hay dirección
+                reply_markup = None
+                if evento.get('direccion'):
+                    message += f"🏠 Dirección: {evento['direccion']}\n"
+                    # Crear botón para ver en Google Maps
+                    direccion_codificada = quote_plus(evento['direccion'])
+                    google_maps_url = f"https://www.google.com/maps/search/?api=1&query={direccion_codificada}"
+                    keyboard = [[InlineKeyboardButton("📍 Ver en Google Maps", url=google_maps_url)]]
+                    reply_markup = InlineKeyboardMarkup(keyboard)
+                
+                if evento.get('descripcion'):
+                    desc = str(evento['descripcion'])[:100]
+                    if len(str(evento['descripcion'])) > 100:
+                        desc += "..."
+                    message += f"📝 {desc}\n"
+                
+                # Limitar tamaño del mensaje
+                if len(message) > 4000:
+                    message = message[:4000] + "\n\n... (mensaje truncado)"
+                
+                await update.message.reply_text(message, parse_mode='Markdown', reply_markup=reply_markup)
+            except Exception as e:
+                logger.error(f"Error al formatear evento: {e}")
+                continue
     except Exception as e:
         logger.error(f"Error al listar eventos: {e}", exc_info=True)
-        await update.message.reply_text("❌ Error al consultar los eventos. Intenta más tarde.")
+        error_msg = f"❌ Error al consultar los eventos: {str(e)}"
+        if len(error_msg) > 4000:
+            error_msg = error_msg[:4000]
+        await update.message.reply_text(error_msg)
 
 
 async def buscar_integrante(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Comando /integrante <nombre o alias> - Buscar información de un integrante"""
-    # Verificar autenticación manualmente
+    """
+    Comando /integrante <nombre o alias> - Buscar información de un integrante
+    Usa la misma consulta SQL que consulta_integrantes del sitio web
+    """
+    # Verificar autenticación
     user = context.user_data.get('authenticated_user')
     if not user:
         await update.message.reply_text(
@@ -651,16 +1049,142 @@ async def buscar_integrante(update: Update, context: ContextTypes.DEFAULT_TYPE):
     criterio_busqueda = ' '.join(context.args)
     
     try:
-        # Buscar por nombre o alias
-        def buscar_integrante_db(criterio):
-            return list(Integrante.objects.filter(
-                Q(nombre__icontains=criterio) |
-                Q(apellido_paterno__icontains=criterio) |
-                Q(apellido_materno__icontains=criterio) |
-                Q(alias__icontains=criterio)
-            )[:10])  # Limitar a 10 resultados
+        def buscar_integrantes(busqueda):
+            """Consulta SQL igual a consulta_integrantes del sitio web"""
+            try:
+                with connection.cursor() as cursor:
+                    # Verificar que la tabla existe
+                    cursor.execute("SHOW TABLES LIKE 'integrantes'")
+                    if not cursor.fetchone():
+                        return []
+                    
+                    # Preparar búsqueda
+                    busqueda_like = f'%{busqueda}%'
+                    
+                    # Consulta SQL - IMPORTANTE: FROM integrantes (NO faltas)
+                    sql_query = """
+                    SELECT 
+                        integrantes.id_integrante,
+                        integrantes.nombre,
+                        integrantes.apellido_paterno,
+                        integrantes.apellido_materno,
+                        integrantes.alias,
+                        integrantes.fecha_nacimiento,
+                        CONCAT(
+                            COALESCE(integrantes.nombre, ''),
+                            COALESCE(CONCAT(' ', integrantes.apellido_paterno), ''),
+                            COALESCE(CONCAT(' ', integrantes.apellido_materno), '')
+                        ) as nombre_completo,
+                        pandillas.nombre as pandilla_nombre,
+                        CONCAT(
+                            COALESCE(direcciones.calle, ''),
+                            COALESCE(CONCAT(' ', direcciones.numero), ''),
+                            COALESCE(CONCAT(', ', direcciones.colonia), '')
+                        ) as direccion
+                    FROM integrantes
+                    LEFT JOIN pandillas ON integrantes.id_pandilla = pandillas.id_pandilla
+                    LEFT JOIN direcciones ON integrantes.id_direccion = direcciones.id_direccion
+                    WHERE 
+                        integrantes.nombre LIKE %s 
+                        OR integrantes.apellido_paterno LIKE %s 
+                        OR integrantes.apellido_materno LIKE %s 
+                        OR integrantes.alias LIKE %s
+                        OR CONCAT(
+                            COALESCE(integrantes.nombre, ''),
+                            COALESCE(CONCAT(' ', integrantes.apellido_paterno), ''),
+                            COALESCE(CONCAT(' ', integrantes.apellido_materno), '')
+                        ) LIKE %s
+                    ORDER BY integrantes.nombre ASC, integrantes.apellido_paterno ASC
+                    LIMIT 10
+                    """
+                    
+                    # Ejecutar consulta en tabla INTEGRANTES
+                    cursor.execute(sql_query, [
+                        busqueda_like,  # nombre
+                        busqueda_like,  # apellido_paterno
+                        busqueda_like,  # apellido_materno
+                        busqueda_like,  # alias
+                        busqueda_like   # nombre completo
+                    ])
+                    
+                    rows = cursor.fetchall()
+                    integrantes_data = []
+                    
+                    # Procesar resultados
+                    for row in rows:
+                        id_integrante = row[0]
+                        
+                        integrante = {
+                            'id_integrante': id_integrante,
+                            'nombre': row[1] or '',
+                            'apellido_paterno': row[2] or '',
+                            'apellido_materno': row[3] or '',
+                            'alias': row[4] or '',
+                            'fecha_nacimiento': str(row[5]) if row[5] else None,
+                            'nombre_completo': row[6] or row[1] or 'Sin nombre',
+                            'pandilla_nombre': row[7] if len(row) > 7 and row[7] else None,
+                            'direccion': row[8] if len(row) > 8 and row[8] else '',
+                            'delitos': [],
+                            'faltas': []
+                        }
+                        
+                        # Obtener delitos del integrante
+                        try:
+                            cursor.execute("""
+                                SELECT delitos.id_delito, delitos.nombre
+                                FROM integrantes_delitos
+                                JOIN delitos ON integrantes_delitos.id_delito = delitos.id_delito
+                                WHERE integrantes_delitos.id_integrante = %s
+                            """, [id_integrante])
+                            
+                            for delito_row in cursor.fetchall():
+                                integrante['delitos'].append({
+                                    'id_delito': delito_row[0],
+                                    'nombre': delito_row[1]
+                                })
+                        except Exception:
+                            pass
+                        
+                        # Obtener faltas del integrante
+                        try:
+                            cursor.execute("""
+                                SELECT faltas.id_falta, faltas.falta
+                                FROM integrantes_faltas
+                                JOIN faltas ON integrantes_faltas.id_falta = faltas.id_falta
+                                WHERE integrantes_faltas.id_integrante = %s
+                            """, [id_integrante])
+                            
+                            for falta_row in cursor.fetchall():
+                                integrante['faltas'].append({
+                                    'id_falta': falta_row[0],
+                                    'nombre': falta_row[1] if len(falta_row) > 1 else f'Falta {falta_row[0]}'
+                                })
+                        except Exception:
+                            try:
+                                # Intentar con columna 'nombre' si 'falta' no existe
+                                cursor.execute("""
+                                    SELECT faltas.id_falta, faltas.nombre
+                                    FROM integrantes_faltas
+                                    JOIN faltas ON integrantes_faltas.id_falta = faltas.id_falta
+                                    WHERE integrantes_faltas.id_integrante = %s
+                                """, [id_integrante])
+                                
+                                for falta_row in cursor.fetchall():
+                                    integrante['faltas'].append({
+                                        'id_falta': falta_row[0],
+                                        'nombre': falta_row[1] if len(falta_row) > 1 else f'Falta {falta_row[0]}'
+                                    })
+                            except Exception:
+                                pass
+                        
+                        integrantes_data.append(integrante)
+                    
+                    return integrantes_data
+            except Exception as e:
+                logger.error(f"Error en buscar_integrantes: {e}", exc_info=True)
+                raise
         
-        integrantes = await sync_to_async(buscar_integrante_db)(criterio_busqueda)
+        integrantes = await sync_to_async(buscar_integrantes)(criterio_busqueda)
         
         if not integrantes:
             await update.message.reply_text(
@@ -672,12 +1196,8 @@ async def buscar_integrante(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if len(integrantes) > 1:
             message = f"🔍 *Se encontraron {len(integrantes)} integrantes:*\n\n"
             for i, integrante in enumerate(integrantes, 1):
-                nombre_completo = integrante.nombre
-                if integrante.apellido_paterno:
-                    nombre_completo += f" {integrante.apellido_paterno}"
-                if integrante.apellido_materno:
-                    nombre_completo += f" {integrante.apellido_materno}"
-                alias_text = f" ({integrante.alias})" if integrante.alias else ""
+                nombre_completo = integrante['nombre_completo']
+                alias_text = f" ({integrante['alias']})" if integrante['alias'] else ""
                 message += f"{i}. *{nombre_completo}*{alias_text}\n"
             message += "\nEspecifica más el nombre o alias para obtener información detallada."
             await update.message.reply_text(message, parse_mode='Markdown')
@@ -686,106 +1206,73 @@ async def buscar_integrante(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Un solo resultado, mostrar información completa
         integrante = integrantes[0]
         
-        # Obtener información completa del integrante
-        def get_integrante_info(integrante_id):
-            with connection.cursor() as cursor:
-                # Obtener delitos
-                delitos_nombres = []
-                try:
-                    cursor.execute("""
-                        SELECT D.nombre 
-                        FROM integrantes_delitos ID
-                        JOIN delitos D ON ID.id_delito = D.id_delito
-                        WHERE ID.id_integrante = %s
-                    """, [integrante_id])
-                    delitos_nombres = [row[0] for row in cursor.fetchall()]
-                except Exception:
-                    pass
-                
-                # Obtener faltas
-                faltas_nombres = []
-                try:
-                    cursor.execute("""
-                        SELECT F.nombre 
-                        FROM integrantes_faltas IF
-                        JOIN faltas F ON IF.id_falta = F.id_falta
-                        WHERE IF.id_integrante = %s
-                    """, [integrante_id])
-                    faltas_nombres = [row[0] for row in cursor.fetchall()]
-                except Exception:
-                    pass
-                
-                # Obtener URL de imagen (primera imagen disponible)
-                imagen_url = None
-                try:
-                    cursor.execute("""
-                        SELECT url_imagen 
-                        FROM imagenes_integrantes 
-                        WHERE id_integrante = %s 
-                        ORDER BY fecha_subida DESC 
-                        LIMIT 1
-                    """, [integrante_id])
-                    result = cursor.fetchone()
-                    if result and result[0]:
-                        imagen_url = result[0]
-                except Exception:
-                    pass
-                
-                return delitos_nombres, faltas_nombres, imagen_url
-        
-        delitos, faltas, imagen_url = await sync_to_async(get_integrante_info)(integrante.id_integrante)
+        # Obtener URL de imagen (primera imagen disponible)
+        imagen_url = None
+        try:
+            def get_imagen(integrante_id):
+                with connection.cursor() as cursor:
+                    try:
+                        cursor.execute("""
+                            SELECT url_imagen 
+                            FROM imagenes_integrantes 
+                            WHERE id_integrante = %s 
+                            ORDER BY fecha_subida DESC 
+                            LIMIT 1
+                        """, [integrante_id])
+                        result = cursor.fetchone()
+                        if result and result[0]:
+                            return result[0]
+                    except Exception:
+                        pass
+                    return None
+            
+            imagen_url = await sync_to_async(get_imagen)(integrante['id_integrante'])
+        except Exception:
+            pass
         
         # Construir mensaje con información del integrante
-        nombre_completo = integrante.nombre
-        if integrante.apellido_paterno:
-            nombre_completo += f" {integrante.apellido_paterno}"
-        if integrante.apellido_materno:
-            nombre_completo += f" {integrante.apellido_materno}"
+        nombre_completo = integrante['nombre_completo']
         
         message = f"👤 *Información del Integrante*\n\n"
         message += f"*Nombre completo:* {nombre_completo}\n"
         
-        if integrante.alias:
-            message += f"*Alias:* {integrante.alias}\n"
+        if integrante['alias']:
+            message += f"*Alias:* {integrante['alias']}\n"
         
-        if integrante.fecha_nacimiento:
-            message += f"*Fecha de nacimiento:* {integrante.fecha_nacimiento}\n"
+        if integrante['fecha_nacimiento']:
+            message += f"*Fecha de nacimiento:* {integrante['fecha_nacimiento']}\n"
         
-        # Pandilla a la que pertenece
-        if integrante.id_pandilla:
-            pandilla = await sync_to_async(lambda: integrante.id_pandilla)()
-            if pandilla:
-                message += f"*Pandilla:* {pandilla.nombre}\n"
+        if integrante['pandilla_nombre']:
+            message += f"*Pandilla:* {integrante['pandilla_nombre']}\n"
+        
+        # Crear botón de Google Maps si hay dirección
+        reply_markup = None
+        if integrante['direccion']:
+            message += f"*Dirección:* {integrante['direccion']}\n"
+            # Crear botón para ver en Google Maps
+            direccion_codificada = quote_plus(integrante['direccion'])
+            google_maps_url = f"https://www.google.com/maps/search/?api=1&query={direccion_codificada}"
+            keyboard = [[InlineKeyboardButton("📍 Ver en Google Maps", url=google_maps_url)]]
+            reply_markup = InlineKeyboardMarkup(keyboard)
         
         # Delitos asociados
-        if delitos:
+        if integrante['delitos']:
             message += f"\n*Delitos asociados:*\n"
-            for delito in delitos:
-                message += f"  • {delito}\n"
+            for delito in integrante['delitos'][:10]:  # Limitar a 10
+                message += f"  • {delito['nombre']}\n"
         else:
             message += f"\n*Delitos asociados:* Ninguno registrado\n"
         
         # Faltas asociadas
-        if faltas:
+        if integrante['faltas']:
             message += f"\n*Faltas asociadas:*\n"
-            for falta in faltas:
-                message += f"  • {falta}\n"
+            for falta in integrante['faltas'][:10]:  # Limitar a 10
+                message += f"  • {falta['nombre']}\n"
         else:
             message += f"\n*Faltas asociadas:* Ninguna registrada\n"
         
-        # Dirección
-        if integrante.id_direccion:
-            direccion = await sync_to_async(lambda: integrante.id_direccion)()
-            if direccion:
-                dir_text = f"{direccion.calle}"
-                if direccion.numero:
-                    dir_text += f" {direccion.numero}"
-                if direccion.colonia:
-                    dir_text += f", {direccion.colonia}"
-                message += f"\n*Dirección:* {dir_text}\n"
-        
         # Enviar mensaje de texto primero
-        await update.message.reply_text(message, parse_mode='Markdown')
+        await update.message.reply_text(message, parse_mode='Markdown', reply_markup=reply_markup)
         
         # Enviar fotografía si existe
         if imagen_url:
@@ -799,7 +1286,10 @@ async def buscar_integrante(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
     except Exception as e:
         logger.error(f"Error al buscar integrante: {e}", exc_info=True)
-        await update.message.reply_text("❌ Error al buscar el integrante. Intenta más tarde.")
+        error_msg = f"❌ Error al buscar el integrante: {str(e)}"
+        if len(error_msg) > 4000:
+            error_msg = error_msg[:4000]
+        await update.message.reply_text(error_msg)
 
 
 async def main_async():
@@ -851,6 +1341,7 @@ async def main_async():
     
     # Luego los demás comandos (estos se ejecutarán solo si no están en una conversación)
     application.add_handler(CommandHandler("logout", logout))
+    application.add_handler(CommandHandler("cerrar_sesion", logout))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("pandillas", listar_pandillas))
     application.add_handler(CommandHandler("pandilla", buscar_pandilla))

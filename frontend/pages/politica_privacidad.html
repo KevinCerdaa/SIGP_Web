@@ -16,7 +16,7 @@
                     <h1 class="text-2xl sm:text-3xl md:text-4xl font-spectral text-center text-white">Política de Privacidad</h1>
                     <div class="w-full flex justify-start mt-2 font-bold">
                         <button type="button"
-                                onclick="window.history.back()"
+                                onclick="typeof goToIndex === 'function' ? goToIndex() : (window.location.href = (window.location.pathname.includes('/frontend/pages/') || window.location.href.includes('/frontend/pages/')) ? '../../index.html' : '../index.html')"
                                 class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-600 text-blue-100 text-sm md:text-base hover:bg-slate-800 hover:text-blue-300 transition-all duration-200">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 md:size-5">
                                 <path fill-rule="evenodd" d="M9.53 4.47a.75.75 0 0 1 0 1.06L5.81 9.25H20.25a.75.75 0 0 1 0 1.5H5.81l3.72 3.72a.75.75 0 1 1-1.06 1.06l-5-5a.75.75 0 0 1 0-1.06l5-5a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
@@ -206,4 +206,5 @@
     <script src="../javascript/auth.js"></script>
 </body>
 </html>
+
 

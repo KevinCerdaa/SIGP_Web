@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="es-mx">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIGP - Consultas y Reportes</title>
     <link rel="stylesheet" href="../styles/output.css">
 </head>
+
 <body class="bg-slate-950 flex flex-col min-h-screen">
     <div id="header-container" class="w-full"></div>
     <main class="w-full h-auto py-4 sm:py-6 md:py-10 flex-1">
@@ -13,148 +15,343 @@
             <div class="w-full px-4 sm:px-6 md:w-4/5 max-w-6xl h-auto flex flex-col items-center justify-center">
                 <!-- Título -->
                 <div class="w-full h-auto flex flex-col items-center justify-center gap-3 md:gap-4 py-4 mb-6">
-                    <h1 class="text-2xl sm:text-3xl md:text-4xl font-spectral text-center text-white">Consultas y Reportes</h1>
+                    <h1 class="text-2xl sm:text-3xl md:text-4xl font-spectral text-center text-white">Consultas y
+                        Reportes</h1>
                     <!-- Botón Regresar -->
                     <div class="w-full flex justify-start mt-2 font-bold">
-                        <button type="button"
-                                onclick="window.history.back()"
-                                class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-600 text-blue-100 text-sm md:text-base hover:bg-slate-800 hover:text-blue-300 transition-all duration-200">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 md:size-5">
-                                <path fill-rule="evenodd" d="M9.53 4.47a.75.75 0 0 1 0 1.06L5.81 9.25H20.25a.75.75 0 0 1 0 1.5H5.81l3.72 3.72a.75.75 0 1 1-1.06 1.06l-5-5a.75.75 0 0 1 0-1.06l5-5a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+                        <button type="button" onclick="typeof goToIndex === 'function' ? goToIndex() : (window.location.href = (window.location.pathname.includes('/frontend/pages/') || window.location.href.includes('/frontend/pages/')) ? '../../index.html' : '../index.html')"
+                            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-600 text-blue-100 text-sm md:text-base hover:bg-slate-800 hover:text-blue-300 transition-all duration-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                class="size-4 md:size-5">
+                                <path fill-rule="evenodd"
+                                    d="M9.53 4.47a.75.75 0 0 1 0 1.06L5.81 9.25H20.25a.75.75 0 0 1 0 1.5H5.81l3.72 3.72a.75.75 0 1 1-1.06 1.06l-5-5a.75.75 0 0 1 0-1.06l5-5a.75.75 0 0 1 1.06 0Z"
+                                    clip-rule="evenodd" />
                             </svg>
                             <span>Regresar</span>
                         </button>
                     </div>
                 </div>
-                
+
                 <!-- Selector de tipo de consulta -->
-                <div class="w-full h-auto bg-linear-180 from-slate-800/80 to-slate-800 backdrop-blur-xs rounded-lg md:rounded-2xl border-2 border-slate-600 p-4 sm:p-6 md:p-8 mb-6">
+                <div
+                    class="w-full h-auto bg-linear-180 from-slate-800/80 to-slate-800 backdrop-blur-xs rounded-lg md:rounded-2xl border-2 border-slate-600 p-4 sm:p-6 md:p-8 mb-6">
                     <div class="w-full h-auto flex flex-col items-start justify-center">
-                        <label for="tipo-consulta-select" class="w-full text-left text-sm md:text-base text-blue-100 mb-2">Tipo de consulta:</label>
+                        <label for="tipo-consulta-select"
+                            class="w-full text-left text-sm md:text-base text-blue-100 mb-2">Tipo de consulta:</label>
                         <div class="relative w-full">
-                            <select id="tipo-consulta-select" name="tipo-consulta" class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
+                            <select id="tipo-consulta-select" name="tipo-consulta"
+                                class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
                                 <option value="" disabled selected>Selecciona el tipo de consulta</option>
                                 <option value="eventos">Consulta por Eventos</option>
                                 <option value="pandilla">Consulta por Pandilla</option>
                                 <option value="integrante">Consulta por Integrante</option>
                                 <option value="general">Consulta General de Pandillas</option>
                             </select>
-                            <div class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 text-slate-950">
-                                    <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                            <div
+                                class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                    class="size-6 text-slate-950">
+                                    <path fill-rule="evenodd"
+                                        d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
+                                        clip-rule="evenodd" />
                                 </svg>
                             </div>
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Contenedor de formularios de consulta (se mostrarán según el tipo seleccionado) -->
-                <div id="formularios-consulta-container" class="w-full h-auto bg-linear-180 from-slate-800/80 to-slate-800 backdrop-blur-xs rounded-lg md:rounded-2xl border-2 border-slate-600 p-4 sm:p-6 md:p-8 mb-6 hidden">
+                <div id="formularios-consulta-container"
+                    class="w-full h-auto bg-linear-180 from-slate-800/80 to-slate-800 backdrop-blur-xs rounded-lg md:rounded-2xl border-2 border-slate-600 p-4 sm:p-6 md:p-8 mb-6 hidden">
                     <!-- Formulario de consulta por eventos -->
                     <div id="form-consulta-eventos" class="w-full hidden">
-                        <h2 class="text-xl sm:text-2xl md:text-3xl font-spectral text-white mb-6">Consulta por Eventos</h2>
+                        <h2 class="text-xl sm:text-2xl md:text-3xl font-spectral text-white mb-6">Consulta por Eventos
+                        </h2>
                         <form id="form-buscar-eventos" class="w-full flex flex-col gap-4 md:gap-6">
+                            <!-- Opciones de visualización -->
+                            <div class="w-full bg-slate-700/50 rounded-lg p-4 border border-slate-600">
+                                <div class="flex flex-col gap-3">
+                                    <label class="flex items-center gap-3 cursor-pointer">
+                                        <input type="radio" name="modo-consulta-eventos" value="todos" checked
+                                            class="w-5 h-5 text-blue-600 focus:ring-blue-500 focus:ring-2 cursor-pointer">
+                                        <span class="text-sm md:text-base text-blue-100 font-semibold">Mostrar todos los eventos</span>
+                                    </label>
+                                    <label class="flex items-center gap-3 cursor-pointer">
+                                        <input type="radio" name="modo-consulta-eventos" value="filtros"
+                                            class="w-5 h-5 text-blue-600 focus:ring-blue-500 focus:ring-2 cursor-pointer">
+                                        <span class="text-sm md:text-base text-blue-100 font-semibold">Mostrar con filtros</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <!-- Contenedor de filtros (oculto por defecto) -->
+                            <div id="filtros-eventos-container" class="w-full hidden">
                             <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label for="fecha-inicial-eventos" class="block text-sm md:text-base text-blue-100 mb-2">Fecha Inicial:</label>
-                                    <input type="date" id="fecha-inicial-eventos" name="fecha_inicial" required class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
+                                    <label for="fecha-inicial-eventos"
+                                        class="block text-sm md:text-base text-blue-100 mb-2">Fecha Inicial:</label>
+                                    <input type="date" id="fecha-inicial-eventos" name="fecha_inicial"
+                                        class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
                                 </div>
                                 <div>
-                                    <label for="fecha-final-eventos" class="block text-sm md:text-base text-blue-100 mb-2">Fecha Final:</label>
-                                    <input type="date" id="fecha-final-eventos" name="fecha_final" required class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
+                                    <label for="fecha-final-eventos"
+                                        class="block text-sm md:text-base text-blue-100 mb-2">Fecha Final:</label>
+                                    <input type="date" id="fecha-final-eventos" name="fecha_final"
+                                        class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base">
                                 </div>
                             </div>
+                            <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="tipo-evento-filtro"
+                                        class="block text-sm md:text-base text-blue-100 mb-2">Tipo de Evento:</label>
+                                    <div class="relative w-full">
+                                        <select id="tipo-evento-filtro" name="tipo_evento"
+                                            class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
+                                            <option value="">Ninguno (Todos)</option>
+                                            <option value="riña">Riña</option>
+                                            <option value="delito">Delito</option>
+                                            <option value="falta">Falta</option>
+                                        </select>
+                                        <div
+                                            class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                fill="currentColor" class="size-6 text-slate-950">
+                                                <path fill-rule="evenodd"
+                                                    d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="delito-falta-filtro"
+                                        class="block text-sm md:text-base text-blue-100 mb-2">Delito/Falta Específico:</label>
+                                    <div class="relative w-full">
+                                        <select id="delito-falta-filtro" name="delito_falta"
+                                            class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
+                                            <option value="">Ninguno (Todos)</option>
+                                        </select>
+                                        <div
+                                            class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                fill="currentColor" class="size-6 text-slate-950">
+                                                <path fill-rule="evenodd"
+                                                    d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="filtro-zona-eventos" class="block text-sm md:text-base text-blue-100 mb-2">Filtrar por Zona (Opcional):</label>
+                                    <div class="relative w-full">
+                                        <select id="filtro-zona-eventos" name="zona"
+                                            class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
+                                            <option value="">Todas las zonas</option>
+                                        </select>
+                                        <div
+                                            class="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                fill="currentColor" class="size-6 text-slate-950">
+                                                <path fill-rule="evenodd"
+                                                    d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            </div>
+                            <!-- Fin del contenedor de filtros -->
+                            
                             <div class="w-full flex flex-col sm:flex-row gap-3 mt-4">
-                                <button type="submit" class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-sm md:text-base font-medium hover:bg-blue-600 transition-all duration-150">
+                                <button type="submit"
+                                    class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-sm md:text-base font-medium hover:bg-blue-600 transition-all duration-150">
                                     Buscar Eventos
                                 </button>
-                                <button type="button" id="limpiar-consulta-eventos" class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-slate-600 text-white text-sm md:text-base font-medium hover:bg-slate-700 transition-all duration-150">
+                                <button type="button" id="limpiar-consulta-eventos"
+                                    class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-slate-600 text-white text-sm md:text-base font-medium hover:bg-slate-700 transition-all duration-150">
                                     Limpiar
                                 </button>
                             </div>
                         </form>
                     </div>
-                    
+
                     <!-- Formulario de consulta por pandilla -->
                     <div id="form-consulta-pandilla" class="w-full hidden">
-                        <h2 class="text-xl sm:text-2xl md:text-3xl font-spectral text-white mb-6">Consulta por Pandilla</h2>
+                        <h2 class="text-xl sm:text-2xl md:text-3xl font-spectral text-white mb-6">Consulta por Pandilla
+                        </h2>
                         <form id="form-buscar-pandilla" class="w-full flex flex-col gap-4 md:gap-6">
                             <div class="w-full">
-                                <label for="nombre-pandilla-buscar" class="block text-sm md:text-base text-blue-100 mb-2">Nombre de la Pandilla:</label>
-                                <input type="text" id="nombre-pandilla-buscar" name="nombre" required class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base" placeholder="Ingresa el nombre de la pandilla">
+                                <label for="nombre-pandilla-buscar"
+                                    class="block text-sm md:text-base text-blue-100 mb-2">Nombre de la Pandilla (Opcional):</label>
+                                <input type="text" id="nombre-pandilla-buscar" name="nombre"
+                                    class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base"
+                                    placeholder="Ingresa el nombre de la pandilla (opcional)">
+                            </div>
+                            <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="w-full">
+                                    <label for="filtro-zona-pandilla" class="block text-sm md:text-base text-blue-100 mb-2">Filtrar por Zona (Opcional):</label>
+                                    <select id="filtro-zona-pandilla" name="zona"
+                                        class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
+                                        <option value="">Todas las zonas</option>
+                                    </select>
+                                </div>
+                                <div class="w-full">
+                                    <label for="filtro-peligrosidad-pandilla" class="block text-sm md:text-base text-blue-100 mb-2">Filtrar por Peligrosidad (Opcional):</label>
+                                    <select id="filtro-peligrosidad-pandilla" name="peligrosidad"
+                                        class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
+                                        <option value="">Todas las peligrosidades</option>
+                                        <option value="Bajo">Bajo</option>
+                                        <option value="Medio">Medio</option>
+                                        <option value="Alto">Alto</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="w-full">
+                                <p class="text-sm text-blue-200 mb-2">
+                                    <span class="font-semibold">Nota:</span> Puedes buscar por nombre, filtrar por zona, filtrar por peligrosidad, usar cualquier combinación de filtros, o ver todas las pandillas sin filtros.
+                                </p>
                             </div>
                             <div class="w-full flex flex-col sm:flex-row gap-3 mt-4">
-                                <button type="submit" class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-sm md:text-base font-medium hover:bg-blue-600 transition-all duration-150">
+                                <button type="submit"
+                                    class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-sm md:text-base font-medium hover:bg-blue-600 transition-all duration-150">
                                     Buscar Pandilla
                                 </button>
-                                <button type="button" id="limpiar-consulta-pandilla" class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-slate-600 text-white text-sm md:text-base font-medium hover:bg-slate-700 transition-all duration-150">
+                                <button type="button" id="limpiar-consulta-pandilla"
+                                    class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-slate-600 text-white text-sm md:text-base font-medium hover:bg-slate-700 transition-all duration-150">
                                     Limpiar
                                 </button>
                             </div>
                         </form>
                     </div>
-                    
+
                     <!-- Formulario de consulta por integrante -->
                     <div id="form-consulta-integrante" class="w-full hidden">
-                        <h2 class="text-xl sm:text-2xl md:text-3xl font-spectral text-white mb-6">Consulta por Integrante</h2>
+                        <h2 class="text-xl sm:text-2xl md:text-3xl font-spectral text-white mb-6">Consulta por
+                            Integrante</h2>
                         <form id="form-buscar-integrante" class="w-full flex flex-col gap-4 md:gap-6">
                             <div class="w-full">
-                                <label for="busqueda-integrante" class="block text-sm md:text-base text-blue-100 mb-2">Buscar por Nombre o Alias:</label>
-                                <input type="text" id="busqueda-integrante" name="busqueda" required class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base" placeholder="Ingresa el nombre o alias del integrante">
+                                <label for="busqueda-integrante"
+                                    class="block text-sm md:text-base text-blue-100 mb-2">Buscar por Nombre o Alias (Opcional):</label>
+                                <input type="text" id="busqueda-integrante" name="busqueda"
+                                    class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base"
+                                    placeholder="Ingresa el nombre o alias del integrante (opcional)">
+                            </div>
+                            <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="w-full">
+                                    <label class="block text-sm md:text-base text-blue-100 mb-2">Filtrar por Pandillas (Opcional):</label>
+                                    <div id="filtro-pandillas-container"
+                                        class="w-full min-h-[100px] max-h-[200px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus-within:outline-2 focus-within:outline-blue-600 transition-all duration-300 overflow-y-auto">
+                                        <p class="text-slate-500 text-sm">Cargando pandillas...</p>
+                                    </div>
+                                </div>
+                                <div class="w-full">
+                                    <label for="filtro-zona-integrante" class="block text-sm md:text-base text-blue-100 mb-2">Filtrar por Zona (Opcional):</label>
+                                    <select id="filtro-zona-integrante" name="zona"
+                                        class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
+                                        <option value="">Todas las zonas</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="w-full">
+                                    <label for="filtro-peligrosidad-integrante" class="block text-sm md:text-base text-blue-100 mb-2">Filtrar por Peligrosidad (Opcional):</label>
+                                    <select id="filtro-peligrosidad-integrante" name="peligrosidad"
+                                        class="w-full h-[45px] md:h-[50px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 pr-10 outline-0 focus:outline-2 focus:outline-blue-600 transition-all duration-300 text-sm md:text-base appearance-none">
+                                        <option value="">Todas las peligrosidades</option>
+                                        <option value="Bajo">Bajo</option>
+                                        <option value="Medio">Medio</option>
+                                        <option value="Alto">Alto</option>
+                                    </select>
+                                </div>
+                                <div class="w-full">
+                                    <label class="block text-sm md:text-base text-blue-100 mb-2">Filtrar por Delitos (Opcional):</label>
+                                    <div id="filtro-delitos-container"
+                                        class="w-full min-h-[100px] max-h-[200px] rounded-lg bg-white text-slate-950 py-3 md:py-4 px-3 md:px-4 outline-0 focus-within:outline-2 focus-within:outline-blue-600 transition-all duration-300 overflow-y-auto">
+                                        <p class="text-slate-500 text-sm">Cargando delitos...</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="w-full">
+                                <p class="text-sm text-blue-200 mb-2">
+                                    <span class="font-semibold">Nota:</span> Puedes usar cualquier combinación de filtros o ver todos los integrantes sin filtros.
+                                </p>
                             </div>
                             <div class="w-full flex flex-col sm:flex-row gap-3 mt-4">
-                                <button type="submit" class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-sm md:text-base font-medium hover:bg-blue-600 transition-all duration-150">
-                                    Buscar Integrante
+                                <button type="submit"
+                                    class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-sm md:text-base font-medium hover:bg-blue-600 transition-all duration-150">
+                                    Buscar / Ver Todos
                                 </button>
-                                <button type="button" id="limpiar-consulta-integrante" class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-slate-600 text-white text-sm md:text-base font-medium hover:bg-slate-700 transition-all duration-150">
+                                <button type="button" id="limpiar-consulta-integrante"
+                                    class="flex-1 h-[45px] md:h-[50px] rounded-lg bg-slate-600 text-white text-sm md:text-base font-medium hover:bg-slate-700 transition-all duration-150">
                                     Limpiar
                                 </button>
                             </div>
                         </form>
                     </div>
-                    
+
                     <!-- Consulta general de pandillas (sin formulario, solo botón) -->
                     <div id="form-consulta-general" class="w-full hidden">
-                        <h2 class="text-xl sm:text-2xl md:text-3xl font-spectral text-white mb-6">Consulta General de Pandillas</h2>
+                        <h2 class="text-xl sm:text-2xl md:text-3xl font-spectral text-white mb-6">Consulta General de
+                            Pandillas</h2>
                         <div class="w-full flex flex-col gap-4">
-                            <p class="text-blue-100 text-sm md:text-base">Esta consulta mostrará todas las pandillas registradas en el sistema.</p>
-                            <button type="button" id="btn-consulta-general" class="w-full h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-sm md:text-base font-medium hover:bg-blue-600 transition-all duration-150">
+                            <p class="text-blue-100 text-sm md:text-base">Esta consulta mostrará todas las pandillas
+                                registradas en el sistema.</p>
+                            <button type="button" id="btn-consulta-general"
+                                class="w-full h-[45px] md:h-[50px] rounded-lg bg-blue-400 text-white text-sm md:text-base font-medium hover:bg-blue-600 transition-all duration-150">
                                 Ejecutar Consulta General
                             </button>
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Contenedor de resultados -->
-                <div id="resultados-consulta-container" class="w-full h-auto bg-linear-180 from-slate-800/80 to-slate-800 backdrop-blur-xs rounded-lg md:rounded-2xl border-2 border-slate-600 p-4 sm:p-6 md:p-8 mb-6 hidden">
+                <div id="resultados-consulta-container"
+                    class="w-full h-auto bg-linear-180 from-slate-800/80 to-slate-800 backdrop-blur-xs rounded-lg md:rounded-2xl border-2 border-slate-600 p-4 sm:p-6 md:p-8 mb-6 hidden">
                     <div class="w-full flex items-center justify-between mb-4">
-                        <h2 class="text-xl sm:text-2xl md:text-3xl font-spectral text-white">Resultados de la Consulta</h2>
-                        <button type="button" id="btn-generar-pdf" class="h-[45px] md:h-[50px] px-4 md:px-6 rounded-lg bg-emerald-500 text-white text-sm md:text-base font-medium hover:bg-emerald-600 transition-all duration-150 flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5">
-                                <path fill-rule="evenodd" d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0 0 16.5 9h-1.875a1.875 1.875 0 0 1-1.875-1.875V5.25A3.75 3.75 0 0 0 9 1.5H5.625ZM7.5 15a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 7.5 15Zm.75 2.25a.75.75 0 0 0 0 1.5H12a.75.75 0 0 0 0-1.5H8.25Z" clip-rule="evenodd" />
-                                <path d="M12.971 1.816A5.23 5.23 0 0 1 14.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.23 5.23 0 0 1 3.434 1.279 9.768 9.768 0 0 0-6.963-6.963Z" />
+                        <h2 class="text-xl sm:text-2xl md:text-3xl font-spectral text-white">Resultados de la Consulta
+                        </h2>
+                        <button type="button" id="btn-generar-pdf"
+                            class="h-[45px] md:h-[50px] px-4 md:px-6 rounded-lg bg-emerald-500 text-white text-sm md:text-base font-medium hover:bg-emerald-600 transition-all duration-150 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                class="size-5">
+                                <path fill-rule="evenodd"
+                                    d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0 0 16.5 9h-1.875a1.875 1.875 0 0 1-1.875-1.875V5.25A3.75 3.75 0 0 0 9 1.5H5.625ZM7.5 15a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 7.5 15Zm.75 2.25a.75.75 0 0 0 0 1.5H12a.75.75 0 0 0 0-1.5H8.25Z"
+                                    clip-rule="evenodd" />
+                                <path
+                                    d="M12.971 1.816A5.23 5.23 0 0 1 14.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.23 5.23 0 0 1 3.434 1.279 9.768 9.768 0 0 0-6.963-6.963Z" />
                             </svg>
                             <span>Generar Reporte PDF</span>
                         </button>
                     </div>
-                    
+
                     <!-- Mensajes de estado -->
                     <div id="mensajes-consulta" class="w-full mb-4">
-                        <div id="mensaje-cargando" class="hidden text-blue-300 text-sm md:text-base font-medium text-center py-4">
+                        <div id="mensaje-cargando"
+                            class="hidden text-blue-300 text-sm md:text-base font-medium text-center py-4">
                             <div class="flex items-center justify-center gap-2">
-                                <svg class="animate-spin size-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                <svg class="animate-spin size-5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                        stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                    </path>
                                 </svg>
                                 <span>Cargando resultados...</span>
                             </div>
                         </div>
-                        <div id="mensaje-error" class="hidden text-red-500 text-sm md:text-base font-bold text-center py-4"></div>
-                        <div id="mensaje-sin-resultados" class="hidden text-blue-200 text-sm md:text-base font-medium text-center py-4">
+                        <div id="mensaje-error"
+                            class="hidden text-red-500 text-sm md:text-base font-bold text-center py-4"></div>
+                        <div id="mensaje-sin-resultados"
+                            class="hidden text-blue-200 text-sm md:text-base font-medium text-center py-4">
                             No se encontraron resultados para la consulta realizada.
                         </div>
                     </div>
-                    
+
                     <!-- Tabla de resultados para eventos y consulta general -->
                     <div id="tabla-resultados-container" class="w-full overflow-x-auto hidden">
                         <table id="tabla-resultados" class="w-full min-w-full border-collapse">
@@ -166,9 +363,10 @@
                             </tbody>
                         </table>
                     </div>
-                    
+
                     <!-- Contenedor de tarjetas para pandillas e integrantes -->
-                    <div id="tarjetas-resultados-container" class="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 hidden">
+                    <div id="tarjetas-resultados-container"
+                        class="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 hidden">
                         <!-- Se llenará dinámicamente con tarjetas -->
                     </div>
                 </div>
@@ -177,7 +375,7 @@
     </main>
     <div id="footer-container"></div>
     <div id="modal-container"></div>
-    
+
     <script src="../javascript/app.js"></script>
     <script src="../javascript/auth.js"></script>
     <script src="../javascript/consultas.js"></script>
@@ -185,4 +383,5 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 </body>
+
 </html>

@@ -241,7 +241,24 @@ function initializeLogoutModal() {
                 localStorage.removeItem('auth_token');
                 localStorage.removeItem('user_data');
                 localStorage.removeItem('user_rol');
-                window.location.reload();
+                // Redirigir al index.html
+                let indexPath = 'index.html';
+                if (typeof getIndexPath === 'function') {
+                    indexPath = getIndexPath();
+                } else {
+                    const path = window.location.pathname;
+                    const href = window.location.href;
+                    if (path.includes('/frontend/pages/') || href.includes('/frontend/pages/')) {
+                        indexPath = '../../index.html';
+                    } else if (path.includes('/pages/') || href.includes('/pages/')) {
+                        indexPath = '../index.html';
+                    } else if (path === '/' || path === '/index.html' || path.endsWith('/index.html') || path.endsWith('index.html')) {
+                        indexPath = 'index.html';
+                    } else {
+                        indexPath = '../index.html';
+                    }
+                }
+                window.location.href = indexPath;
             }
         });
     }

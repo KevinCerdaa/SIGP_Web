@@ -120,6 +120,7 @@ async function registrarUsuario() {
     const apellido = document.getElementById('apellido-usuario').value.trim();
     const correo = document.getElementById('correo-usuario').value.trim();
     const password = document.getElementById('password-usuario').value;
+    const cargo = document.getElementById('cargo-usuario').value.trim();
     const rol = document.getElementById('rol-usuario').value;
     const genero = document.getElementById('genero-usuario').value || 'X';
     
@@ -142,6 +143,7 @@ async function registrarUsuario() {
                 apellido: apellido,
                 correo: correo,
                 password: password,
+                cargo: cargo,
                 rol: rol,
                 genero: genero,
                 user_name: correo.split('@')[0] // Generar user_name desde el correo

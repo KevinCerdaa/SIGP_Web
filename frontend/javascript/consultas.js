@@ -237,7 +237,10 @@ function mostrarResultadosPandillasGenerales(pandillas) {
             ['Peligrosidad', pandilla.peligrosidad || '-'],
             ['Zona', pandilla.zona_nombre || '-'],
             ['Dirección', pandilla.direccion || '-'],
-            ['Descripción', pandilla.descripcion || '-']
+            ['Descripción', pandilla.descripcion || '-'],
+            ['Redes Sociales', (pandilla.redes_sociales && pandilla.redes_sociales.length > 0) ? 
+                pandilla.redes_sociales.map(r => `${r.plataforma}${r.handle ? `: ${r.handle}` : ''}`).join(', ') : 
+                'Sin redes sociales registradas']
         ];
 
         pandillaData.forEach(([label, value]) => {
@@ -359,6 +362,18 @@ function crearTarjetaPandilla(pandilla, busqueda = '') {
                     </ul>
                 </div>
             ` : ''}
+            ${pandilla.redes_sociales && pandilla.redes_sociales.length > 0 ? `
+                <div class="mt-3 pt-3 border-t border-slate-600">
+                    <p class="text-sm font-semibold text-blue-100 mb-2">Redes Sociales:</p>
+                    <ul class="text-xs text-blue-200 space-y-1">
+                        ${pandilla.redes_sociales.map(r => `<li>• ${r.plataforma}${r.handle ? `: ${r.handle}` : ''}${!r.handle && r.url ? `: ${r.url}` : ''}</li>`).join('')}
+                    </ul>
+                </div>
+            ` : `
+                <div class="mt-3 pt-3 border-t border-slate-600">
+                    <p class="text-sm text-blue-200 italic">Sin redes sociales registradas</p>
+                </div>
+            `}
         </div>
     `;
 }
@@ -419,10 +434,14 @@ function crearTarjetaIntegrante(integrante, busqueda = '') {
                 <div class="mt-3 pt-3 border-t border-slate-600">
                     <p class="text-sm font-semibold text-blue-100 mb-2">Redes Sociales:</p>
                     <ul class="text-xs text-blue-200 space-y-1">
-                        ${integrante.redes_sociales.map(r => `<li>• ${r.plataforma} (${r.handle || 'Sin handle'})</li>`).join('')}
+                        ${integrante.redes_sociales.map(r => `<li>• ${r.plataforma}${r.handle ? `: ${r.handle}` : ''}${!r.handle && r.url ? `: ${r.url}` : ''}</li>`).join('')}
                     </ul>
                 </div>
-            ` : ''}
+            ` : `
+                <div class="mt-3 pt-3 border-t border-slate-600">
+                    <p class="text-sm text-blue-200 italic">Sin redes sociales registradas</p>
+                </div>
+            `}
         </div>
     `;
 }
@@ -998,16 +1017,49 @@ function generarPDF() {
 
     try {
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('l', 'mm', 'a4'); // Landscape orientation
+        
+        // Orientación inteligente: horizontal para todas las tablas (evitar desbordamiento)
+        const doc = new jsPDF('l', 'mm', 'a4'); // Siempre horizontal
 
         // Configuración de colores
         const primaryColor = [59, 130, 246]; // blue-500
         const secondaryColor = [30, 41, 59]; // slate-800
         const textColor = [15, 23, 42]; // slate-950
+        
+        // Función para agregar marca de agua SIGP en cada página
+        function addWatermark(doc, pageNumber) {
+            const wmPageWidth = doc.internal.pageSize.width;
+            const wmPageHeight = doc.internal.pageSize.height;
+            
+            // Guardar estado gráfico actual
+            doc.saveGraphicsState();
+            
+            // Aplicar opacidad baja (10% = 0.1)
+            doc.setGState(new doc.GState({ opacity: 0.1 }));
+            
+            // Configurar marca de agua
+            doc.setTextColor(100, 100, 100); // Gris oscuro (la opacidad lo hará tenue)
+            doc.setFontSize(80);
+            doc.setFont('helvetica', 'bold');
+            
+            // Rotar y centrar la marca de agua
+            const text = 'SIGP';
+            doc.text(text, wmPageWidth / 2, wmPageHeight / 2, {
+                align: 'center',
+                angle: 45
+            });
+            
+            // Restaurar estado gráfico (para que no afecte el resto del documento)
+            doc.restoreGraphicsState();
+        }
+
+        // Obtener dimensiones según orientación
+        const pageWidth = doc.internal.pageSize.width;
+        const headerWidth = pageWidth - 20; // 10mm margen a cada lado
 
         // Encabezado
         doc.setFillColor(...primaryColor);
-        doc.rect(10, 10, 277, 20, 'F');
+        doc.rect(10, 10, headerWidth, 20, 'F');
 
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(18);
@@ -1086,32 +1138,31 @@ function generarPDF() {
 
             case 'pandilla':
                 // Para pandillas, crear una tabla más detallada
-                headers = ['Nombre', 'Líder', 'Integrantes', 'Peligrosidad', 'Zona', 'Dirección', 'Delitos', 'Faltas'];
+                headers = ['Nombre', 'Líder', 'Integrantes', 'Peligrosidad', 'Zona', 'Delitos', 'Faltas', 'Redes Sociales'];
                 rows = currentResults.map(pandilla => [
                     pandilla.nombre || '-',
                     pandilla.lider || '-',
                     pandilla.numero_integrantes || '0',
                     pandilla.peligrosidad || '-',
                     pandilla.zona_nombre || '-',
-                    pandilla.direccion || '-',
                     (pandilla.delitos && pandilla.delitos.length > 0) ? pandilla.delitos.map(d => d.nombre || d).join(', ') : '-',
-                    (pandilla.faltas && pandilla.faltas.length > 0) ? pandilla.faltas.map(f => f.falta || f.nombre || f).join(', ') : '-'
+                    (pandilla.faltas && pandilla.faltas.length > 0) ? pandilla.faltas.map(f => f.falta || f.nombre || f).join(', ') : '-',
+                    (pandilla.redes_sociales && pandilla.redes_sociales.length > 0) ? pandilla.redes_sociales.map(r => `${r.plataforma}${r.handle ? `: ${r.handle}` : ''}`).join(', ') : 'Sin redes'
                 ]);
                 tituloTabla = 'Pandillas Encontradas';
                 break;
 
             case 'integrante':
-                headers = ['Foto', 'Nombre Completo', 'Alias', 'Fecha Nacimiento', 'Información Relevante', 'Pandilla', 'Dirección', 'Delitos', 'Faltas'];
+                headers = ['Foto', 'Nombre Completo', 'Alias', 'Fecha Nacimiento', 'Pandilla', 'Delitos', 'Faltas', 'Redes Sociales'];
                 rows = currentResults.map(integrante => [
                     '', // Placeholder para la foto
                     integrante.nombre_completo || integrante.nombre || '-',
                     integrante.alias || '-',
                     integrante.fecha_nacimiento || '-',
-                    integrante.informacion || '-',
                     integrante.pandilla_nombre || '-',
-                    integrante.direccion || '-',
                     (integrante.delitos && integrante.delitos.length > 0) ? integrante.delitos.map(d => d.nombre || d).join(', ') : '-',
-                    (integrante.faltas && integrante.faltas.length > 0) ? integrante.faltas.map(f => f.falta || f.nombre || f).join(', ') : '-'
+                    (integrante.faltas && integrante.faltas.length > 0) ? integrante.faltas.map(f => f.falta || f.nombre || f).join(', ') : '-',
+                    (integrante.redes_sociales && integrante.redes_sociales.length > 0) ? integrante.redes_sociales.map(r => `${r.plataforma}${r.handle ? `: ${r.handle}` : ''}`).join(', ') : 'Sin redes'
                 ]);
                 tituloTabla = 'Integrantes Encontrados';
                 break;
@@ -1133,32 +1184,33 @@ function generarPDF() {
         // Calcular anchos de columna dinámicamente según el tipo
         const columnStyles = {};
         if (currentConsultaType === 'integrante') {
-            columnStyles[0] = { cellWidth: 30 }; // Foto - ancho fijo para imagen
-            columnStyles[1] = { cellWidth: 40 }; // Nombre completo
+            columnStyles[0] = { cellWidth: 25 }; // Foto - ancho fijo para imagen
+            columnStyles[1] = { cellWidth: 45 }; // Nombre completo
             columnStyles[2] = { cellWidth: 30 }; // Alias
-            columnStyles[3] = { cellWidth: 30 }; // Fecha nacimiento
-            columnStyles[4] = { cellWidth: 50 }; // Información relevante
-            columnStyles[5] = { cellWidth: 35 }; // Pandilla
-            columnStyles[6] = { cellWidth: 50 }; // Dirección
+            columnStyles[3] = { cellWidth: 25 }; // Fecha nacimiento
+            columnStyles[4] = { cellWidth: 35 }; // Pandilla
+            columnStyles[5] = { cellWidth: 45 }; // Delitos
+            columnStyles[6] = { cellWidth: 45 }; // Faltas
+            columnStyles[7] = { cellWidth: 40 }; // Redes Sociales
         } else if (currentConsultaType === 'eventos') {
-            columnStyles[0] = { cellWidth: 25 }; // Fecha
-            columnStyles[1] = { cellWidth: 20 }; // Hora
-            columnStyles[2] = { cellWidth: 20 }; // Tipo
-            columnStyles[3] = { cellWidth: 30 }; // Delito/Falta
-            columnStyles[4] = { cellWidth: 35 }; // Integrante
-            columnStyles[5] = { cellWidth: 35 }; // Pandilla
-            columnStyles[6] = { cellWidth: 25 }; // Zona
-            columnStyles[7] = { cellWidth: 40 }; // Dirección
-            columnStyles[8] = { cellWidth: 50 }; // Descripción - más ancho para texto largo
+            columnStyles[0] = { cellWidth: 22 }; // Fecha
+            columnStyles[1] = { cellWidth: 18 }; // Hora
+            columnStyles[2] = { cellWidth: 18 }; // Tipo
+            columnStyles[3] = { cellWidth: 28 }; // Delito/Falta
+            columnStyles[4] = { cellWidth: 32 }; // Integrante
+            columnStyles[5] = { cellWidth: 32 }; // Pandilla
+            columnStyles[6] = { cellWidth: 22 }; // Zona
+            columnStyles[7] = { cellWidth: 38 }; // Dirección
+            columnStyles[8] = { cellWidth: 45 }; // Descripción - ajustado para evitar desbordamiento
         } else if (currentConsultaType === 'pandilla') {
-            columnStyles[0] = { cellWidth: 40 }; // Nombre
-            columnStyles[1] = { cellWidth: 35 }; // Líder
-            columnStyles[2] = { cellWidth: 25 }; // Integrantes
-            columnStyles[3] = { cellWidth: 30 }; // Peligrosidad
-            columnStyles[4] = { cellWidth: 30 }; // Zona
-            columnStyles[5] = { cellWidth: 50 }; // Dirección
-            columnStyles[6] = { cellWidth: 50 }; // Delitos
-            columnStyles[7] = { cellWidth: 50 }; // Faltas
+            columnStyles[0] = { cellWidth: 35 }; // Nombre
+            columnStyles[1] = { cellWidth: 30 }; // Líder
+            columnStyles[2] = { cellWidth: 20 }; // Integrantes
+            columnStyles[3] = { cellWidth: 25 }; // Peligrosidad
+            columnStyles[4] = { cellWidth: 25 }; // Zona
+            columnStyles[5] = { cellWidth: 45 }; // Delitos
+            columnStyles[6] = { cellWidth: 45 }; // Faltas
+            columnStyles[7] = { cellWidth: 40 }; // Redes Sociales
         } else {
             // Para otros tipos, usar auto
             headers.forEach((_, index) => {
@@ -1172,33 +1224,42 @@ function generarPDF() {
             
             // Para descripciones (columna 8 en eventos)
             if (currentConsultaType === 'eventos' && columnIndex === 8) {
-                if (cellContent && cellContent.length > 50) {
-                    // Calcular líneas necesarias (aproximadamente 50 caracteres por línea)
-                    const lineas = Math.ceil(cellContent.length / 50);
-                    minHeight = Math.max(minHeight, lineas * 4 + 4);
-                }
-            }
-            
-            // Para información relevante (columna 4 en integrantes)
-            if (currentConsultaType === 'integrante' && columnIndex === 4) {
                 if (cellContent && cellContent.length > 40) {
+                    // Calcular líneas necesarias (aproximadamente 40 caracteres por línea para 45mm)
                     const lineas = Math.ceil(cellContent.length / 40);
-                    minHeight = Math.max(minHeight, lineas * 4 + 4);
+                    minHeight = Math.max(minHeight, lineas * 4 + 2);
                 }
             }
             
-            // Para imágenes (columna 0 en integrantes)
-            if (currentConsultaType === 'integrante' && columnIndex === 0) {
-                const integrante = currentResults[rowIndex];
-                if (integrante && integrante.imagen_url) {
-                    minHeight = Math.max(minHeight, 30); // Espacio para imagen 25x25
+            // Para integrantes: manejar delitos, faltas y redes sociales
+            if (currentConsultaType === 'integrante') {
+                // Para imágenes (columna 0)
+                if (columnIndex === 0) {
+                    const integrante = currentResults[rowIndex];
+                    if (integrante && integrante.imagen_url) {
+                        minHeight = Math.max(minHeight, 28); // Espacio para imagen 25x25
+                    }
+                }
+                // Para delitos (columna 5), faltas (columna 6) o redes sociales (columna 7)
+                if ((columnIndex === 5 || columnIndex === 6 || columnIndex === 7) && cellContent && cellContent.length > 30) {
+                    const lineas = Math.ceil(cellContent.length / 30);
+                    minHeight = Math.max(minHeight, lineas * 3.5 + 2);
+                }
+            }
+            
+            // Para pandillas: manejar delitos, faltas y redes sociales
+            if (currentConsultaType === 'pandilla') {
+                // Para delitos (columna 5), faltas (columna 6) o redes sociales (columna 7)
+                if ((columnIndex === 5 || columnIndex === 6 || columnIndex === 7) && cellContent && cellContent.length > 30) {
+                    const lineas = Math.ceil(cellContent.length / 30);
+                    minHeight = Math.max(minHeight, lineas * 3.5 + 2);
                 }
             }
             
             return minHeight;
         }
 
-        // Agregar tabla usando autoTable
+        // Agregar tabla usando autoTable con división inteligente de páginas
         doc.autoTable({
             startY: 40,
             head: [headers],
@@ -1208,25 +1269,33 @@ function generarPDF() {
                 fillColor: secondaryColor,
                 textColor: 255,
                 fontStyle: 'bold',
-                fontSize: 9
+                fontSize: 8,
+                halign: 'center',
+                valign: 'middle'
             },
             bodyStyles: {
                 textColor: textColor,
-                fontSize: 8,
-                lineWidth: 0.1
+                fontSize: 7,
+                lineWidth: 0.1,
+                valign: 'top'
             },
             alternateRowStyles: {
                 fillColor: [241, 245, 249] // slate-100
             },
-            margin: { top: 40, left: 10, right: 10 },
+            margin: { top: 40, left: 10, right: 10, bottom: 25 },
             styles: {
-                cellPadding: 3,
+                cellPadding: 2,
                 overflow: 'linebreak',
                 cellWidth: 'wrap',
                 lineColor: [200, 200, 200],
-                lineWidth: 0.1
+                lineWidth: 0.1,
+                minCellHeight: 8
             },
             columnStyles: columnStyles,
+            tableWidth: 'auto',
+            showHead: 'everyPage', // Repetir encabezado en cada página
+            pageBreak: 'auto', // División automática de páginas
+            rowPageBreak: 'avoid', // Evitar dividir filas entre páginas
             didParseCell: function (data) {
                 // Ajustar altura mínima según el contenido
                 if (data.section === 'body') {
@@ -1290,14 +1359,32 @@ function generarPDF() {
             doc.text(infoAdicional, 15, finalY + 13);
         }
 
-        // Pie de página
-        doc.setTextColor(100, 100, 100);
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'italic');
-        const pieTexto1 = 'SIGP - Sistema de Identificación de Grupos Pandilleriles';
-        const pieTexto2 = '© 2025, SIGP – Todos los derechos reservados';
-        doc.text(pieTexto1, 15, doc.internal.pageSize.height - 10);
-        doc.text(pieTexto2, doc.internal.pageSize.width - doc.getTextWidth(pieTexto2) - 15, doc.internal.pageSize.height - 10);
+        // Agregar marca de agua y numeración de páginas a todas las páginas
+        const totalPages = doc.internal.getNumberOfPages();
+        // pageWidth ya está declarado arriba, reutilizarlo
+        const pageHeight = doc.internal.pageSize.height;
+        
+        for (let i = 1; i <= totalPages; i++) {
+            doc.setPage(i);
+            
+            // Agregar marca de agua
+            addWatermark(doc, i);
+            
+            // Pie de página con información del sistema
+            doc.setTextColor(100, 100, 100);
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'italic');
+            const pieTexto1 = 'SIGP - Sistema de Identificación de Grupos Pandilleriles';
+            const pieTexto2 = '© 2025, SIGP – Todos los derechos reservados';
+            doc.text(pieTexto1, 15, pageHeight - 10);
+            doc.text(pieTexto2, pageWidth - doc.getTextWidth(pieTexto2) - 15, pageHeight - 10);
+            
+            // Numeración de páginas mejorada
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            const pageText = `Página ${i} de ${totalPages}`;
+            doc.text(pageText, pageWidth / 2, pageHeight - 5, { align: 'center' });
+        }
 
         // Generar nombre de archivo
         const fechaArchivo = new Date().toISOString().split('T')[0];
@@ -1321,12 +1408,39 @@ async function generarPDFPandillasGenerales() {
 
     try {
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('l', 'mm', 'a4'); // Landscape orientation
+        const doc = new jsPDF('l', 'mm', 'a4'); // Landscape orientation para consulta general
 
         // Configuración de colores
         const primaryColor = [59, 130, 246]; // blue-500
         const secondaryColor = [30, 41, 59]; // slate-800
         const textColor = [15, 23, 42]; // slate-950
+        
+        // Función para agregar marca de agua SIGP en cada página
+        function addWatermark(doc, pageNumber) {
+            const wmPageWidth = doc.internal.pageSize.width;
+            const wmPageHeight = doc.internal.pageSize.height;
+            
+            // Guardar estado gráfico actual
+            doc.saveGraphicsState();
+            
+            // Aplicar opacidad baja (10% = 0.1)
+            doc.setGState(new doc.GState({ opacity: 0.1 }));
+            
+            // Configurar marca de agua
+            doc.setTextColor(100, 100, 100); // Gris oscuro (la opacidad lo hará tenue)
+            doc.setFontSize(80);
+            doc.setFont('helvetica', 'bold');
+            
+            // Rotar y centrar la marca de agua
+            const text = 'SIGP';
+            doc.text(text, wmPageWidth / 2, wmPageHeight / 2, {
+                align: 'center',
+                angle: 45
+            });
+            
+            // Restaurar estado gráfico (para que no afecte el resto del documento)
+            doc.restoreGraphicsState();
+        }
 
         // Encabezado general (solo en la primera página)
         doc.setFillColor(...primaryColor);
@@ -1378,7 +1492,8 @@ async function generarPDFPandillasGenerales() {
                 ['Dirección', pandilla.direccion || '-'],
                 ['Descripción', pandilla.descripcion || '-'],
                 ['Delitos', (pandilla.delitos && pandilla.delitos.length > 0) ? pandilla.delitos.map(d => d.nombre || d).join(', ') : '-'],
-                ['Faltas', (pandilla.faltas && pandilla.faltas.length > 0) ? pandilla.faltas.map(f => f.falta || f.nombre || f).join(', ') : '-']
+                ['Faltas', (pandilla.faltas && pandilla.faltas.length > 0) ? pandilla.faltas.map(f => f.falta || f.nombre || f).join(', ') : '-'],
+                ['Redes Sociales', (pandilla.redes_sociales && pandilla.redes_sociales.length > 0) ? pandilla.redes_sociales.map(r => `${r.plataforma}${r.handle ? `: ${r.handle}` : ''}`).join(', ') : 'Sin redes sociales']
             ];
 
             doc.autoTable({
@@ -1390,40 +1505,45 @@ async function generarPDFPandillasGenerales() {
                     fillColor: secondaryColor,
                     textColor: 255,
                     fontStyle: 'bold',
-                    fontSize: 9
+                    fontSize: 8,
+                    halign: 'center'
                 },
                 bodyStyles: {
                     textColor: textColor,
-                    fontSize: 8
+                    fontSize: 7,
+                    valign: 'top'
                 },
                 alternateRowStyles: {
                     fillColor: [241, 245, 249]
                 },
             margin: { top: startY, left: 10, right: 10, bottom: 10 },
             styles: {
-                cellPadding: 3,
+                cellPadding: 2,
                 overflow: 'linebreak',
                 cellWidth: 'wrap',
                 lineColor: [200, 200, 200],
-                lineWidth: 0.1
+                lineWidth: 0.1,
+                minCellHeight: 7
             },
             columnStyles: {
-                0: { cellWidth: 60, fontStyle: 'bold' },
+                0: { cellWidth: 50, fontStyle: 'bold', halign: 'right' },
                 1: { cellWidth: 'auto' }
             },
             didParseCell: function (data) {
-                // Ajustar altura para descripción
-                if (data.section === 'body' && data.column.index === 1 && data.row.index === 5) {
-                    const descripcion = pandilla.descripcion || '';
-                    if (descripcion.length > 80) {
-                        const lineas = Math.ceil(descripcion.length / 80);
-                        data.cell.minHeight = Math.max(8, lineas * 4 + 4);
+                // Ajustar altura para descripción, delitos, faltas y redes sociales
+                if (data.section === 'body' && data.column.index === 1) {
+                    const cellText = data.cell.text[0] || '';
+                    if ((data.row.index === 5 || data.row.index === 6 || data.row.index === 7 || data.row.index === 8) && cellText.length > 60) {
+                        const lineas = Math.ceil(cellText.length / 60);
+                        data.cell.minHeight = Math.max(7, lineas * 3.5 + 2);
                     }
                 }
             },
             // Evitar espacios innecesarios
-            tableWidth: 'wrap',
-            showHead: 'firstPage'
+            tableWidth: 'auto',
+            showHead: 'firstPage',
+            pageBreak: 'auto', // División automática de páginas
+            rowPageBreak: 'avoid' // Evitar dividir filas entre páginas
             });
 
             startY = doc.lastAutoTable.finalY + 5;
@@ -1459,30 +1579,35 @@ async function generarPDFPandillasGenerales() {
                         fillColor: secondaryColor,
                         textColor: 255,
                         fontStyle: 'bold',
-                        fontSize: 9
+                        fontSize: 8,
+                        halign: 'center'
                     },
                     bodyStyles: {
                         textColor: textColor,
-                        fontSize: 8
+                        fontSize: 7,
+                        valign: 'middle'
                     },
                     alternateRowStyles: {
                         fillColor: [241, 245, 249]
                     },
                     margin: { top: startY, left: 10, right: 10, bottom: 10 },
                     styles: {
-                        cellPadding: 3,
+                        cellPadding: 2,
                         overflow: 'linebreak',
                         cellWidth: 'wrap',
                         lineColor: [200, 200, 200],
-                        lineWidth: 0.1
+                        lineWidth: 0.1,
+                        minCellHeight: 7
                     },
                     columnStyles: {
-                        0: { cellWidth: 'auto' },
-                        1: { cellWidth: 'auto' }
+                        0: { cellWidth: 'auto', halign: 'left' },
+                        1: { cellWidth: 'auto', halign: 'left' }
                     },
                     // Evitar espacios innecesarios
-                    tableWidth: 'wrap',
-                    showHead: 'firstPage'
+                    tableWidth: 'auto',
+                    showHead: 'firstPage',
+                    pageBreak: 'auto', // División automática de páginas
+                    rowPageBreak: 'avoid' // Evitar dividir filas entre páginas
                 });
 
                 startY = doc.lastAutoTable.finalY + 3;
@@ -1511,17 +1636,31 @@ async function generarPDFPandillasGenerales() {
         doc.text(`Total de pandillas: ${totalPandillas}`, 15, finalY + 7);
         doc.text(`Total de integrantes: ${totalIntegrantes}`, 15, finalY + 12);
 
-        // Pie de página en cada página
+        // Agregar marca de agua y numeración de páginas a todas las páginas
         const totalPages = doc.internal.getNumberOfPages();
+        const pageWidth = doc.internal.pageSize.width;
+        const pageHeight = doc.internal.pageSize.height;
+        
         for (let i = 1; i <= totalPages; i++) {
             doc.setPage(i);
+            
+            // Agregar marca de agua
+            addWatermark(doc, i);
+            
+            // Pie de página con información del sistema
             doc.setTextColor(100, 100, 100);
             doc.setFontSize(8);
             doc.setFont('helvetica', 'italic');
             const pieTexto1 = 'SIGP - Sistema de Identificación de Grupos Pandilleriles';
             const pieTexto2 = '© 2025, SIGP – Todos los derechos reservados';
-            doc.text(pieTexto1, 15, doc.internal.pageSize.height - 10);
-            doc.text(pieTexto2, doc.internal.pageSize.width - doc.getTextWidth(pieTexto2) - 15, doc.internal.pageSize.height - 10);
+            doc.text(pieTexto1, 15, pageHeight - 10);
+            doc.text(pieTexto2, pageWidth - doc.getTextWidth(pieTexto2) - 15, pageHeight - 10);
+            
+            // Numeración de páginas mejorada
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            const pageText = `Página ${i} de ${totalPages}`;
+            doc.text(pageText, pageWidth / 2, pageHeight - 5, { align: 'center' });
         }
 
         // Generar nombre de archivo

@@ -10,12 +10,16 @@ from .serializers import LoginSerializer, UsuarioSerializer, DireccionSerializer
 from .models import Direccion, Pandilla
 from django.db import connection
 import os
+import logging
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 import uuid
+
+# Configurar logger
+logger = logging.getLogger(__name__)
 
 
 @api_view(['POST'])
@@ -1515,13 +1519,6 @@ def create_red_social(request):
                 'message': 'La plataforma es requerida'
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        # Validar que al menos uno de handle o url esté presente
-        if not handle and not url:
-            return Response({
-                'success': False,
-                'message': 'Debes proporcionar al menos un handle o una URL'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
         # Crear la red social usando SQL directo
         with connection.cursor() as cursor:
             # Verificar que la tabla existe
@@ -1532,20 +1529,22 @@ def create_red_social(request):
                     'message': 'La tabla de redes sociales no existe en la base de datos'
                 }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
-            # Insertar la red social
+            # Insertar la red social (usar string vacío en lugar de NULL si no acepta NULL)
             cursor.execute("""
                 INSERT INTO redes_sociales (plataforma, handle, url)
                 VALUES (%s, %s, %s)
-            """, [plataforma, handle or None, url or None])
+            """, [plataforma, handle or '', url or ''])
             id_red_social = cursor.lastrowid
             
             return Response({
                 'success': True,
                 'message': 'Red social creada correctamente',
-                'id_red_social': id_red_social,
-                'plataforma': plataforma,
-                'handle': handle,
-                'url': url
+                'red_social': {
+                    'id_red_social': id_red_social,
+                    'plataforma': plataforma,
+                    'handle': handle or '',
+                    'url': url or ''
+                }
             }, status=status.HTTP_201_CREATED)
             
     except Exception as e:
@@ -2021,7 +2020,7 @@ def get_all_eventos(request):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])  # Público - solo devuelve nombres de delitos
 def get_all_delitos(request):
     """Obtener todos los delitos"""
     try:
@@ -2045,7 +2044,7 @@ def get_all_delitos(request):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])  # Público - solo devuelve nombres de faltas
 def get_all_faltas(request):
     """Obtener todas las faltas"""
     try:
@@ -3017,6 +3016,28 @@ def consulta_pandillas(request):
                         'nombre_completo': int_row[5] or int_row[1]
                     })
                 
+                # Obtener redes sociales de la pandilla
+                pandilla['redes_sociales'] = []
+                try:
+                    cursor.execute("SHOW TABLES LIKE 'redes_pandillas'")
+                    if cursor.fetchone():
+                        cursor.execute("""
+                            SELECT r.id_red_social, r.plataforma, r.handle, r.url
+                            FROM redes_pandillas rp
+                            JOIN redes_sociales r ON rp.id_red_social = r.id_red_social
+                            WHERE rp.id_pandilla = %s
+                        """, [pandilla['id_pandilla']])
+                        for red_row in cursor.fetchall():
+                            pandilla['redes_sociales'].append({
+                                'id_red_social': red_row[0],
+                                'plataforma': red_row[1],
+                                'handle': red_row[2] or '',
+                                'url': red_row[3] or ''
+                            })
+                except Exception as e:
+                    print(f"Error al obtener redes sociales de la pandilla {pandilla['id_pandilla']}: {str(e)}")
+                    pass
+                
                 pandillas_data.append(pandilla)
             
             return Response({
@@ -3261,6 +3282,27 @@ def consulta_integrantes(request):
                 except Exception:
                     integrante['imagen_url'] = None
                 
+                # Obtener redes sociales del integrante
+                try:
+                    cursor.execute("SHOW TABLES LIKE 'redes_integrantes'")
+                    if cursor.fetchone():
+                        cursor.execute("""
+                            SELECT r.id_red_social, r.plataforma, r.handle, r.url
+                            FROM redes_integrantes ri
+                            JOIN redes_sociales r ON ri.id_red_social = r.id_red_social
+                            WHERE ri.id_integrante = %s
+                        """, [id_integrante])
+                        for red_row in cursor.fetchall():
+                            integrante['redes_sociales'].append({
+                                'id_red_social': red_row[0],
+                                'plataforma': red_row[1],
+                                'handle': red_row[2] or '',
+                                'url': red_row[3] or ''
+                            })
+                except Exception as e:
+                    print(f"Error al obtener redes sociales del integrante {id_integrante}: {str(e)}")
+                    pass
+                
                 integrantes_data.append(integrante)
             
             return Response({
@@ -3477,6 +3519,28 @@ def consulta_pandillas(request):
                 except Exception:
                     pass
                 
+                # Obtener redes sociales de la pandilla
+                redes_sociales = []
+                try:
+                    cursor.execute("SHOW TABLES LIKE 'redes_pandillas'")
+                    if cursor.fetchone():
+                        cursor.execute("""
+                            SELECT r.id_red_social, r.plataforma, r.handle, r.url
+                            FROM redes_pandillas rp
+                            JOIN redes_sociales r ON rp.id_red_social = r.id_red_social
+                            WHERE rp.id_pandilla = %s
+                        """, [pandilla_id])
+                        for red_row in cursor.fetchall():
+                            redes_sociales.append({
+                                'id_red_social': red_row[0],
+                                'plataforma': red_row[1],
+                                'handle': red_row[2] or '',
+                                'url': red_row[3] or ''
+                            })
+                except Exception as e:
+                    print(f"Error al obtener redes sociales de la pandilla {pandilla_id}: {str(e)}")
+                    pass
+                
                 pandillas.append({
                     'id_pandilla': pandilla_id,
                     'nombre': row[1],
@@ -3490,7 +3554,8 @@ def consulta_pandillas(request):
                     'direccion': row[9] or 'N/A',
                     'integrantes': integrantes,
                     'delitos': delitos,
-                    'faltas': faltas
+                    'faltas': faltas,
+                    'redes_sociales': redes_sociales
                 })
             
             return Response({
@@ -3600,6 +3665,28 @@ def consulta_pandillas_general(request):
                 except Exception:
                     pass
                 
+                # Obtener redes sociales de la pandilla
+                redes_sociales = []
+                try:
+                    cursor.execute("SHOW TABLES LIKE 'redes_pandillas'")
+                    if cursor.fetchone():
+                        cursor.execute("""
+                            SELECT r.id_red_social, r.plataforma, r.handle, r.url
+                            FROM redes_pandillas rp
+                            JOIN redes_sociales r ON rp.id_red_social = r.id_red_social
+                            WHERE rp.id_pandilla = %s
+                        """, [pandilla_id])
+                        for red_row in cursor.fetchall():
+                            redes_sociales.append({
+                                'id_red_social': red_row[0],
+                                'plataforma': red_row[1],
+                                'handle': red_row[2] or '',
+                                'url': red_row[3] or ''
+                            })
+                except Exception as e:
+                    print(f"Error al obtener redes sociales de la pandilla {pandilla_id}: {str(e)}")
+                    pass
+                
                 pandillas.append({
                     'id_pandilla': pandilla_id,
                     'nombre': row[1],
@@ -3613,7 +3700,8 @@ def consulta_pandillas_general(request):
                     'direccion': row[9] or 'N/A',
                     'integrantes': integrantes,
                     'delitos': delitos,
-                    'faltas': faltas
+                    'faltas': faltas,
+                    'redes_sociales': redes_sociales
                 })
             
             return Response({
@@ -3733,4 +3821,557 @@ Este mensaje fue enviado desde el formulario de contacto de SIGP.
         return Response({
             'success': False,
             'message': f'Error al procesar la solicitud: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# ==================== ENDPOINTS PARA CONTAR RELACIONES ====================
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_pandilla_integrantes_count(request, id_pandilla):
+    """
+    Endpoint para contar integrantes asociados a una pandilla.
+    """
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT COUNT(*) FROM integrantes WHERE id_pandilla = %s", [id_pandilla])
+            count = cursor.fetchone()[0]
+            
+            return Response({
+                'success': True,
+                'count': count
+            }, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({
+            'success': False,
+            'message': f'Error al contar integrantes: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_delito_eventos_count(request, id_delito):
+    """
+    Endpoint para contar eventos asociados a un delito.
+    """
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT COUNT(*) FROM eventos WHERE id_delito = %s", [id_delito])
+            count = cursor.fetchone()[0]
+            
+            return Response({
+                'success': True,
+                'count': count
+            }, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({
+            'success': False,
+            'message': f'Error al contar eventos: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_falta_eventos_count(request, id_falta):
+    """
+    Endpoint para contar eventos asociados a una falta.
+    """
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT COUNT(*) FROM eventos WHERE id_falta = %s", [id_falta])
+            count = cursor.fetchone()[0]
+            
+            return Response({
+                'success': True,
+                'count': count
+            }, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({
+            'success': False,
+            'message': f'Error al contar eventos: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_direccion_usage_count(request, id_direccion):
+    """
+    Endpoint para contar el uso de una dirección en pandillas, integrantes y eventos.
+    """
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT COUNT(*) FROM pandillas WHERE id_direccion = %s", [id_direccion])
+            num_pandillas = cursor.fetchone()[0]
+            
+            cursor.execute("SELECT COUNT(*) FROM integrantes WHERE id_direccion = %s", [id_direccion])
+            num_integrantes = cursor.fetchone()[0]
+            
+            cursor.execute("SELECT COUNT(*) FROM eventos WHERE id_direccion = %s", [id_direccion])
+            num_eventos = cursor.fetchone()[0]
+            
+            return Response({
+                'success': True,
+                'pandillas': num_pandillas,
+                'integrantes': num_integrantes,
+                'eventos': num_eventos,
+                'total': num_pandillas + num_integrantes + num_eventos
+            }, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({
+            'success': False,
+            'message': f'Error al contar usos: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# ==================== ENDPOINTS DELETE PARA ELIMINAR REGISTROS ====================
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_pandilla(request, id_pandilla):
+    """
+    Endpoint para eliminar una pandilla y todas sus relaciones.
+    Parámetro opcional: eliminar_integrantes (true/false)
+    Solo disponible para usuarios autenticados.
+    """
+    try:
+        eliminar_integrantes = request.GET.get('eliminar_integrantes', 'false').lower() == 'true'
+        
+        with connection.cursor() as cursor:
+            # Verificar que la pandilla existe
+            cursor.execute("SELECT nombre FROM pandillas WHERE id_pandilla = %s", [id_pandilla])
+            pandilla = cursor.fetchone()
+            
+            if not pandilla:
+                return Response({
+                    'success': False,
+                    'message': 'Pandilla no encontrada'
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            pandilla_nombre = pandilla[0]
+            
+            # Verificar si hay integrantes asociados
+            cursor.execute("SELECT COUNT(*) FROM integrantes WHERE id_pandilla = %s", [id_pandilla])
+            num_integrantes = cursor.fetchone()[0]
+            
+            if num_integrantes > 0 and not eliminar_integrantes:
+                return Response({
+                    'success': False,
+                    'message': f'No se puede eliminar la pandilla porque tiene {num_integrantes} integrante(s) asociado(s). Primero elimina o reasigna los integrantes.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Si se debe eliminar los integrantes, hacerlo primero
+            if eliminar_integrantes and num_integrantes > 0:
+                # Obtener IDs de integrantes para eliminar sus relaciones
+                cursor.execute("SELECT id_integrante FROM integrantes WHERE id_pandilla = %s", [id_pandilla])
+                integrantes_ids = [row[0] for row in cursor.fetchall()]
+                
+                for id_integrante in integrantes_ids:
+                    # Eliminar relaciones de cada integrante
+                    cursor.execute("DELETE FROM integrantes_delitos WHERE id_integrante = %s", [id_integrante])
+                    cursor.execute("DELETE FROM integrantes_faltas WHERE id_integrante = %s", [id_integrante])
+                    cursor.execute("DELETE FROM redes_integrantes WHERE id_integrante = %s", [id_integrante])
+                    cursor.execute("DELETE FROM imagenes_integrantes WHERE id_integrante = %s", [id_integrante])
+                    # Actualizar eventos
+                    try:
+                        cursor.execute("UPDATE eventos SET id_integrante = NULL WHERE id_integrante = %s", [id_integrante])
+                    except Exception:
+                        pass
+                
+                # Eliminar los integrantes
+                cursor.execute("DELETE FROM integrantes WHERE id_pandilla = %s", [id_pandilla])
+            
+            # Eliminar relaciones en tablas intermedias de la pandilla
+            cursor.execute("DELETE FROM pandillas_delitos WHERE id_pandilla = %s", [id_pandilla])
+            cursor.execute("DELETE FROM pandillas_faltas WHERE id_pandilla = %s", [id_pandilla])
+            cursor.execute("DELETE FROM rivalidades WHERE id_pandilla = %s OR id_pandilla_rival = %s", [id_pandilla, id_pandilla])
+            cursor.execute("DELETE FROM redes_pandillas WHERE id_pandilla = %s", [id_pandilla])
+            
+            # Actualizar eventos (quitar relación con la pandilla si permite NULL)
+            try:
+                cursor.execute("UPDATE eventos SET id_pandilla = NULL WHERE id_pandilla = %s", [id_pandilla])
+            except Exception:
+                pass
+            
+            # Eliminar la pandilla
+            cursor.execute("DELETE FROM pandillas WHERE id_pandilla = %s", [id_pandilla])
+            
+            mensaje = f'Pandilla "{pandilla_nombre}" eliminada correctamente'
+            if eliminar_integrantes and num_integrantes > 0:
+                mensaje += f' junto con {num_integrantes} integrante(s)'
+            
+            return Response({
+                'success': True,
+                'message': mensaje
+            }, status=status.HTTP_200_OK)
+            
+    except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        logger.error(f"Error al eliminar pandilla: {error_trace}")
+        return Response({
+            'success': False,
+            'message': f'Error al eliminar la pandilla: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_integrante(request, id_integrante):
+    """
+    Endpoint para eliminar un integrante y todas sus relaciones.
+    Solo disponible para usuarios autenticados.
+    """
+    try:
+        with connection.cursor() as cursor:
+            # Verificar que el integrante existe
+            cursor.execute("""
+                SELECT CONCAT(nombre, ' ', COALESCE(apellido_paterno, '')) 
+                FROM integrantes 
+                WHERE id_integrante = %s
+            """, [id_integrante])
+            integrante = cursor.fetchone()
+            
+            if not integrante:
+                return Response({
+                    'success': False,
+                    'message': 'Integrante no encontrado'
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            integrante_nombre = integrante[0]
+            
+            # Eliminar relaciones en tablas intermedias
+            cursor.execute("DELETE FROM integrantes_delitos WHERE id_integrante = %s", [id_integrante])
+            cursor.execute("DELETE FROM integrantes_faltas WHERE id_integrante = %s", [id_integrante])
+            cursor.execute("DELETE FROM redes_integrantes WHERE id_integrante = %s", [id_integrante])
+            cursor.execute("DELETE FROM imagenes_integrantes WHERE id_integrante = %s", [id_integrante])
+            
+            # Actualizar eventos (quitar relación con el integrante)
+            cursor.execute("UPDATE eventos SET id_integrante = NULL WHERE id_integrante = %s", [id_integrante])
+            
+            # Eliminar el integrante
+            cursor.execute("DELETE FROM integrantes WHERE id_integrante = %s", [id_integrante])
+            
+            return Response({
+                'success': True,
+                'message': f'Integrante "{integrante_nombre}" eliminado correctamente'
+            }, status=status.HTTP_200_OK)
+            
+    except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        logger.error(f"Error al eliminar integrante: {error_trace}")
+        return Response({
+            'success': False,
+            'message': f'Error al eliminar el integrante: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_evento(request, id_evento):
+    """
+    Endpoint para eliminar un evento.
+    Solo disponible para usuarios autenticados.
+    """
+    try:
+        with connection.cursor() as cursor:
+            # Verificar que el evento existe
+            cursor.execute("SELECT fecha, hora FROM eventos WHERE id_evento = %s", [id_evento])
+            evento = cursor.fetchone()
+            
+            if not evento:
+                return Response({
+                    'success': False,
+                    'message': 'Evento no encontrado'
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            evento_fecha = evento[0]
+            evento_hora = evento[1] if len(evento) > 1 else None
+            evento_desc = f"{evento_fecha} {evento_hora if evento_hora else ''}".strip()
+            
+            # Eliminar el evento
+            cursor.execute("DELETE FROM eventos WHERE id_evento = %s", [id_evento])
+            
+            return Response({
+                'success': True,
+                'message': f'Evento del {evento_desc} eliminado correctamente'
+            }, status=status.HTTP_200_OK)
+            
+    except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        logger.error(f"Error al eliminar evento: {error_trace}")
+        return Response({
+            'success': False,
+            'message': f'Error al eliminar el evento: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_delito(request, id_delito):
+    """
+    Endpoint para eliminar un delito.
+    Parámetro opcional: eliminar_eventos (true/false)
+    Solo disponible para usuarios autenticados.
+    """
+    try:
+        eliminar_eventos = request.GET.get('eliminar_eventos', 'false').lower() == 'true'
+        
+        with connection.cursor() as cursor:
+            # Verificar que el delito existe
+            cursor.execute("SELECT nombre FROM delitos WHERE id_delito = %s", [id_delito])
+            delito = cursor.fetchone()
+            
+            if not delito:
+                return Response({
+                    'success': False,
+                    'message': 'Delito no encontrado'
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            delito_nombre = delito[0]
+            
+            # Verificar si hay eventos asociados
+            cursor.execute("SELECT COUNT(*) FROM eventos WHERE id_delito = %s", [id_delito])
+            num_eventos = cursor.fetchone()[0]
+            
+            if num_eventos > 0 and not eliminar_eventos:
+                return Response({
+                    'success': False,
+                    'message': f'No se puede eliminar el delito porque tiene {num_eventos} evento(s) asociado(s).'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Si se deben eliminar los eventos, hacerlo primero
+            if eliminar_eventos and num_eventos > 0:
+                cursor.execute("DELETE FROM eventos WHERE id_delito = %s", [id_delito])
+            
+            # Eliminar relaciones en tablas intermedias
+            cursor.execute("DELETE FROM pandillas_delitos WHERE id_delito = %s", [id_delito])
+            cursor.execute("DELETE FROM integrantes_delitos WHERE id_delito = %s", [id_delito])
+            
+            # Eliminar el delito
+            cursor.execute("DELETE FROM delitos WHERE id_delito = %s", [id_delito])
+            
+            mensaje = f'Delito "{delito_nombre}" eliminado correctamente'
+            if eliminar_eventos and num_eventos > 0:
+                mensaje += f' junto con {num_eventos} evento(s)'
+            
+            return Response({
+                'success': True,
+                'message': mensaje
+            }, status=status.HTTP_200_OK)
+            
+    except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        logger.error(f"Error al eliminar delito: {error_trace}")
+        return Response({
+            'success': False,
+            'message': f'Error al eliminar el delito: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_falta(request, id_falta):
+    """
+    Endpoint para eliminar una falta.
+    Parámetro opcional: eliminar_eventos (true/false)
+    Solo disponible para usuarios autenticados.
+    """
+    try:
+        eliminar_eventos = request.GET.get('eliminar_eventos', 'false').lower() == 'true'
+        
+        with connection.cursor() as cursor:
+            # Verificar que la falta existe
+            cursor.execute("SELECT nombre FROM faltas WHERE id_falta = %s", [id_falta])
+            falta = cursor.fetchone()
+            
+            if not falta:
+                # Intentar con columna 'falta'
+                cursor.execute("SELECT falta FROM faltas WHERE id_falta = %s", [id_falta])
+                falta = cursor.fetchone()
+            
+            if not falta:
+                return Response({
+                    'success': False,
+                    'message': 'Falta no encontrada'
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            falta_nombre = falta[0]
+            
+            # Verificar si hay eventos asociados
+            cursor.execute("SELECT COUNT(*) FROM eventos WHERE id_falta = %s", [id_falta])
+            num_eventos = cursor.fetchone()[0]
+            
+            if num_eventos > 0 and not eliminar_eventos:
+                return Response({
+                    'success': False,
+                    'message': f'No se puede eliminar la falta porque tiene {num_eventos} evento(s) asociado(s).'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Si se deben eliminar los eventos, hacerlo primero
+            if eliminar_eventos and num_eventos > 0:
+                cursor.execute("DELETE FROM eventos WHERE id_falta = %s", [id_falta])
+            
+            # Eliminar relaciones en tablas intermedias
+            cursor.execute("DELETE FROM pandillas_faltas WHERE id_falta = %s", [id_falta])
+            cursor.execute("DELETE FROM integrantes_faltas WHERE id_falta = %s", [id_falta])
+            
+            # Eliminar la falta
+            cursor.execute("DELETE FROM faltas WHERE id_falta = %s", [id_falta])
+            
+            mensaje = f'Falta "{falta_nombre}" eliminada correctamente'
+            if eliminar_eventos and num_eventos > 0:
+                mensaje += f' junto con {num_eventos} evento(s)'
+            
+            return Response({
+                'success': True,
+                'message': mensaje
+            }, status=status.HTTP_200_OK)
+            
+    except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        logger.error(f"Error al eliminar falta: {error_trace}")
+        return Response({
+            'success': False,
+            'message': f'Error al eliminar la falta: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_direccion(request, id_direccion):
+    """
+    Endpoint para eliminar una dirección.
+    Solo disponible para usuarios autenticados.
+    """
+    try:
+        with connection.cursor() as cursor:
+            # Verificar que la dirección existe
+            cursor.execute("SELECT calle, colonia FROM direcciones WHERE id_direccion = %s", [id_direccion])
+            direccion = cursor.fetchone()
+            
+            if not direccion:
+                return Response({
+                    'success': False,
+                    'message': 'Dirección no encontrada'
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            direccion_desc = f"{direccion[0]}, {direccion[1] or ''}".strip()
+            
+            # Verificar si hay registros usando esta dirección
+            cursor.execute("SELECT COUNT(*) FROM pandillas WHERE id_direccion = %s", [id_direccion])
+            num_pandillas = cursor.fetchone()[0]
+            
+            cursor.execute("SELECT COUNT(*) FROM integrantes WHERE id_direccion = %s", [id_direccion])
+            num_integrantes = cursor.fetchone()[0]
+            
+            cursor.execute("SELECT COUNT(*) FROM eventos WHERE id_direccion = %s", [id_direccion])
+            num_eventos = cursor.fetchone()[0]
+            
+            total_usos = num_pandillas + num_integrantes + num_eventos
+            
+            if total_usos > 0:
+                return Response({
+                    'success': False,
+                    'message': f'No se puede eliminar la dirección porque está siendo usada por {total_usos} registro(s) (pandillas, integrantes o eventos).'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Eliminar la dirección
+            cursor.execute("DELETE FROM direcciones WHERE id_direccion = %s", [id_direccion])
+            
+            return Response({
+                'success': True,
+                'message': f'Dirección "{direccion_desc}" eliminada correctamente'
+            }, status=status.HTTP_200_OK)
+            
+    except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        logger.error(f"Error al eliminar dirección: {error_trace}")
+        return Response({
+            'success': False,
+            'message': f'Error al eliminar la dirección: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_rivalidad(request, id_rivalidad):
+    """
+    Endpoint para eliminar una rivalidad.
+    Solo disponible para usuarios autenticados.
+    """
+    try:
+        with connection.cursor() as cursor:
+            # Verificar que la rivalidad existe
+            cursor.execute("SELECT id_pandilla, id_pandilla_rival FROM rivalidades WHERE id_rivalidad = %s", [id_rivalidad])
+            rivalidad = cursor.fetchone()
+            
+            if not rivalidad:
+                return Response({
+                    'success': False,
+                    'message': 'Rivalidad no encontrada'
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            # Eliminar la rivalidad
+            cursor.execute("DELETE FROM rivalidades WHERE id_rivalidad = %s", [id_rivalidad])
+            
+            return Response({
+                'success': True,
+                'message': 'Rivalidad eliminada correctamente'
+            }, status=status.HTTP_200_OK)
+            
+    except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        logger.error(f"Error al eliminar rivalidad: {error_trace}")
+        return Response({
+            'success': False,
+            'message': f'Error al eliminar la rivalidad: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_red_social(request, id_red_social):
+    """
+    Endpoint para eliminar una red social.
+    Solo disponible para usuarios autenticados.
+    """
+    try:
+        with connection.cursor() as cursor:
+            # Verificar que la red social existe
+            cursor.execute("SELECT plataforma FROM redes_sociales WHERE id_red_social = %s", [id_red_social])
+            red_social = cursor.fetchone()
+            
+            if not red_social:
+                return Response({
+                    'success': False,
+                    'message': 'Red social no encontrada'
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            plataforma = red_social[0]
+            
+            # Eliminar relaciones en tablas intermedias
+            cursor.execute("DELETE FROM redes_pandillas WHERE id_red_social = %s", [id_red_social])
+            cursor.execute("DELETE FROM redes_integrantes WHERE id_red_social = %s", [id_red_social])
+            
+            # Eliminar la red social
+            cursor.execute("DELETE FROM redes_sociales WHERE id_red_social = %s", [id_red_social])
+            
+            return Response({
+                'success': True,
+                'message': f'Red social "{plataforma}" eliminada correctamente'
+            }, status=status.HTTP_200_OK)
+            
+    except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        logger.error(f"Error al eliminar red social: {error_trace}")
+        return Response({
+            'success': False,
+            'message': f'Error al eliminar la red social: {str(e)}'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

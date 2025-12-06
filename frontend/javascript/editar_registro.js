@@ -2261,6 +2261,767 @@ async function submitEditarRedSocialForm(e) {
     }
 }
 
+// ==================== FUNCIONES PARA ELIMINAR REGISTROS ====================
+
+// Función para eliminar pandilla con confirmación
+async function eliminarPandilla() {
+    if (!currentEditId) {
+        alert('Error: No se ha seleccionado una pandilla');
+        return;
+    }
+
+    const token = typeof getAuthToken === 'function' ? getAuthToken() : null;
+    if (!token) {
+        alert('No estás autenticado');
+        return;
+    }
+
+    try {
+        // Primero verificar si tiene integrantes
+        const checkResponse = await fetch(`http://localhost:8000/api/pandillas/${currentEditId}/`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Token ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const pandillaData = await checkResponse.json();
+        
+        // Verificar número de integrantes
+        const numIntegrantesResponse = await fetch(`http://localhost:8000/api/pandillas/${currentEditId}/integrantes-count/`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Token ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const countData = await numIntegrantesResponse.json();
+        const numIntegrantes = countData.count || 0;
+
+        let eliminarIntegrantes = false;
+
+        if (numIntegrantes > 0) {
+            // Preguntar si quiere eliminar los integrantes también
+            const respuesta = confirm(
+                `⚠️ ADVERTENCIA: Esta pandilla tiene ${numIntegrantes} integrante(s) asociado(s).\n\n` +
+                `Opciones:\n` +
+                `- Haz clic en "Aceptar" para ELIMINAR la pandilla Y TODOS sus integrantes\n` +
+                `- Haz clic en "Cancelar" para NO eliminar nada\n\n` +
+                `¿Deseas eliminar la pandilla Y sus ${numIntegrantes} integrante(s)?`
+            );
+
+            if (!respuesta) {
+                alert('Operación cancelada. No se eliminó nada.');
+                return;
+            }
+
+            // Confirmación adicional para eliminar integrantes
+            const confirmacionFinal = confirm(
+                `🚨 ÚLTIMA CONFIRMACIÓN 🚨\n\n` +
+                `Esto eliminará PERMANENTEMENTE:\n` +
+                `- La pandilla "${pandillaData.nombre || ''}"\n` +
+                `- ${numIntegrantes} integrante(s)\n` +
+                `- Todas sus relaciones (delitos, faltas, rivalidades, redes sociales)\n\n` +
+                `Esta acción NO se puede deshacer.\n\n` +
+                `¿Estás completamente seguro?`
+            );
+
+            if (!confirmacionFinal) {
+                alert('Operación cancelada. No se eliminó nada.');
+                return;
+            }
+
+            eliminarIntegrantes = true;
+        } else {
+            // No tiene integrantes, confirmación simple
+            const confirmacion = confirm(
+                '¿Estás seguro de que deseas eliminar esta pandilla?\n\n' +
+                'Esta acción eliminará:\n' +
+                '- La pandilla\n' +
+                '- Sus relaciones con delitos, faltas y rivalidades\n' +
+                '- Sus redes sociales\n\n' +
+                'Esta acción NO se puede deshacer.'
+            );
+            
+            if (!confirmacion) return;
+        }
+
+        // Realizar la eliminación
+        const response = await fetch(`http://localhost:8000/api/pandillas/${currentEditId}/delete/?eliminar_integrantes=${eliminarIntegrantes}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Token ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert(data.message || 'Pandilla eliminada correctamente');
+            closeModalEditarPandilla();
+            // Recargar lista de registros
+            loadRegistrosForEdit('pandillas');
+        } else {
+            alert(data.message || 'Error al eliminar la pandilla');
+        }
+    } catch (error) {
+        console.error('Error al eliminar pandilla:', error);
+        alert('Error de conexión. Por favor, intenta nuevamente.');
+    }
+}
+
+// Función para eliminar integrante con confirmación
+async function eliminarIntegrante() {
+    if (!currentEditId) {
+        alert('Error: No se ha seleccionado un integrante');
+        return;
+    }
+
+    const confirmacion = confirm('¿Estás seguro de que deseas eliminar este integrante?\n\nEsta acción eliminará:\n- El integrante\n- Sus relaciones con delitos, faltas y redes sociales\n- Sus imágenes asociadas\n\nEsta acción NO se puede deshacer.');
+    
+    if (!confirmacion) return;
+
+    const token = typeof getAuthToken === 'function' ? getAuthToken() : null;
+    if (!token) {
+        alert('No estás autenticado');
+        return;
+    }
+
+    try {
+        const response = await fetch(`http://localhost:8000/api/integrantes/${currentEditId}/delete/`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Token ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert(data.message || 'Integrante eliminado correctamente');
+            closeModalEditarIntegrante();
+            // Recargar lista de registros
+            loadRegistrosForEdit('integrantes');
+        } else {
+            alert(data.message || 'Error al eliminar el integrante');
+        }
+    } catch (error) {
+        console.error('Error al eliminar integrante:', error);
+        alert('Error de conexión. Por favor, intenta nuevamente.');
+    }
+}
+
+// Función para eliminar evento con confirmación
+async function eliminarEvento() {
+    if (!currentEditId) {
+        alert('Error: No se ha seleccionado un evento');
+        return;
+    }
+
+    const confirmacion = confirm('¿Estás seguro de que deseas eliminar este evento?\n\nEsta acción NO se puede deshacer.');
+    
+    if (!confirmacion) return;
+
+    const token = typeof getAuthToken === 'function' ? getAuthToken() : null;
+    if (!token) {
+        alert('No estás autenticado');
+        return;
+    }
+
+    try {
+        const response = await fetch(`http://localhost:8000/api/eventos/${currentEditId}/delete/`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Token ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert(data.message || 'Evento eliminado correctamente');
+            closeModalEditarEvento();
+            // Recargar lista de registros
+            loadRegistrosForEdit('eventos');
+        } else {
+            alert(data.message || 'Error al eliminar el evento');
+        }
+    } catch (error) {
+        console.error('Error al eliminar evento:', error);
+        alert('Error de conexión. Por favor, intenta nuevamente.');
+    }
+}
+
+// Función para eliminar delito con confirmación
+async function eliminarDelito() {
+    if (!currentEditId) {
+        alert('Error: No se ha seleccionado un delito');
+        return;
+    }
+
+    const token = typeof getAuthToken === 'function' ? getAuthToken() : null;
+    if (!token) {
+        alert('No estás autenticado');
+        return;
+    }
+
+    try {
+        // Primero verificar si tiene eventos asociados
+        const checkResponse = await fetch(`http://localhost:8000/api/delitos/${currentEditId}/eventos-count/`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Token ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const countData = await checkResponse.json();
+        const numEventos = countData.count || 0;
+
+        let eliminarEventos = false;
+
+        if (numEventos > 0) {
+            // Preguntar si quiere eliminar los eventos también
+            const respuesta = confirm(
+                `⚠️ ADVERTENCIA: Este delito tiene ${numEventos} evento(s) asociado(s).\n\n` +
+                `Opciones:\n` +
+                `- Haz clic en "Aceptar" para ELIMINAR el delito Y TODOS sus eventos\n` +
+                `- Haz clic en "Cancelar" para NO eliminar nada\n\n` +
+                `¿Deseas eliminar el delito Y sus ${numEventos} evento(s)?`
+            );
+
+            if (!respuesta) {
+                alert('Operación cancelada. No se eliminó nada.');
+                return;
+            }
+
+            // Confirmación adicional para eliminar eventos
+            const confirmacionFinal = confirm(
+                `🚨 ÚLTIMA CONFIRMACIÓN 🚨\n\n` +
+                `Esto eliminará PERMANENTEMENTE:\n` +
+                `- El delito\n` +
+                `- ${numEventos} evento(s) asociado(s)\n` +
+                `- Todas sus relaciones con pandillas e integrantes\n\n` +
+                `Esta acción NO se puede deshacer.\n\n` +
+                `¿Estás completamente seguro?`
+            );
+
+            if (!confirmacionFinal) {
+                alert('Operación cancelada. No se eliminó nada.');
+                return;
+            }
+
+            eliminarEventos = true;
+        } else {
+            // No tiene eventos, confirmación simple
+            const confirmacion = confirm(
+                '¿Estás seguro de que deseas eliminar este delito?\n\n' +
+                'Esta acción eliminará sus relaciones con pandillas e integrantes.\n\n' +
+                'Esta acción NO se puede deshacer.'
+            );
+            
+            if (!confirmacion) return;
+        }
+
+        // Realizar la eliminación
+        const response = await fetch(`http://localhost:8000/api/delitos/${currentEditId}/delete/?eliminar_eventos=${eliminarEventos}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Token ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert(data.message || 'Delito eliminado correctamente');
+            closeModalEditarDelito();
+            // Recargar lista de registros
+            loadRegistrosForEdit('delitos');
+        } else {
+            alert(data.message || 'Error al eliminar el delito');
+        }
+    } catch (error) {
+        console.error('Error al eliminar delito:', error);
+        alert('Error de conexión. Por favor, intenta nuevamente.');
+    }
+}
+
+// Función para eliminar falta con confirmación
+async function eliminarFalta() {
+    if (!currentEditId) {
+        alert('Error: No se ha seleccionado una falta');
+        return;
+    }
+
+    const token = typeof getAuthToken === 'function' ? getAuthToken() : null;
+    if (!token) {
+        alert('No estás autenticado');
+        return;
+    }
+
+    try {
+        // Primero verificar si tiene eventos asociados
+        const checkResponse = await fetch(`http://localhost:8000/api/faltas/${currentEditId}/eventos-count/`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Token ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const countData = await checkResponse.json();
+        const numEventos = countData.count || 0;
+
+        let eliminarEventos = false;
+
+        if (numEventos > 0) {
+            // Preguntar si quiere eliminar los eventos también
+            const respuesta = confirm(
+                `⚠️ ADVERTENCIA: Esta falta tiene ${numEventos} evento(s) asociado(s).\n\n` +
+                `Opciones:\n` +
+                `- Haz clic en "Aceptar" para ELIMINAR la falta Y TODOS sus eventos\n` +
+                `- Haz clic en "Cancelar" para NO eliminar nada\n\n` +
+                `¿Deseas eliminar la falta Y sus ${numEventos} evento(s)?`
+            );
+
+            if (!respuesta) {
+                alert('Operación cancelada. No se eliminó nada.');
+                return;
+            }
+
+            // Confirmación adicional para eliminar eventos
+            const confirmacionFinal = confirm(
+                `🚨 ÚLTIMA CONFIRMACIÓN 🚨\n\n` +
+                `Esto eliminará PERMANENTEMENTE:\n` +
+                `- La falta\n` +
+                `- ${numEventos} evento(s) asociado(s)\n` +
+                `- Todas sus relaciones con pandillas e integrantes\n\n` +
+                `Esta acción NO se puede deshacer.\n\n` +
+                `¿Estás completamente seguro?`
+            );
+
+            if (!confirmacionFinal) {
+                alert('Operación cancelada. No se eliminó nada.');
+                return;
+            }
+
+            eliminarEventos = true;
+        } else {
+            // No tiene eventos, confirmación simple
+            const confirmacion = confirm(
+                '¿Estás seguro de que deseas eliminar esta falta?\n\n' +
+                'Esta acción eliminará sus relaciones con pandillas e integrantes.\n\n' +
+                'Esta acción NO se puede deshacer.'
+            );
+            
+            if (!confirmacion) return;
+        }
+
+        // Realizar la eliminación
+        const response = await fetch(`http://localhost:8000/api/faltas/${currentEditId}/delete/?eliminar_eventos=${eliminarEventos}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Token ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert(data.message || 'Falta eliminada correctamente');
+            closeModalEditarFalta();
+            // Recargar lista de registros
+            loadRegistrosForEdit('faltas');
+        } else {
+            alert(data.message || 'Error al eliminar la falta');
+        }
+    } catch (error) {
+        console.error('Error al eliminar falta:', error);
+        alert('Error de conexión. Por favor, intenta nuevamente.');
+    }
+}
+
+// Función para eliminar dirección con confirmación
+async function eliminarDireccion() {
+    if (!currentEditId) {
+        alert('Error: No se ha seleccionado una dirección');
+        return;
+    }
+
+    const token = typeof getAuthToken === 'function' ? getAuthToken() : null;
+    if (!token) {
+        alert('No estás autenticado');
+        return;
+    }
+
+    try {
+        // Verificar si hay registros usando esta dirección
+        const checkResponse = await fetch(`http://localhost:8000/api/direcciones/${currentEditId}/usage-count/`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Token ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const usageData = await checkResponse.json();
+        const numPandillas = usageData.pandillas || 0;
+        const numIntegrantes = usageData.integrantes || 0;
+        const numEventos = usageData.eventos || 0;
+        const totalUsos = numPandillas + numIntegrantes + numEventos;
+
+        if (totalUsos > 0) {
+            // Mostrar mensaje pidiendo reasignación
+            let mensaje = '⚠️ NO SE PUEDE ELIMINAR ESTA DIRECCIÓN\n\n';
+            mensaje += `Esta dirección está siendo usada por:\n`;
+            if (numPandillas > 0) mensaje += `- ${numPandillas} pandilla(s)\n`;
+            if (numIntegrantes > 0) mensaje += `- ${numIntegrantes} integrante(s)\n`;
+            if (numEventos > 0) mensaje += `- ${numEventos} evento(s)\n`;
+            mensaje += `\n📋 PASOS A SEGUIR:\n`;
+            mensaje += `1. Ve a "Editar Registro"\n`;
+            mensaje += `2. Edita cada pandilla/integrante/evento que usa esta dirección\n`;
+            mensaje += `3. Asígnales una dirección diferente\n`;
+            mensaje += `4. Luego podrás eliminar esta dirección\n\n`;
+            mensaje += `Total de registros usando esta dirección: ${totalUsos}`;
+            
+            alert(mensaje);
+            return;
+        }
+
+        // No está en uso, permitir eliminación
+        const confirmacion = confirm(
+            '¿Estás seguro de que deseas eliminar esta dirección?\n\n' +
+            'Esta dirección no está siendo usada por ningún registro.\n\n' +
+            'Esta acción NO se puede deshacer.'
+        );
+        
+        if (!confirmacion) return;
+
+        // Realizar la eliminación
+        const response = await fetch(`http://localhost:8000/api/direcciones/${currentEditId}/delete/`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Token ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert(data.message || 'Dirección eliminada correctamente');
+            closeModalEditarDireccion();
+            // Recargar lista de registros
+            loadRegistrosForEdit('direcciones');
+        } else {
+            alert(data.message || 'Error al eliminar la dirección');
+        }
+    } catch (error) {
+        console.error('Error al eliminar dirección:', error);
+        alert('Error de conexión. Por favor, intenta nuevamente.');
+    }
+}
+
+// Función para eliminar rivalidad con confirmación
+async function eliminarRivalidad() {
+    if (!currentEditId) {
+        alert('Error: No se ha seleccionado una rivalidad');
+        return;
+    }
+
+    const confirmacion = confirm('¿Estás seguro de que deseas eliminar esta rivalidad?\n\nEsta acción NO se puede deshacer.');
+    
+    if (!confirmacion) return;
+
+    const token = typeof getAuthToken === 'function' ? getAuthToken() : null;
+    if (!token) {
+        alert('No estás autenticado');
+        return;
+    }
+
+    try {
+        const response = await fetch(`http://localhost:8000/api/rivalidades/${currentEditId}/delete/`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Token ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert(data.message || 'Rivalidad eliminada correctamente');
+            closeModalEditarRivalidad();
+            // Recargar lista de registros
+            loadRegistrosForEdit('rivalidades');
+        } else {
+            alert(data.message || 'Error al eliminar la rivalidad');
+        }
+    } catch (error) {
+        console.error('Error al eliminar rivalidad:', error);
+        alert('Error de conexión. Por favor, intenta nuevamente.');
+    }
+}
+
+// Función para eliminar red social con confirmación
+async function eliminarRedSocial() {
+    if (!currentEditId) {
+        alert('Error: No se ha seleccionado una red social');
+        return;
+    }
+
+    const confirmacion = confirm('¿Estás seguro de que deseas eliminar esta red social?\n\nEsta acción eliminará sus relaciones con pandillas e integrantes.\n\nEsta acción NO se puede deshacer.');
+    
+    if (!confirmacion) return;
+
+    const token = typeof getAuthToken === 'function' ? getAuthToken() : null;
+    if (!token) {
+        alert('No estás autenticado');
+        return;
+    }
+
+    try {
+        const response = await fetch(`http://localhost:8000/api/redes-sociales/${currentEditId}/delete/`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Token ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert(data.message || 'Red social eliminada correctamente');
+            closeModalEditarRedSocial();
+            // Recargar lista de registros
+            loadRegistrosForEdit('redes-sociales');
+        } else {
+            alert(data.message || 'Error al eliminar la red social');
+        }
+    } catch (error) {
+        console.error('Error al eliminar red social:', error);
+        alert('Error de conexión. Por favor, intenta nuevamente.');
+    }
+}
+
+// ==================== FUNCIONES PARA NUEVA RED SOCIAL EN MODALES DE EDICIÓN ====================
+
+// ========== FUNCIONES PARA PANDILLAS EDIT ==========
+
+// Función para mostrar/ocultar formulario de nueva red social en modal de editar pandilla
+function toggleFormNuevaRedSocialPandillaEdit() {
+    const form = document.getElementById('form-nueva-red-social-pandilla-edit');
+    if (form) {
+        form.classList.toggle('hidden');
+    }
+}
+
+// Función para cerrar formulario de nueva red social en modal de editar pandilla
+function cerrarFormNuevaRedSocialPandillaEdit() {
+    const form = document.getElementById('form-nueva-red-social-pandilla-edit');
+    if (form) {
+        form.classList.add('hidden');
+        // Limpiar campos
+        document.getElementById('nueva-plataforma-pandilla-edit').value = '';
+        document.getElementById('nueva-handle-pandilla-edit').value = '';
+        document.getElementById('nueva-url-pandilla-edit').value = '';
+        const mensaje = document.getElementById('mensaje-red-social-pandilla-edit');
+        if (mensaje) {
+            mensaje.classList.add('hidden');
+            mensaje.textContent = '';
+        }
+    }
+}
+
+// Función para guardar nueva red social desde modal de editar pandilla
+async function guardarNuevaRedSocialPandillaEdit() {
+    const plataforma = document.getElementById('nueva-plataforma-pandilla-edit').value.trim();
+    const handle = document.getElementById('nueva-handle-pandilla-edit').value.trim();
+    const url = document.getElementById('nueva-url-pandilla-edit').value.trim();
+    const mensaje = document.getElementById('mensaje-red-social-pandilla-edit');
+
+    // Validaciones
+    if (!plataforma) {
+        if (mensaje) {
+            mensaje.textContent = 'La plataforma es requerida';
+            mensaje.className = 'mt-2 text-xs text-red-500';
+            mensaje.classList.remove('hidden');
+        }
+        return;
+    }
+
+    const token = typeof getAuthToken === 'function' ? getAuthToken() : null;
+    if (!token) {
+        if (mensaje) {
+            mensaje.textContent = 'No estás autenticado';
+            mensaje.className = 'mt-2 text-xs text-red-500';
+            mensaje.classList.remove('hidden');
+        }
+        return;
+    }
+
+    try {
+        const response = await fetch('http://localhost:8000/api/redes-sociales/create/', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Token ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                plataforma: plataforma,
+                handle: handle || null,
+                url: url || null
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            // Cerrar el formulario
+            cerrarFormNuevaRedSocialPandillaEdit();
+
+            // Recargar redes sociales
+            await loadRedesSocialesForEditPandilla();
+            
+            // Auto-seleccionar la nueva red social en los checkboxes
+            if (data.red_social && data.red_social.id_red_social) {
+                setTimeout(() => {
+                    const checkbox = document.querySelector(`input[name="redes_sociales_pandilla_edit"][value="${data.red_social.id_red_social}"]`);
+                    if (checkbox) {
+                        checkbox.checked = true;
+                    }
+                }, 100);
+            }
+        } else {
+            if (mensaje) {
+                mensaje.textContent = data.message || 'Error al crear la red social';
+                mensaje.className = 'mt-2 text-xs text-red-500';
+                mensaje.classList.remove('hidden');
+            }
+        }
+    } catch (error) {
+        console.error('Error al crear red social:', error);
+        if (mensaje) {
+            mensaje.textContent = 'Error de conexión. Por favor, intenta nuevamente.';
+            mensaje.className = 'mt-2 text-xs text-red-500';
+            mensaje.classList.remove('hidden');
+        }
+    }
+}
+
+// ========== FUNCIONES PARA INTEGRANTES EDIT ==========
+
+// Función para mostrar/ocultar formulario de nueva red social en modal de editar integrante
+function toggleFormNuevaRedSocialIntegranteEdit() {
+    const form = document.getElementById('form-nueva-red-social-integrante-edit');
+    if (form) {
+        form.classList.toggle('hidden');
+    }
+}
+
+// Función para cerrar formulario de nueva red social en modal de editar integrante
+function cerrarFormNuevaRedSocialIntegranteEdit() {
+    const form = document.getElementById('form-nueva-red-social-integrante-edit');
+    if (form) {
+        form.classList.add('hidden');
+        // Limpiar campos
+        document.getElementById('nueva-plataforma-integrante-edit').value = '';
+        document.getElementById('nueva-handle-integrante-edit').value = '';
+        document.getElementById('nueva-url-integrante-edit').value = '';
+        const mensaje = document.getElementById('mensaje-red-social-integrante-edit');
+        if (mensaje) {
+            mensaje.classList.add('hidden');
+            mensaje.textContent = '';
+        }
+    }
+}
+
+// Función para guardar nueva red social desde modal de editar integrante
+async function guardarNuevaRedSocialIntegranteEdit() {
+    const plataforma = document.getElementById('nueva-plataforma-integrante-edit').value.trim();
+    const handle = document.getElementById('nueva-handle-integrante-edit').value.trim();
+    const url = document.getElementById('nueva-url-integrante-edit').value.trim();
+    const mensaje = document.getElementById('mensaje-red-social-integrante-edit');
+
+    // Validaciones
+    if (!plataforma) {
+        if (mensaje) {
+            mensaje.textContent = 'La plataforma es requerida';
+            mensaje.className = 'mt-2 text-xs text-red-500';
+            mensaje.classList.remove('hidden');
+        }
+        return;
+    }
+
+    const token = typeof getAuthToken === 'function' ? getAuthToken() : null;
+    if (!token) {
+        if (mensaje) {
+            mensaje.textContent = 'No estás autenticado';
+            mensaje.className = 'mt-2 text-xs text-red-500';
+            mensaje.classList.remove('hidden');
+        }
+        return;
+    }
+
+    try {
+        const response = await fetch('http://localhost:8000/api/redes-sociales/create/', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Token ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                plataforma: plataforma,
+                handle: handle || null,
+                url: url || null
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            // Cerrar el formulario
+            cerrarFormNuevaRedSocialIntegranteEdit();
+
+            // Recargar redes sociales
+            await loadRedesSocialesForEditIntegrante();
+            
+            // Auto-seleccionar la nueva red social en los checkboxes
+            if (data.red_social && data.red_social.id_red_social) {
+                setTimeout(() => {
+                    const checkbox = document.querySelector(`input[name="redes_sociales_integrante_edit"][value="${data.red_social.id_red_social}"]`);
+                    if (checkbox) {
+                        checkbox.checked = true;
+                    }
+                }, 100);
+            }
+        } else {
+            if (mensaje) {
+                mensaje.textContent = data.message || 'Error al crear la red social';
+                mensaje.className = 'mt-2 text-xs text-red-500';
+                mensaje.classList.remove('hidden');
+            }
+        }
+    } catch (error) {
+        console.error('Error al crear red social:', error);
+        if (mensaje) {
+            mensaje.textContent = 'Error de conexión. Por favor, intenta nuevamente.';
+            mensaje.className = 'mt-2 text-xs text-red-500';
+            mensaje.classList.remove('hidden');
+        }
+    }
+}
+
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', function () {
     const tipoSelect = document.getElementById('tipo-registro-edit-select');
@@ -2374,6 +3135,79 @@ document.addEventListener('DOMContentLoaded', function () {
     if (formEditarRedSocial) formEditarRedSocial.addEventListener('submit', submitEditarRedSocialForm);
     if (closeModalEditarRedSocialBtn) closeModalEditarRedSocialBtn.addEventListener('click', closeModalEditarRedSocial);
     if (cancelarEditarRedSocialBtn) cancelarEditarRedSocialBtn.addEventListener('click', closeModalEditarRedSocial);
+
+    // Botones para nueva red social en modal de editar pandillas
+    const btnNuevaRedSocialPandillaEdit = document.getElementById('btn-nueva-red-social-pandilla-edit');
+    const btnCerrarFormRedSocialPandillaEdit = document.getElementById('btn-cerrar-form-red-social-pandilla-edit');
+    const btnGuardarNuevaRedSocialPandillaEdit = document.getElementById('btn-guardar-nueva-red-social-pandilla-edit');
+    const btnCancelarNuevaRedSocialPandillaEdit = document.getElementById('btn-cancelar-nueva-red-social-pandilla-edit');
+
+    if (btnNuevaRedSocialPandillaEdit) {
+        btnNuevaRedSocialPandillaEdit.addEventListener('click', toggleFormNuevaRedSocialPandillaEdit);
+    }
+    if (btnCerrarFormRedSocialPandillaEdit) {
+        btnCerrarFormRedSocialPandillaEdit.addEventListener('click', cerrarFormNuevaRedSocialPandillaEdit);
+    }
+    if (btnGuardarNuevaRedSocialPandillaEdit) {
+        btnGuardarNuevaRedSocialPandillaEdit.addEventListener('click', guardarNuevaRedSocialPandillaEdit);
+    }
+    if (btnCancelarNuevaRedSocialPandillaEdit) {
+        btnCancelarNuevaRedSocialPandillaEdit.addEventListener('click', cerrarFormNuevaRedSocialPandillaEdit);
+    }
+
+    // Botones para nueva red social en modal de editar integrantes
+    const btnNuevaRedSocialIntegranteEdit = document.getElementById('btn-nueva-red-social-integrante-edit');
+    const btnCerrarFormRedSocialIntegranteEdit = document.getElementById('btn-cerrar-form-red-social-integrante-edit');
+    const btnGuardarNuevaRedSocialIntegranteEdit = document.getElementById('btn-guardar-nueva-red-social-integrante-edit');
+    const btnCancelarNuevaRedSocialIntegranteEdit = document.getElementById('btn-cancelar-nueva-red-social-integrante-edit');
+
+    if (btnNuevaRedSocialIntegranteEdit) {
+        btnNuevaRedSocialIntegranteEdit.addEventListener('click', toggleFormNuevaRedSocialIntegranteEdit);
+    }
+    if (btnCerrarFormRedSocialIntegranteEdit) {
+        btnCerrarFormRedSocialIntegranteEdit.addEventListener('click', cerrarFormNuevaRedSocialIntegranteEdit);
+    }
+    if (btnGuardarNuevaRedSocialIntegranteEdit) {
+        btnGuardarNuevaRedSocialIntegranteEdit.addEventListener('click', guardarNuevaRedSocialIntegranteEdit);
+    }
+    if (btnCancelarNuevaRedSocialIntegranteEdit) {
+        btnCancelarNuevaRedSocialIntegranteEdit.addEventListener('click', cerrarFormNuevaRedSocialIntegranteEdit);
+    }
+
+    // Event listeners para botones de eliminar
+    const btnEliminarPandilla = document.getElementById('eliminar-pandilla-btn');
+    const btnEliminarIntegrante = document.getElementById('eliminar-integrante-btn');
+    const btnEliminarEvento = document.getElementById('eliminar-evento-btn');
+    const btnEliminarDelito = document.getElementById('eliminar-delito-btn');
+    const btnEliminarFalta = document.getElementById('eliminar-falta-btn');
+    const btnEliminarDireccion = document.getElementById('eliminar-direccion-btn');
+    const btnEliminarRivalidad = document.getElementById('eliminar-rivalidad-btn');
+    const btnEliminarRedSocial = document.getElementById('eliminar-red-social-btn');
+
+    if (btnEliminarPandilla) {
+        btnEliminarPandilla.addEventListener('click', eliminarPandilla);
+    }
+    if (btnEliminarIntegrante) {
+        btnEliminarIntegrante.addEventListener('click', eliminarIntegrante);
+    }
+    if (btnEliminarEvento) {
+        btnEliminarEvento.addEventListener('click', eliminarEvento);
+    }
+    if (btnEliminarDelito) {
+        btnEliminarDelito.addEventListener('click', eliminarDelito);
+    }
+    if (btnEliminarFalta) {
+        btnEliminarFalta.addEventListener('click', eliminarFalta);
+    }
+    if (btnEliminarDireccion) {
+        btnEliminarDireccion.addEventListener('click', eliminarDireccion);
+    }
+    if (btnEliminarRivalidad) {
+        btnEliminarRivalidad.addEventListener('click', eliminarRivalidad);
+    }
+    if (btnEliminarRedSocial) {
+        btnEliminarRedSocial.addEventListener('click', eliminarRedSocial);
+    }
 
     // Inicializar el estado del botón
     updateContinuarEditButton();

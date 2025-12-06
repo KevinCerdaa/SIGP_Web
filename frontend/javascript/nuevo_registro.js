@@ -1372,6 +1372,214 @@ async function guardarNuevaDireccionIntegrante() {
     }
 }
 
+// ==================== FUNCIONES PARA NUEVA RED SOCIAL DENTRO DE MODALES ====================
+
+// ========== FUNCIONES PARA PANDILLAS ==========
+
+// Función para mostrar/ocultar formulario de nueva red social en modal de pandillas
+function toggleFormNuevaRedSocialPandilla() {
+    const form = document.getElementById('form-nueva-red-social-pandilla');
+    if (form) {
+        form.classList.toggle('hidden');
+    }
+}
+
+// Función para cerrar formulario de nueva red social en modal de pandillas
+function cerrarFormNuevaRedSocialPandilla() {
+    const form = document.getElementById('form-nueva-red-social-pandilla');
+    if (form) {
+        form.classList.add('hidden');
+        // Limpiar campos
+        document.getElementById('nueva-plataforma-pandilla').value = '';
+        document.getElementById('nueva-handle-pandilla').value = '';
+        document.getElementById('nueva-url-pandilla').value = '';
+        const mensaje = document.getElementById('mensaje-red-social-pandilla');
+        if (mensaje) {
+            mensaje.classList.add('hidden');
+            mensaje.textContent = '';
+        }
+    }
+}
+
+// Función para guardar nueva red social desde modal de pandillas
+async function guardarNuevaRedSocialPandilla() {
+    const plataforma = document.getElementById('nueva-plataforma-pandilla').value.trim();
+    const handle = document.getElementById('nueva-handle-pandilla').value.trim();
+    const url = document.getElementById('nueva-url-pandilla').value.trim();
+    const mensaje = document.getElementById('mensaje-red-social-pandilla');
+
+    // Validaciones
+    if (!plataforma) {
+        if (mensaje) {
+            mensaje.textContent = 'La plataforma es requerida';
+            mensaje.className = 'mt-2 text-xs text-red-500';
+            mensaje.classList.remove('hidden');
+        }
+        return;
+    }
+
+    const token = typeof getAuthToken === 'function' ? getAuthToken() : null;
+    if (!token) {
+        if (mensaje) {
+            mensaje.textContent = 'No estás autenticado';
+            mensaje.className = 'mt-2 text-xs text-red-500';
+            mensaje.classList.remove('hidden');
+        }
+        return;
+    }
+
+    try {
+        const response = await fetch('http://localhost:8000/api/redes-sociales/create/', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Token ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                plataforma: plataforma,
+                handle: handle || null,
+                url: url || null
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            // Cerrar el formulario
+            cerrarFormNuevaRedSocialPandilla();
+
+            // Recargar redes sociales
+            await loadRedesSocialesForPandilla();
+            
+            // Auto-seleccionar la nueva red social en los checkboxes
+            if (data.red_social && data.red_social.id_red_social) {
+                setTimeout(() => {
+                    const checkbox = document.querySelector(`input[name="redes_sociales"][value="${data.red_social.id_red_social}"]`);
+                    if (checkbox) {
+                        checkbox.checked = true;
+                    }
+                }, 100);
+            }
+        } else {
+            if (mensaje) {
+                mensaje.textContent = data.message || 'Error al crear la red social';
+                mensaje.className = 'mt-2 text-xs text-red-500';
+                mensaje.classList.remove('hidden');
+            }
+        }
+    } catch (error) {
+        console.error('Error al crear red social:', error);
+        if (mensaje) {
+            mensaje.textContent = 'Error de conexión. Por favor, intenta nuevamente.';
+            mensaje.className = 'mt-2 text-xs text-red-500';
+            mensaje.classList.remove('hidden');
+        }
+    }
+}
+
+// ========== FUNCIONES PARA INTEGRANTES ==========
+
+// Función para mostrar/ocultar formulario de nueva red social en modal de integrantes
+function toggleFormNuevaRedSocialIntegrante() {
+    const form = document.getElementById('form-nueva-red-social-integrante');
+    if (form) {
+        form.classList.toggle('hidden');
+    }
+}
+
+// Función para cerrar formulario de nueva red social en modal de integrantes
+function cerrarFormNuevaRedSocialIntegrante() {
+    const form = document.getElementById('form-nueva-red-social-integrante');
+    if (form) {
+        form.classList.add('hidden');
+        // Limpiar campos
+        document.getElementById('nueva-plataforma-integrante').value = '';
+        document.getElementById('nueva-handle-integrante').value = '';
+        document.getElementById('nueva-url-integrante').value = '';
+        const mensaje = document.getElementById('mensaje-red-social-integrante');
+        if (mensaje) {
+            mensaje.classList.add('hidden');
+            mensaje.textContent = '';
+        }
+    }
+}
+
+// Función para guardar nueva red social desde modal de integrantes
+async function guardarNuevaRedSocialIntegrante() {
+    const plataforma = document.getElementById('nueva-plataforma-integrante').value.trim();
+    const handle = document.getElementById('nueva-handle-integrante').value.trim();
+    const url = document.getElementById('nueva-url-integrante').value.trim();
+    const mensaje = document.getElementById('mensaje-red-social-integrante');
+
+    // Validaciones
+    if (!plataforma) {
+        if (mensaje) {
+            mensaje.textContent = 'La plataforma es requerida';
+            mensaje.className = 'mt-2 text-xs text-red-500';
+            mensaje.classList.remove('hidden');
+        }
+        return;
+    }
+
+    const token = typeof getAuthToken === 'function' ? getAuthToken() : null;
+    if (!token) {
+        if (mensaje) {
+            mensaje.textContent = 'No estás autenticado';
+            mensaje.className = 'mt-2 text-xs text-red-500';
+            mensaje.classList.remove('hidden');
+        }
+        return;
+    }
+
+    try {
+        const response = await fetch('http://localhost:8000/api/redes-sociales/create/', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Token ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                plataforma: plataforma,
+                handle: handle || null,
+                url: url || null
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            // Cerrar el formulario
+            cerrarFormNuevaRedSocialIntegrante();
+
+            // Recargar redes sociales
+            await loadRedesSocialesForIntegrante();
+            
+            // Auto-seleccionar la nueva red social en los checkboxes
+            if (data.red_social && data.red_social.id_red_social) {
+                setTimeout(() => {
+                    const checkbox = document.querySelector(`input[name="redes_sociales_integrante"][value="${data.red_social.id_red_social}"]`);
+                    if (checkbox) {
+                        checkbox.checked = true;
+                    }
+                }, 100);
+            }
+        } else {
+            if (mensaje) {
+                mensaje.textContent = data.message || 'Error al crear la red social';
+                mensaje.className = 'mt-2 text-xs text-red-500';
+                mensaje.classList.remove('hidden');
+            }
+        }
+    } catch (error) {
+        console.error('Error al crear red social:', error);
+        if (mensaje) {
+            mensaje.textContent = 'Error de conexión. Por favor, intenta nuevamente.';
+            mensaje.className = 'mt-2 text-xs text-red-500';
+            mensaje.classList.remove('hidden');
+        }
+    }
+}
+
 // ==================== FUNCIONES PARA EVENTOS ====================
 
 // Función para abrir el modal de eventos
@@ -2496,6 +2704,44 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     if (btnCancelarNuevaDireccionIntegrante) {
         btnCancelarNuevaDireccionIntegrante.addEventListener('click', cerrarFormNuevaDireccionIntegrante);
+    }
+
+    // Botones para nueva red social en modal de pandillas
+    const btnNuevaRedSocialPandilla = document.getElementById('btn-nueva-red-social-pandilla');
+    const btnCerrarFormRedSocialPandilla = document.getElementById('btn-cerrar-form-red-social-pandilla');
+    const btnGuardarNuevaRedSocialPandilla = document.getElementById('btn-guardar-nueva-red-social-pandilla');
+    const btnCancelarNuevaRedSocialPandilla = document.getElementById('btn-cancelar-nueva-red-social-pandilla');
+
+    if (btnNuevaRedSocialPandilla) {
+        btnNuevaRedSocialPandilla.addEventListener('click', toggleFormNuevaRedSocialPandilla);
+    }
+    if (btnCerrarFormRedSocialPandilla) {
+        btnCerrarFormRedSocialPandilla.addEventListener('click', cerrarFormNuevaRedSocialPandilla);
+    }
+    if (btnGuardarNuevaRedSocialPandilla) {
+        btnGuardarNuevaRedSocialPandilla.addEventListener('click', guardarNuevaRedSocialPandilla);
+    }
+    if (btnCancelarNuevaRedSocialPandilla) {
+        btnCancelarNuevaRedSocialPandilla.addEventListener('click', cerrarFormNuevaRedSocialPandilla);
+    }
+
+    // Botones para nueva red social en modal de integrantes
+    const btnNuevaRedSocialIntegrante = document.getElementById('btn-nueva-red-social-integrante');
+    const btnCerrarFormRedSocialIntegrante = document.getElementById('btn-cerrar-form-red-social-integrante');
+    const btnGuardarNuevaRedSocialIntegrante = document.getElementById('btn-guardar-nueva-red-social-integrante');
+    const btnCancelarNuevaRedSocialIntegrante = document.getElementById('btn-cancelar-nueva-red-social-integrante');
+
+    if (btnNuevaRedSocialIntegrante) {
+        btnNuevaRedSocialIntegrante.addEventListener('click', toggleFormNuevaRedSocialIntegrante);
+    }
+    if (btnCerrarFormRedSocialIntegrante) {
+        btnCerrarFormRedSocialIntegrante.addEventListener('click', cerrarFormNuevaRedSocialIntegrante);
+    }
+    if (btnGuardarNuevaRedSocialIntegrante) {
+        btnGuardarNuevaRedSocialIntegrante.addEventListener('click', guardarNuevaRedSocialIntegrante);
+    }
+    if (btnCancelarNuevaRedSocialIntegrante) {
+        btnCancelarNuevaRedSocialIntegrante.addEventListener('click', cerrarFormNuevaRedSocialIntegrante);
     }
 
     // Botones del modal de eventos

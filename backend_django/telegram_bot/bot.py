@@ -20,6 +20,7 @@ django.setup()
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters
 from telegram import InputMediaPhoto
+from telegram.error import TimedOut, NetworkError
 from django.contrib.auth import authenticate
 from django.db import connection
 from django.db.models import Q
@@ -46,6 +47,32 @@ if not TELEGRAM_BOT_TOKEN:
 # Estados de la conversación para autenticación
 WAITING_EMAIL, WAITING_PASSWORD = range(2)
 
+# Función helper para enviar mensajes con reintentos
+async def send_message_with_retry(update_or_message, text, max_retries=3, **kwargs):
+    """
+    Envía un mensaje con reintentos automáticos en caso de timeout
+    """
+    message = update_or_message.message if hasattr(update_or_message, 'message') else update_or_message
+    
+    for attempt in range(max_retries):
+        try:
+            return await message.reply_text(text, **kwargs)
+        except (TimedOut, NetworkError) as e:
+            if attempt < max_retries - 1:
+                logger.warning(f"Timeout al enviar mensaje (intento {attempt + 1}/{max_retries}), reintentando...")
+                await asyncio.sleep(1)  # Esperar 1 segundo antes de reintentar
+            else:
+                logger.error(f"Error al enviar mensaje después de {max_retries} intentos: {e}")
+                # Intentar enviar un mensaje de error simple
+                try:
+                    await message.reply_text("⚠️ Error de conexión. Por favor, intenta nuevamente.")
+                except Exception:
+                    pass
+                raise
+        except Exception as e:
+            logger.error(f"Error inesperado al enviar mensaje: {e}")
+            raise
+
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Comando /start - Mensaje de bienvenida e inicio de autenticación"""
@@ -57,30 +84,31 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if user:
         # Si ya está autenticado, mostrar mensaje de bienvenida con comandos
         welcome_message = (
-            "🤖 *Bienvenido al Bot de SIGP*\n\n"
+            "🤖 <b>Bienvenido al Bot de SIGP</b>\n\n"
             "Sistema de Identificación de Grupos Pandilleriles\n\n"
             "Comandos disponibles:\n"
             "/start - Mostrar este mensaje\n"
             "/pandillas - Listar todas las pandillas\n"
-            "/pandilla <nombre> - Buscar información completa de una pandilla\n"
-            "/integrantes <pandilla> - Listar integrantes de una pandilla\n"
-            "/integrante <nombre o alias> - Buscar información completa de un integrante\n"
+            "/pandilla [nombre] - Buscar información completa de una pandilla\n"
+            "/integrantes [pandilla] - Listar integrantes de una pandilla\n"
+            "/integrante [nombre o alias] - Buscar información completa de un integrante\n"
             "/eventos - Ver eventos recientes\n"
             "/logout o /cerrar_sesion - Cerrar sesión\n"
             "/help - Mostrar ayuda\n"
         )
-        await update.message.reply_text(welcome_message, parse_mode='Markdown')
+        await update.message.reply_text(welcome_message, parse_mode='HTML')
         return ConversationHandler.END
     
     # Si no está autenticado, iniciar proceso de login
     welcome_message = (
-        "👋 *Hola, soy SIGPY, tu bot de consultas*\n\n"
+        "👋 <b>Hola, soy SIGPY, tu bot de consultas</b>\n\n"
         "Sistema de Identificación de Grupos Pandilleriles\n\n"
         "Para acceder a las consultas, necesito que te autentiques.\n\n"
-        "Escribe tu correo y contraseña para iniciar sesión.\n\n"
-        "📧 *Por favor, ingresa tu correo electrónico:*"
+        "📧 <b>Por favor, ingresa tu correo electrónico:</b>\n\n"
+        "💡 <i>Usa el mismo correo y contraseña que usas en el sitio web</i>\n"
+        "⚠️ <i>Si tienes problemas, escribe /cancel para cancelar</i>"
     )
-    await update.message.reply_text(welcome_message, parse_mode='Markdown')
+    await update.message.reply_text(welcome_message, parse_mode='HTML')
     logger.info(f"Usuario {update.effective_user.id} inició proceso de autenticación")
     # Retornar el estado para que el ConversationHandler sepa que estamos esperando el email
     return WAITING_EMAIL
@@ -90,8 +118,11 @@ async def receive_email(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Recibe el correo electrónico del usuario"""
     email = update.message.text.strip()
     
+    logger.info(f"Usuario Telegram {update.effective_user.id} envió correo: {email}")
+    
     # Validar formato básico de email
     if '@' not in email or '.' not in email.split('@')[1]:
+        logger.warning(f"Formato de correo inválido: {email}")
         await update.message.reply_text(
             "❌ El formato del correo no es válido.\n\n"
             "Por favor, ingresa un correo electrónico válido:"
@@ -152,15 +183,20 @@ async def receive_email(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data['email'] = usuario.correo
         
         # Pedir la contraseña
-        await update.message.reply_text(
-            f"✅ Correo encontrado: *{usuario.correo}*\n\n"
-            "🔒 *Ahora ingresa tu contraseña:*",
-            parse_mode='Markdown'
+        logger.info(f"Correo verificado exitosamente: {usuario.correo}")
+        await send_message_with_retry(
+            update,
+            f"✅ Correo encontrado: <b>{usuario.correo}</b>\n\n"
+            "🔒 <b>Ahora ingresa tu contraseña:</b>\n\n"
+            "💡 <i>Usa la misma contraseña del sitio web</i>\n"
+            "⚠️ <i>Si olvidaste tu contraseña, contacta al administrador</i>",
+            parse_mode='HTML'
         )
         return WAITING_PASSWORD
     except Exception as e:
         logger.error(f"Error al buscar usuario: {e}", exc_info=True)
-        await update.message.reply_text(
+        await send_message_with_retry(
+            update,
             "❌ Error al verificar el correo. Intenta más tarde.\n\n"
             "Escribe /cancel para cancelar."
         )
@@ -192,45 +228,55 @@ async def receive_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
             else:
                 email_exacto = email
         
-        logger.info(f"Intentando autenticar con correo: {email_exacto}")
+        logger.info(f"Intentando autenticar usuario Telegram ID: {update.effective_user.id} con correo: {email_exacto}")
         
         # Autenticar usando Django (usa check_password internamente con PBKDF2)
         # authenticate() usa el USERNAME_FIELD que es 'correo'
         # authenticate es síncrono, necesitamos sync_to_async
         user = await sync_to_async(authenticate)(username=email_exacto, password=password)
         
+        logger.info(f"Resultado de autenticación: {'Exitosa' if user else 'Fallida'}")
+        
         if user:
             # Usuario autenticado correctamente
             context.user_data['authenticated_user'] = user
             context.user_data['email'] = None  # Limpiar el email del contexto
             
+            logger.info(f"✅ Autenticación exitosa para {user.correo} (Nombre: {user.nombre} {user.apellido})")
+            
             # Mensaje de bienvenida después de autenticación (el mismo que se muestra en /start cuando ya está autenticado)
             welcome_message = (
-                "🤖 *Bienvenido al Bot de SIGP*\n\n"
-                "Sistema de Identificación de Grupos Pandilleriles\n\n"
-                "Comandos disponibles:\n"
-                "/start - Mostrar este mensaje\n"
+                f"✅ <b>¡Autenticación exitosa!</b>\n\n"
+                f"Bienvenido, <b>{user.nombre} {user.apellido}</b>\n"
+                f"Rol: <i>{user.rol}</i>\n\n"
+                "🤖 <b>Comandos disponibles:</b>\n\n"
                 "/pandillas - Listar todas las pandillas\n"
-                "/pandilla <nombre> - Buscar una pandilla específica\n"
-                "/integrantes <pandilla> - Listar integrantes de una pandilla\n"
+                "/pandilla [nombre] - Buscar una pandilla específica\n"
+                "/integrantes [pandilla] - Listar integrantes de una pandilla\n"
+                "/integrante [nombre] - Buscar un integrante\n"
                 "/eventos - Ver eventos recientes\n"
-                "/logout o /cerrar_sesion - Cerrar sesión\n"
-                "/help - Mostrar ayuda\n"
+                "/logout - Cerrar sesión\n"
+                "/help - Mostrar ayuda completa\n"
             )
-            await update.message.reply_text(welcome_message, parse_mode='Markdown')
+            await send_message_with_retry(update, welcome_message, parse_mode='HTML')
             return ConversationHandler.END
         else:
             # Contraseña incorrecta
-            await update.message.reply_text(
-                "❌ *Contraseña incorrecta*\n\n"
+            logger.warning(f"Contraseña incorrecta para correo: {email_exacto}")
+            await send_message_with_retry(
+                update,
+                "❌ <b>Contraseña incorrecta</b>\n\n"
                 "Por favor, intenta nuevamente:\n\n"
-                "🔒 Ingresa tu contraseña:",
-                parse_mode='Markdown'
+                "🔒 Ingresa tu contraseña:\n\n"
+                "💡 <i>Recuerda: usa la misma contraseña del sitio web</i>\n"
+                "⚠️ <i>Escribe /cancel para cancelar o /start para reiniciar</i>",
+                parse_mode='HTML'
             )
             return WAITING_PASSWORD
     except Exception as e:
         logger.error(f"Error al autenticar: {e}")
-        await update.message.reply_text(
+        await send_message_with_retry(
+            update,
             "❌ Error al procesar la autenticación. Intenta más tarde.\n\n"
             "Escribe /cancel para cancelar."
         )
@@ -255,10 +301,10 @@ async def logout(update: Update, context: ContextTypes.DEFAULT_TYPE):
         nombre = user.nombre
         context.user_data.clear()
         await update.message.reply_text(
-            f"👋 *Sesión cerrada*\n\n"
+            f"👋 <b>Sesión cerrada</b>\n\n"
             f"Adiós, {nombre}.\n\n"
             "Escribe /start para iniciar sesión nuevamente.",
-            parse_mode='Markdown'
+            parse_mode='HTML'
         )
     else:
         await update.message.reply_text(
@@ -273,33 +319,33 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     if user:
         help_text = (
-            "📚 *Ayuda del Bot SIGPY*\n\n"
-            "*Comandos disponibles:*\n\n"
-            "`/start` - Reiniciar o ver estado de sesión\n"
-            "`/pandillas` - Lista todas las pandillas registradas\n"
-            "`/pandilla <nombre>` - Busca información completa de una pandilla\n"
-            "`/integrantes <pandilla>` - Lista los integrantes de una pandilla\n"
-            "`/integrante <nombre o alias>` - Busca información completa de un integrante\n"
-            "`/eventos` - Muestra los últimos 10 eventos registrados\n"
-            "`/logout` o `/cerrar_sesion` - Cerrar sesión\n"
-            "`/help` - Muestra esta ayuda\n\n"
-            "*Ejemplos:*\n"
-            "`/pandilla Los Zetas`\n"
-            "`/integrantes Los Zetas`\n"
-            "`/integrante Juan Pérez`\n"
-            "`/integrante El Chino`\n"
+            "📚 <b>Ayuda del Bot SIGPY</b>\n\n"
+            "<b>Comandos disponibles:</b>\n\n"
+            "/start - Reiniciar o ver estado de sesión\n"
+            "/pandillas - Lista todas las pandillas registradas\n"
+            "/pandilla [nombre] - Busca información completa de una pandilla\n"
+            "/integrantes [pandilla] - Lista los integrantes de una pandilla\n"
+            "/integrante [nombre o alias] - Busca información completa de un integrante\n"
+            "/eventos - Muestra los últimos 10 eventos registrados\n"
+            "/logout o /cerrar_sesion - Cerrar sesión\n"
+            "/help - Muestra esta ayuda\n\n"
+            "<b>Ejemplos:</b>\n"
+            "/pandilla Los Zetas\n"
+            "/integrantes Los Zetas\n"
+            "/integrante Juan Pérez\n"
+            "/integrante El Chino\n"
         )
     else:
         help_text = (
-            "📚 *Ayuda del Bot SIGPY*\n\n"
+            "📚 <b>Ayuda del Bot SIGPY</b>\n\n"
             "Para usar este bot, primero debes autenticarte.\n\n"
-            "*Comandos disponibles:*\n\n"
-            "`/start` - Iniciar sesión (requiere correo y contraseña)\n"
-            "`/help` - Muestra esta ayuda\n\n"
+            "<b>Comandos disponibles:</b>\n\n"
+            "/start - Iniciar sesión (requiere correo y contraseña)\n"
+            "/help - Muestra esta ayuda\n\n"
             "Una vez autenticado, tendrás acceso a más comandos para consultar información sobre pandillas, integrantes y eventos."
         )
     
-    await update.message.reply_text(help_text, parse_mode='Markdown')
+    await update.message.reply_text(help_text, parse_mode='HTML')
 
 
 def require_auth(func):
@@ -308,11 +354,11 @@ def require_auth(func):
         user = context.user_data.get('authenticated_user')
         if not user:
             await update.message.reply_text(
-                "🔒 *Acceso restringido*\n\n"
+                "🔒 <b>Acceso restringido</b>\n\n"
                 "Debes iniciar sesión para usar este comando.\n\n"
-                "👋 *Hola, soy SIGPY, tu bot de consultas*\n\n"
+                "👋 <b>Hola, soy SIGPY, tu bot de consultas</b>\n\n"
                 "Escribe /start para autenticarte.",
-                parse_mode='Markdown'
+                parse_mode='HTML'
             )
             return None
         return await func(update, context)
@@ -384,7 +430,7 @@ async def listar_pandillas(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("No hay pandillas registradas en la base de datos.")
             return
         
-        message = "📋 *Lista de Pandillas:*\n\n"
+        message = "📋 <b>Lista de Pandillas:</b>\n\n"
         for pandilla in pandillas:
             peligrosidad_emoji = {
                 'Bajo': '🟢',
@@ -392,7 +438,7 @@ async def listar_pandillas(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 'Alto': '🔴'
             }.get(pandilla['peligrosidad'], '⚪')
             
-            message += f"{peligrosidad_emoji} *{pandilla['nombre']}*\n"
+            message += f"{peligrosidad_emoji} <b>{pandilla['nombre']}</b>\n"
             if pandilla['numero_integrantes']:
                 message += f"   👥 Integrantes: {pandilla['numero_integrantes']}\n"
             message += f"   ⚠️ Peligrosidad: {pandilla['peligrosidad']}\n"
@@ -404,7 +450,7 @@ async def listar_pandillas(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if len(message) > 4000:
             message = message[:4000] + "\n\n... (mensaje truncado)"
         
-        await update.message.reply_text(message, parse_mode='Markdown')
+        await update.message.reply_text(message, parse_mode='HTML')
     except Exception as e:
         logger.error(f"Error al listar pandillas: {e}", exc_info=True)
         await update.message.reply_text("❌ Error al consultar las pandillas. Intenta más tarde.")
@@ -419,19 +465,18 @@ async def buscar_pandilla(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = context.user_data.get('authenticated_user')
     if not user:
         await update.message.reply_text(
-            "🔒 *Acceso restringido*\n\n"
+            "🔒 <b>Acceso restringido</b>\n\n"
             "Debes iniciar sesión para usar este comando.\n\n"
-            "👋 *Hola, soy SIGPY, tu bot de consultas*\n\n"
+            "👋 <b>Hola, soy SIGPY, tu bot de consultas</b>\n\n"
             "Escribe /start para autenticarte.",
-            parse_mode='Markdown'
+            parse_mode='HTML'
         )
         return
     
     if not context.args:
         await update.message.reply_text(
             "❌ Debes especificar el nombre de la pandilla.\n"
-            "Ejemplo: `/pandilla Los Zetas`", 
-            parse_mode='Markdown'
+            "Ejemplo: /pandilla Los Zetas"
         )
         return
     
@@ -557,57 +602,57 @@ async def buscar_pandilla(update: Update, context: ContextTypes.DEFAULT_TYPE):
             'Alto': '🔴'
         }.get(pandilla['peligrosidad'], '⚪')
         
-        message = f"📊 *Información de la Pandilla*\n\n"
-        message += f"*Nombre:* {pandilla['nombre']}\n"
-        message += f"*Peligrosidad:* {peligrosidad_emoji} {pandilla['peligrosidad']}\n"
+        message = f"📊 <b>Información de la Pandilla</b>\n\n"
+        message += f"<b>Nombre:</b> {pandilla['nombre']}\n"
+        message += f"<b>Peligrosidad:</b> {peligrosidad_emoji} {pandilla['peligrosidad']}\n"
         
         if pandilla['lider']:
-            message += f"*Líder:* {pandilla['lider']}\n"
+            message += f"<b>Líder:</b> {pandilla['lider']}\n"
         if pandilla['numero_integrantes']:
-            message += f"*Número de integrantes:* {pandilla['numero_integrantes']}\n"
+            message += f"<b>Número de integrantes:</b> {pandilla['numero_integrantes']}\n"
         if pandilla['edades_promedio']:
-            message += f"*Edad promedio:* {pandilla['edades_promedio']} años\n"
+            message += f"<b>Edad promedio:</b> {pandilla['edades_promedio']} años\n"
         if pandilla['horario_reunion']:
-            message += f"*Horario de reunión:* {pandilla['horario_reunion']}\n"
+            message += f"<b>Horario de reunión:</b> {pandilla['horario_reunion']}\n"
         if pandilla['zona_nombre']:
-            message += f"*Zona:* {pandilla['zona_nombre']}\n"
+            message += f"<b>Zona:</b> {pandilla['zona_nombre']}\n"
         # Crear botón de Google Maps si hay dirección
         reply_markup = None
         if pandilla['direccion'] and pandilla['direccion'] != 'N/A':
-            message += f"*Dirección:* {pandilla['direccion']}\n"
+            message += f"<b>Dirección:</b> {pandilla['direccion']}\n"
             # Crear botón para ver en Google Maps
             direccion_codificada = quote_plus(pandilla['direccion'])
             google_maps_url = f"https://www.google.com/maps/search/?api=1&query={direccion_codificada}"
             keyboard = [[InlineKeyboardButton("📍 Ver en Google Maps", url=google_maps_url)]]
             reply_markup = InlineKeyboardMarkup(keyboard)
         elif pandilla['direccion']:
-            message += f"*Dirección:* {pandilla['direccion']}\n"
+            message += f"<b>Dirección:</b> {pandilla['direccion']}\n"
         
         if pandilla['descripcion']:
-            message += f"\n*Descripción:*\n{pandilla['descripcion']}\n"
+            message += f"\n<b>Descripción:</b>\n{pandilla['descripcion']}\n"
         
         # Delitos asociados
         if pandilla['delitos']:
-            message += f"\n*Delitos asociados:*\n"
+            message += f"\n<b>Delitos asociados:</b>\n"
             for delito in pandilla['delitos'][:10]:  # Limitar a 10
                 message += f"  • {delito}\n"
         else:
-            message += f"\n*Delitos asociados:* Ninguno registrado\n"
+            message += f"\n<b>Delitos asociados:</b> Ninguno registrado\n"
         
         # Faltas cometidas
         if pandilla['faltas']:
-            message += f"\n*Faltas cometidas:*\n"
+            message += f"\n<b>Faltas cometidas:</b>\n"
             for falta in pandilla['faltas'][:10]:  # Limitar a 10
                 message += f"  • {falta}\n"
         else:
-            message += f"\n*Faltas cometidas:* Ninguna registrada\n"
+            message += f"\n<b>Faltas cometidas:</b> Ninguna registrada\n"
         
         # Integrantes
         if pandilla['integrantes']:
-            message += f"\n*Integrantes registrados:* {len(pandilla['integrantes'])}\n"
-            message += f"Usa `/integrantes {pandilla['nombre']}` para ver la lista completa"
+            message += f"\n<b>Integrantes registrados:</b> {len(pandilla['integrantes'])}\n"
+            message += f"Usa /integrantes {pandilla['nombre']} para ver la lista completa"
         
-        await update.message.reply_text(message, parse_mode='Markdown', reply_markup=reply_markup)
+        await update.message.reply_text(message, parse_mode='HTML', reply_markup=reply_markup)
     except Exception as e:
         logger.error(f"Error al buscar pandilla: {e}", exc_info=True)
         error_msg = f"❌ Error al buscar la pandilla: {str(e)}"
@@ -625,19 +670,18 @@ async def listar_integrantes(update: Update, context: ContextTypes.DEFAULT_TYPE)
     user = context.user_data.get('authenticated_user')
     if not user:
         await update.message.reply_text(
-            "🔒 *Acceso restringido*\n\n"
+            "🔒 <b>Acceso restringido</b>\n\n"
             "Debes iniciar sesión para usar este comando.\n\n"
-            "👋 *Hola, soy SIGPY, tu bot de consultas*\n\n"
+            "👋 <b>Hola, soy SIGPY, tu bot de consultas</b>\n\n"
             "Escribe /start para autenticarte.",
-            parse_mode='Markdown'
+            parse_mode='HTML'
         )
         return
     
     if not context.args:
         await update.message.reply_text(
             "❌ Debes especificar el nombre de la pandilla.\n"
-            "Ejemplo: `/integrantes Los Zetas`", 
-            parse_mode='Markdown'
+            "Ejemplo: /integrantes Los Zetas"
         )
         return
     
@@ -701,11 +745,11 @@ async def listar_integrantes(update: Update, context: ContextTypes.DEFAULT_TYPE)
             )
             return
         
-        message = f"👥 *Integrantes de {pandilla_nombre}:*\n\n"
+        message = f"👥 <b>Integrantes de {pandilla_nombre}:</b>\n\n"
         
         for integrante in integrantes[:20]:  # Limitar a 20 para no exceder límite
             nombre_completo = integrante['nombre_completo'] or 'Sin nombre'
-            message += f"• *{nombre_completo}*"
+            message += f"• <b>{nombre_completo}</b>"
             if integrante['alias']:
                 message += f" (Alias: {integrante['alias']})"
             message += "\n"
@@ -716,7 +760,7 @@ async def listar_integrantes(update: Update, context: ContextTypes.DEFAULT_TYPE)
         if len(message) > 4000:
             message = message[:4000] + "\n\n... (mensaje truncado)"
         
-        await update.message.reply_text(message, parse_mode='Markdown')
+        await update.message.reply_text(message, parse_mode='HTML')
     except Exception as e:
         logger.error(f"Error al listar integrantes: {e}", exc_info=True)
         await update.message.reply_text("❌ Error al consultar los integrantes. Intenta más tarde.")
@@ -731,11 +775,11 @@ async def listar_eventos(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = context.user_data.get('authenticated_user')
     if not user:
         await update.message.reply_text(
-            "🔒 *Acceso restringido*\n\n"
+            "🔒 <b>Acceso restringido</b>\n\n"
             "Debes iniciar sesión para usar este comando.\n\n"
-            "👋 *Hola, soy SIGPY, tu bot de consultas*\n\n"
+            "👋 <b>Hola, soy SIGPY, tu bot de consultas</b>\n\n"
             "Escribe /start para autenticarte.",
-            parse_mode='Markdown'
+            parse_mode='HTML'
         )
         return
     
@@ -963,7 +1007,7 @@ async def listar_eventos(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     'falta': '⚠️'
                 }.get(tipo.lower(), '📌')
                 
-                message = f"{tipo_emoji} *{tipo.upper()}*\n"
+                message = f"{tipo_emoji} <b>{tipo.upper()}</b>\n"
                 
                 fecha = evento.get('fecha')
                 if fecha:
@@ -1009,7 +1053,7 @@ async def listar_eventos(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 if len(message) > 4000:
                     message = message[:4000] + "\n\n... (mensaje truncado)"
                 
-                await update.message.reply_text(message, parse_mode='Markdown', reply_markup=reply_markup)
+                await update.message.reply_text(message, parse_mode='HTML', reply_markup=reply_markup)
             except Exception as e:
                 logger.error(f"Error al formatear evento: {e}")
                 continue
@@ -1030,19 +1074,18 @@ async def buscar_integrante(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = context.user_data.get('authenticated_user')
     if not user:
         await update.message.reply_text(
-            "🔒 *Acceso restringido*\n\n"
+            "🔒 <b>Acceso restringido</b>\n\n"
             "Debes iniciar sesión para usar este comando.\n\n"
-            "👋 *Hola, soy SIGPY, tu bot de consultas*\n\n"
+            "👋 <b>Hola, soy SIGPY, tu bot de consultas</b>\n\n"
             "Escribe /start para autenticarte.",
-            parse_mode='Markdown'
+            parse_mode='HTML'
         )
         return
     
     if not context.args:
         await update.message.reply_text(
             "❌ Debes especificar el nombre o alias del integrante.\n"
-            "Ejemplo: `/integrante Juan Pérez` o `/integrante El Chino`", 
-            parse_mode='Markdown'
+            "Ejemplo: /integrante Juan Pérez o /integrante El Chino"
         )
         return
     
@@ -1194,13 +1237,13 @@ async def buscar_integrante(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         # Si hay múltiples resultados, mostrar lista
         if len(integrantes) > 1:
-            message = f"🔍 *Se encontraron {len(integrantes)} integrantes:*\n\n"
+            message = f"🔍 <b>Se encontraron {len(integrantes)} integrantes:</b>\n\n"
             for i, integrante in enumerate(integrantes, 1):
                 nombre_completo = integrante['nombre_completo']
                 alias_text = f" ({integrante['alias']})" if integrante['alias'] else ""
-                message += f"{i}. *{nombre_completo}*{alias_text}\n"
+                message += f"{i}. <b>{nombre_completo}</b>{alias_text}\n"
             message += "\nEspecifica más el nombre o alias para obtener información detallada."
-            await update.message.reply_text(message, parse_mode='Markdown')
+            await update.message.reply_text(message, parse_mode='HTML')
             return
         
         # Un solo resultado, mostrar información completa
@@ -1233,22 +1276,22 @@ async def buscar_integrante(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Construir mensaje con información del integrante
         nombre_completo = integrante['nombre_completo']
         
-        message = f"👤 *Información del Integrante*\n\n"
-        message += f"*Nombre completo:* {nombre_completo}\n"
+        message = f"👤 <b>Información del Integrante</b>\n\n"
+        message += f"<b>Nombre completo:</b> {nombre_completo}\n"
         
         if integrante['alias']:
-            message += f"*Alias:* {integrante['alias']}\n"
+            message += f"<b>Alias:</b> {integrante['alias']}\n"
         
         if integrante['fecha_nacimiento']:
-            message += f"*Fecha de nacimiento:* {integrante['fecha_nacimiento']}\n"
+            message += f"<b>Fecha de nacimiento:</b> {integrante['fecha_nacimiento']}\n"
         
         if integrante['pandilla_nombre']:
-            message += f"*Pandilla:* {integrante['pandilla_nombre']}\n"
+            message += f"<b>Pandilla:</b> {integrante['pandilla_nombre']}\n"
         
         # Crear botón de Google Maps si hay dirección
         reply_markup = None
         if integrante['direccion']:
-            message += f"*Dirección:* {integrante['direccion']}\n"
+            message += f"<b>Dirección:</b> {integrante['direccion']}\n"
             # Crear botón para ver en Google Maps
             direccion_codificada = quote_plus(integrante['direccion'])
             google_maps_url = f"https://www.google.com/maps/search/?api=1&query={direccion_codificada}"
@@ -1257,39 +1300,48 @@ async def buscar_integrante(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         # Delitos asociados
         if integrante['delitos']:
-            message += f"\n*Delitos asociados:*\n"
+            message += f"\n<b>Delitos asociados:</b>\n"
             for delito in integrante['delitos'][:10]:  # Limitar a 10
                 message += f"  • {delito['nombre']}\n"
         else:
-            message += f"\n*Delitos asociados:* Ninguno registrado\n"
+            message += f"\n<b>Delitos asociados:</b> Ninguno registrado\n"
         
         # Faltas asociadas
         if integrante['faltas']:
-            message += f"\n*Faltas asociadas:*\n"
+            message += f"\n<b>Faltas asociadas:</b>\n"
             for falta in integrante['faltas'][:10]:  # Limitar a 10
                 message += f"  • {falta['nombre']}\n"
         else:
-            message += f"\n*Faltas asociadas:* Ninguna registrada\n"
+            message += f"\n<b>Faltas asociadas:</b> Ninguna registrada\n"
         
         # Enviar mensaje de texto primero
-        await update.message.reply_text(message, parse_mode='Markdown', reply_markup=reply_markup)
+        try:
+            await send_message_with_retry(update, message, parse_mode='HTML', reply_markup=reply_markup)
+        except Exception as e:
+            logger.error(f"No se pudo enviar mensaje de información del integrante: {e}")
+            await send_message_with_retry(update, f"❌ Error al mostrar información del integrante.")
+            return
         
         # Enviar fotografía si existe
         if imagen_url:
             try:
                 await update.message.reply_photo(photo=imagen_url, caption=f"📷 Fotografía de {nombre_completo}")
+            except TimedOut:
+                logger.warning(f"Timeout al enviar imagen desde URL {imagen_url}")
+                await send_message_with_retry(update, f"⚠️ La fotografía no se pudo cargar por timeout de red")
             except Exception as e:
                 logger.warning(f"No se pudo enviar la imagen desde URL {imagen_url}: {e}")
-                await update.message.reply_text(f"⚠️ No se pudo cargar la fotografía desde: {imagen_url}")
+                await send_message_with_retry(update, f"⚠️ No se pudo cargar la fotografía")
         else:
-            await update.message.reply_text("ℹ️ No hay fotografía registrada para este integrante.")
+            await send_message_with_retry(update, "ℹ️ No hay fotografía registrada para este integrante.")
         
     except Exception as e:
         logger.error(f"Error al buscar integrante: {e}", exc_info=True)
-        error_msg = f"❌ Error al buscar el integrante: {str(e)}"
-        if len(error_msg) > 4000:
-            error_msg = error_msg[:4000]
-        await update.message.reply_text(error_msg)
+        error_msg = f"❌ Error al buscar el integrante"
+        try:
+            await send_message_with_retry(update, error_msg)
+        except Exception:
+            pass
 
 
 async def main_async():
@@ -1300,6 +1352,7 @@ async def main_async():
     
     # Verificar conexión a la base de datos (usar sync_to_async para operaciones síncronas)
     try:
+        logger.info("=" * 60)
         logger.info("Verificando conexión a la base de datos...")
         total_usuarios = await sync_to_async(Usuario.objects.count)()
         logger.info(f"✅ Conexión a BD exitosa. Total de usuarios: {total_usuarios}")
@@ -1309,30 +1362,41 @@ async def main_async():
             usuarios_ejemplo = await sync_to_async(list)(Usuario.objects.all()[:3])
             correos_ejemplo = [u.correo for u in usuarios_ejemplo]
             logger.info(f"Correos de ejemplo en BD: {correos_ejemplo}")
+            
+            # Verificar AUTH_USER_MODEL
+            from django.conf import settings
+            logger.info(f"AUTH_USER_MODEL configurado: {settings.AUTH_USER_MODEL}")
+            logger.info(f"AUTHENTICATION_BACKENDS: {getattr(settings, 'AUTHENTICATION_BACKENDS', 'No configurado (usando default)')}")
         else:
             logger.warning("⚠️ No hay usuarios en la base de datos")
+        logger.info("=" * 60)
     except Exception as e:
         logger.error(f"❌ Error al conectar con la base de datos: {e}", exc_info=True)
         logger.error("Asegúrate de que MySQL esté corriendo y la base de datos esté configurada correctamente")
+        logger.error("=" * 60)
     
     # Crear aplicación del bot
     application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
     
     # Crear ConversationHandler para autenticación
-    # IMPORTANTE: No incluir /start en fallbacks para evitar que se reinicie el proceso
     auth_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
             WAITING_EMAIL: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, receive_email),
-                # Permitir que /start cancele y reinicie si están en medio de autenticación
             ],
-            WAITING_PASSWORD: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_password)],
+            WAITING_PASSWORD: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, receive_password),
+            ],
         },
-        fallbacks=[CommandHandler("cancel", cancel)],
-        # No permitir que otros comandos interrumpan la conversación
+        fallbacks=[
+            CommandHandler("cancel", cancel),
+            CommandHandler("start", start)  # Permitir reiniciar el proceso en cualquier momento
+        ],
+        # Configuración para manejar conversaciones por usuario y chat
         per_chat=True,
         per_user=True,
+        allow_reentry=True  # Permitir reiniciar la conversación
     )
     
     # Registrar handlers - IMPORTANTE: ConversationHandler debe ir primero
@@ -1352,23 +1416,22 @@ async def main_async():
     logger.info("Bot iniciado. Presiona Ctrl+C para detener.")
     
     # Iniciar el bot usando el context manager (versión 21.x)
-    async with application:
-        await application.start()
-        await application.updater.start_polling(
-            allowed_updates=Update.ALL_TYPES,
-            drop_pending_updates=True
-        )
-        # Mantener el bot corriendo indefinidamente
-        # Usar un bucle infinito con sleep para mantener el bot activo
-        # Ctrl+C se capturará en el nivel superior (en main())
-        try:
+    # El context manager maneja automáticamente start/stop
+    try:
+        async with application:
+            await application.start()
+            await application.updater.start_polling(
+                allowed_updates=Update.ALL_TYPES,
+                drop_pending_updates=True
+            )
+            # Mantener el bot corriendo indefinidamente
+            # Ctrl+C se capturará en el nivel superior (en main())
             while True:
                 await asyncio.sleep(1)
-        except asyncio.CancelledError:
-            pass
-        finally:
-            await application.updater.stop()
-            await application.stop()
+    except (KeyboardInterrupt, asyncio.CancelledError):
+        logger.info("Señal de detención recibida, cerrando bot...")
+    except Exception as e:
+        logger.error(f"Error en el bot: {e}", exc_info=True)
 
 
 def main():

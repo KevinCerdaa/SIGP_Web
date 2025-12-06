@@ -74,6 +74,11 @@ WSGI_APPLICATION = 'sigp_backend.wsgi.application'
 # Configurar modelo de usuario personalizado
 AUTH_USER_MODEL = 'api.Usuario'
 
+# Backend de autenticación personalizado
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',  # Backend por defecto de Django
+]
+
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
@@ -144,7 +149,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # REST Framework configuration
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+        'api.authentication.OptionalTokenAuthentication',  # Autenticación opcional personalizada
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
@@ -156,6 +161,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PARSER_CLASSES': [
         'rest_framework.parsers.JSONParser',
     ],
+    'EXCEPTION_HANDLER': 'api.exceptions.custom_exception_handler',  # Manejador personalizado de excepciones
 }
 
 # CORS configuration

@@ -1,0 +1,372 @@
+================================================================================
+              GUÍA DE INSTALACIÓN Y EJECUCIÓN - SIGP WEB
+================================================================================
+
+PROYECTO: Sistema de Identificación de Grupos Pandilleriles
+STACK: Django + MySQL + HTML/CSS/JS
+AUTORES: Kevin Francisco Cerda Esparza, Eric Yael Hernández Hernández, Fernando Jesus Sanchez Flores
+
+================================================================================
+0. RESUMEN RÁPIDO
+================================================================================
+
+1. Instalar XAMPP → Iniciar MySQL
+2. Crear base de datos "pandillas" en phpMyAdmin
+3. Instalar Python (con PATH)
+4. Abrir PowerShell en backend_django
+5. Ejecutar: .\backend_django\iniciar_servidor.ps1
+6. Abrir index.html con Live Server (EXTENSION DE VISUAL STUDIO CODE, CURSOR O ANTIGRAVITY)
+7. Listo ✓
+
+NOTA: El script iniciar_servidor.ps1 hace todo automáticamente
+      (instala dependencias, crea entorno virtual, verifica MySQL)
+
+================================================================================
+1. REQUISITOS PREVIOS (INSTALAR EN ORDEN)
+================================================================================
+
+✓ XAMPP (con MySQL)
+  - Descargar: https://www.apachefriends.org/download.html
+  - Componentes necesarios: MySQL
+  - Al instalar, solo marcar: MySQL, Apache (opcional)
+
+✓ Python 3.13.7 o superior
+  - Descargar: https://www.python.org/downloads/
+  - IMPORTANTE: Marcar "Add Python to PATH" durante la instalación
+  - Verificar: Abrir PowerShell y ejecutar: python --version
+
+✓ Cursor, Visual Studio Code o Google Antigravity
+  - Descargar Cursor: https://cursor.com/download
+  - IMPORTANTE INSTALAR EXTENSIÓN LIVE SERVER
+  - En caso de error con el servidor o cualquier cosa que no quede clara, preguntar al chatbot
+    incluido en Cursor...
+    -> Prompt sugerido si falla algo de Python o el servidor: Revisa el proyecto y ajustalo a la
+    versión de Python que tengo instalada en mi computadora, revisa dependencias faltantes, o errores
+    con el servidor de Python y Telegram. Instala las dependencias necesarias y ejecuta automáticamente
+    el servidor en la terminal integrada para solucionar todos los errores posibles.
+    
+    ^ COPIAR Y PEGAR ESTO EN EL CHAT BOT DEL LADO DERECHO DE CURSOR
+
+================================================================================
+2. PREPARAR LA BASE DE DATOS
+================================================================================
+
+PASO 2.1: Iniciar MySQL en XAMPP
+    - Abrir Panel de Control de XAMPP
+    - Click en "Start" junto a MySQL
+    - Debe mostrar estado "Running" en verde
+
+PASO 2.2: Importar Base de Datos
+    - Abrir navegador: http://localhost/phpmyadmin
+    - Click en "Nueva" (crear base de datos)
+    - Nombre: pandillas
+    - Intercalación: utf8mb4_general_ci
+    - Click en "Crear"
+    - Seleccionar base de datos "pandillas"
+    - Click en pestaña "Importar"
+    - Seleccionar archivo pandillas.sql (incluido en la carpeta raiz y llamada pandillas.sql)
+    - Click en "Continuar"
+    - Esperar mensaje de éxito
+
+================================================================================
+3. CONFIGURAR EL PROYECTO
+================================================================================
+
+PASO 3.1: Abrir PowerShell en la carpeta del proyecto
+    - Click derecho en la carpeta SIGP_Web
+    - "Abrir en Terminal" o "Open PowerShell window here"
+    - Navegar a backend_django:
+      cd SIGP_Web\backend_django
+
+PASO 3.2: Instalar dependencias (AUTOMÁTICO)
+    - El script de inicio instalará todo automáticamente
+    - Si prefieres hacerlo manual:
+      python -m venv venv
+      .\venv\Scripts\Activate.ps1
+      pip install -r requirements.txt
+
+PASO 3.3: Aplicar migraciones (crear tablas)
+    - Con el entorno virtual activado:
+      python manage.py migrate
+
+    NOTA: Este paso crea las tablas en la base de datos si no existen
+
+================================================================================
+4. INICIAR EL SERVIDOR (FORMA RÁPIDA)
+================================================================================
+
+OPCIÓN A: Script Automático (RECOMENDADO)
+    cd SIGP_Web\backend_django
+    .\iniciar_servidor.ps1
+
+    El script hace todo automáticamente:
+    ✓ Verifica/crea entorno virtual
+    ✓ Instala dependencias faltantes
+    ✓ Verifica conexión a MySQL
+    ✓ Inicia servidor en http://localhost:8000
+
+OPCIÓN B: Manual
+    cd SIGP_Web\backend_django
+    .\venv\Scripts\Activate.ps1
+    python manage.py runserver
+
+================================================================================
+5. PROBAR EL PROYECTO
+================================================================================
+
+PASO 5.1: Verificar que el servidor esté corriendo
+    - Debes ver en PowerShell:
+      "Starting development server at http://127.0.0.1:8000/"
+
+PASO 5.2: Abrir el Frontend
+    - Opción 1: Usar Live Server en Visual Studio Code, Cursor o Antigravity
+      - Instalar extensión "Live Server"
+      - Click derecho en index.html > "Open with Live Server"
+      - Se abre en http://localhost:5500
+
+    - Opción 2: Abrir directamente el archivo (PUEDE NO FUNCIONAR BIEN)
+      - Navegar a SIGP_Web\SIGP_Web\index.html
+      - Doble click para abrir en navegador
+      NOTA: Algunas funciones pueden no trabajar sin servidor
+
+PASO 5.3: Probar Login
+    - Usuario por defecto (si existe en la BD):
+      Correo: admin@example.com
+      Contraseña: admin123
+
+    - Si no existe usuario, crear uno:
+      python manage.py shell
+      
+      Luego en el shell de Python:
+      from api.models import Usuario
+      Usuario.objects.create_user(
+          correo='admin@example.com',
+          password='admin123',
+          nombre='Admin',
+          apellido='Usuario',
+          user_name='admin',
+          rol='admin'
+      )
+      exit()
+
+================================================================================
+6. ERRORES COMUNES Y SOLUCIONES
+================================================================================
+
+❌ ERROR: "No module named 'django'"
+✓ SOLUCIÓN:
+    - Activar entorno virtual: .\venv\Scripts\Activate.ps1
+    - Instalar dependencias: pip install -r requirements.txt
+
+❌ ERROR: "Can't connect to MySQL server"
+✓ SOLUCIÓN:
+    - Abrir XAMPP y verificar que MySQL esté corriendo (verde)
+    - Verificar puerto en .env (DB_PORT=3306)
+    - Verificar credenciales en .env
+
+❌ ERROR: "Access denied for user 'root'@'localhost'"
+✓ SOLUCIÓN:
+    - Verificar DB_PASSWORD en .env
+    - Por defecto XAMPP no tiene contraseña (dejar vacío)
+
+❌ ERROR: "Unknown database 'pandillas'"
+✓ SOLUCIÓN:
+    - Crear base de datos en phpMyAdmin (ver paso 2.2)
+    - Verificar DB_NAME en .env
+
+❌ ERROR: "Cannot run script because PowerShell execution policy"
+✓ SOLUCIÓN:
+    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+❌ ERROR: "Port 8000 is already in use"
+✓ SOLUCIÓN:
+    - Cerrar otras instancias del servidor
+    - O usar otro puerto: python manage.py runserver 8001
+
+❌ ERROR: Frontend no se conecta con el backend
+✓ SOLUCIÓN:
+    - Verificar que el servidor esté corriendo en localhost:8000
+    - Abrir consola del navegador (F12) para ver errores
+    - Usar Live Server para servir el frontend (no abrir archivo directamente)
+
+❌ ERROR: "CORS error" en el navegador
+✓ SOLUCIÓN:
+    - Ya está configurado django-cors-headers en el backend
+    - Verificar que CORS_ALLOWED_ORIGINS en settings.py incluya tu URL
+    - Por defecto permite: http://localhost:5500 y http://127.0.0.1:5500
+
+================================================================================
+7. RECOMENDACIONES DEL SERVIDOR
+================================================================================
+
+SEGURIDAD:
+✓ NO usar DEBUG=True en producción
+✓ Cambiar SECRET_KEY en producción
+✓ Configurar contraseña para MySQL
+✓ Usar HTTPS en producción
+
+RENDIMIENTO:
+✓ El servidor de desarrollo NO es para producción
+✓ Para producción usar: Gunicorn + Nginx
+✓ Activar caché en producción
+✓ Optimizar consultas a base de datos
+
+BASE DE DATOS:
+✓ Hacer respaldos periódicos de la BD
+✓ Comando para respaldar:
+  mysqldump -u root -p pandillas > backup_pandillas.sql
+
+✓ Comando para restaurar:
+  mysql -u root -p pandillas < backup_pandillas.sql
+
+MANTENIMIENTO:
+✓ Revisar logs en caso de errores
+✓ Mantener Python y dependencias actualizadas
+✓ Documentar cambios en la base de datos
+✓ Probar en ambiente de desarrollo antes de producción
+
+================================================================================
+8. COMANDOS ÚTILES
+================================================================================
+
+# Ver migraciones pendientes
+python manage.py showmigrations
+
+# Crear migraciones después de cambios en models.py
+python manage.py makemigrations
+
+# Aplicar migraciones
+python manage.py migrate
+
+# Crear superusuario de Django
+python manage.py createsuperuser
+
+# Acceder al panel de administración de Django
+http://localhost:8000/admin/
+
+# Verificar estado del sistema
+python manage.py check
+
+# Shell interactivo de Django
+python manage.py shell
+
+# Ver todas las rutas disponibles
+python manage.py show_urls
+
+# Crear respaldo de base de datos
+cd C:\xampp\mysql\bin
+.\mysqldump.exe -u root pandillas > C:\backup\pandillas.sql
+
+================================================================================
+9. ESTRUCTURA DEL PROYECTO
+================================================================================
+
+SIGP_Web/
+├── backend_django/              # Backend Django
+│   ├── api/                     # App principal (modelos, vistas, APIs)
+│   ├── sigp_backend/            # Configuración Django
+│   ├── telegram_bot/            # Bot de Telegram (opcional)
+│   ├── media/                   # Archivos subidos (imágenes)
+│   ├── venv/                    # Entorno virtual (generado)
+│   ├── manage.py                # Comando principal Django
+│   ├── requirements.txt         # Dependencias Python
+│   ├── .env                     # Configuración (CREAR MANUALMENTE)
+│   ├── iniciar_servidor.ps1     # Script de inicio automático
+│   └── verificar_mysql.py       # Verificar conexión MySQL
+│
+└── SIGP_Web/
+    ├── frontend/                # Archivos del frontend
+    │   ├── components/          # Componentes HTML reutilizables
+    │   ├── javascript/          # Scripts JS
+    │   ├── pages/               # Páginas HTML
+    │   └── styles/              # CSS (Tailwind)
+    └── index.html               # Página principal
+
+================================================================================
+10. ENDPOINTS DE LA API (REFERENCIA)
+================================================================================
+
+Autenticación:
+  POST   /api/auth/login/       - Iniciar sesión
+  POST   /api/auth/logout/      - Cerrar sesión
+  GET    /api/auth/user/        - Obtener usuario actual
+
+Usuarios:
+  GET    /api/usuarios/         - Listar usuarios (admin)
+  POST   /api/usuarios/         - Crear usuario
+  GET    /api/usuarios/{id}/    - Detalle de usuario
+  PUT    /api/usuarios/{id}/    - Actualizar usuario
+  DELETE /api/usuarios/{id}/    - Eliminar usuario
+
+Pandillas:
+  GET    /api/pandillas/        - Listar pandillas
+  POST   /api/pandillas/        - Crear pandilla
+  GET    /api/pandillas/{id}/   - Detalle de pandilla
+  PUT    /api/pandillas/{id}/   - Actualizar pandilla
+  DELETE /api/pandillas/{id}/   - Eliminar pandilla
+
+Integrantes:
+  GET    /api/integrantes/      - Listar integrantes
+  POST   /api/integrantes/      - Crear integrante
+  GET    /api/integrantes/{id}/ - Detalle de integrante
+  PUT    /api/integrantes/{id}/ - Actualizar integrante
+  DELETE /api/integrantes/{id}/ - Eliminar integrante
+
+Eventos:
+  GET    /api/eventos/          - Listar eventos
+  POST   /api/eventos/          - Crear evento
+  GET    /api/eventos/{id}/     - Detalle de evento
+  PUT    /api/eventos/{id}/     - Actualizar evento
+  DELETE /api/eventos/{id}/     - Eliminar evento
+
+Utilidades:
+  GET    /api/health/           - Estado del servidor
+
+================================================================================
+11. RESUMEN RÁPIDO
+================================================================================
+
+1. Instalar XAMPP → Iniciar MySQL
+2. Crear base de datos "pandillas" en phpMyAdmin
+3. Instalar Python (con PATH)
+4. Abrir PowerShell en backend_django
+5. Ejecutar: .\iniciar_servidor.ps1
+6. Abrir index.html con Live Server
+7. Listo ✓
+
+NOTA: El script iniciar_servidor.ps1 hace todo automáticamente
+      (instala dependencias, crea entorno virtual, verifica MySQL)
+
+================================================================================
+12. CONTACTO Y SOPORTE
+================================================================================
+
+Si encuentras problemas:
+1. Revisar consola de PowerShell (errores del servidor)
+2. Revisar consola del navegador - F12 (errores del frontend)
+3. Revisar logs de MySQL en XAMPP
+4. Consultar esta guía sección 6 (Errores Comunes)
+
+Archivos de log importantes:
+- PowerShell donde corre el servidor (errores Django)
+- Consola del navegador F12 (errores JavaScript)
+- XAMPP Control Panel → MySQL Logs
+
+================================================================================
+                              ¡LISTO PARA USAR!
+================================================================================
+
+Una vez que el servidor esté corriendo y el frontend abierto, deberías poder:
+✓ Iniciar sesión con credenciales
+✓ Ver mapa con pandillas
+✓ Consultar integrantes y eventos
+✓ Crear, editar y eliminar registros (según permisos)
+
+El proyecto corre en:
+- Backend:  http://localhost:8000
+- Frontend: http://localhost:5500 (con Live Server)
+
+Para detener el servidor: Presionar Ctrl+C en PowerShell
+
+================================================================================
+
